@@ -55,13 +55,22 @@ Inside the rollout container both sets of vars are available via `os.environ`.
 
 ## Eval configs (`eval/*.toml`)
 
+Start from the default template:
+
+```bash
+cp configs/eval/default.toml configs/eval/<run_name>.toml
+```
+
 Use one eval config per rollout baseline. `entrypoint` should usually be `main.py`.
+Local datasets should point at `data/*.jsonl`; use `[eval].limit` to run a
+smaller sample without creating a second dataset file.
 
 ```toml
 [eval]
 rollout = "calculator"
 entrypoint = "main.py"
 dataset = "data/calculator.jsonl"
+limit = 200
 
 [llm]
 model = "openai/gpt-5-mini"

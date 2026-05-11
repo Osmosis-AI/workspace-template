@@ -30,6 +30,7 @@ coverage.xml
 # ── Environment / secrets ────────────────────────────
 .env
 .env.*
+!.env.example
 
 # ── Agent tooling (personal overrides only) ──────────
 # `.claude/settings.json` is committed — it registers the osmosis plugin

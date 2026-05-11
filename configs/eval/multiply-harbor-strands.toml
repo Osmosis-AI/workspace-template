@@ -1,0 +1,25 @@
+# Multiply eval - Harbor Strands backend.
+# Command: osmosis eval run configs/eval/multiply-harbor-strands.toml
+
+[eval]
+rollout = "multiply-harbor-strands"
+entrypoint = "main.py"
+# Use the full local dataset and cap rows here instead of keeping a separate sample file.
+dataset = "data/multiply.jsonl"
+limit = 200
+
+[llm]
+model = "openai/gpt-5-mini"
+api_key_env = "OPENAI_API_KEY"
+
+[runs]
+n = 1
+batch_size = 1
+pass_threshold = 1.0
+
+[timeouts]
+agent_workflow_timeout_s = 450
+grader_timeout_s = 150
+
+[output]
+log_samples = false
