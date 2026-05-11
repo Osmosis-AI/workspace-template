@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "osmosis": {
+      "source": {
+        "source": "github",
+        "repo": "Osmosis-AI/osmosis-plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "osmosis@osmosis": true
+  }
+}
