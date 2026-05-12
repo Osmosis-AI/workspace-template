@@ -88,7 +88,7 @@ before modifying plugin state.
 ## Common commands
 
 ```bash
-osmosis project validate
+osmosis project doctor
 osmosis rollout validate configs/eval/<name>.toml
 osmosis rollout validate configs/training/<run>.toml
 osmosis eval run configs/eval/<name>.toml

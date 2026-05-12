@@ -11,8 +11,8 @@ pip install -e .
 # Authenticate with Osmosis
 osmosis auth login
 
-# Verify the canonical project layout
-osmosis project validate
+# Inspect the canonical project layout
+osmosis project doctor
 ```
 
 For AI agents or automation, use `osmosis --json ...` for structured output or

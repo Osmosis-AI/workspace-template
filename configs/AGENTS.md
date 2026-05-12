@@ -83,7 +83,7 @@ batch_size = 2
 ## Commands
 
 ```bash
-osmosis project validate
+osmosis project doctor
 osmosis rollout validate configs/training/<config>.toml
 osmosis rollout validate configs/eval/<config>.toml
 osmosis train submit configs/training/<config>.toml
