@@ -6,14 +6,16 @@ rollout = "multiply-local-openai"
 entrypoint = "main.py"
 model_path = "Qwen/Qwen3.6-35B-A3B"
 # Training datasets are platform dataset names, not local data/*.jsonl paths.
-dataset = "multiply_1k-2026-04-13-66b645-2026-05-06-dffd06"
+dataset = "multiply"
 # commit_sha =
 
 [training]
+# Optional. Omit values to use platform defaults.
+# Uncomment a field only when you want to override platform behavior.
 # lr = 1e-6
 # total_epochs = 1
 # n_samples_per_prompt = 8
-# rollout_batch_size = 64
+# rollout_batch_size = 32
 # max_prompt_length = 8192
 # max_response_length = 8192
 # agent_workflow_timeout_s = 450
@@ -24,5 +26,5 @@ dataset = "multiply_1k-2026-04-13-66b645-2026-05-06-dffd06"
 # rollout_top_p = 1.0
 
 [checkpoints]
-# eval_interval =
+# eval_interval = 10
 # checkpoint_save_freq = 20

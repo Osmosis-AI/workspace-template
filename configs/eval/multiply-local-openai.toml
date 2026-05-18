@@ -4,9 +4,8 @@
 [eval]
 rollout = "multiply-local-openai"
 entrypoint = "main.py"
-# Use the full local dataset and cap rows here instead of keeping a separate sample file.
-dataset = "data/multiply.jsonl"
-limit = 200
+dataset = "data/multiply.jsonl" # Full local dataset; cap rows here instead of using a sample file
+limit = 200                     # Optional row cap for local eval
 
 [llm]
 model = "openai/gpt-5-mini"
