@@ -126,8 +126,8 @@ This workspace includes project-local Agent Skills in `.agents/skills/`:
 
 `AGENTS.md` contains the always-loaded workspace contract. `CLAUDE.md` imports that contract for Claude Code, and `.claude/skills/<skill-name>` symlinks expose the same skills while pointing back to the canonical `.agents` directories.
 
-A useful prompt for a coding agent:
+A useful initial prompt for a coding agent:
 
 ```text
-I want to train a model for <my task domain>. Propose a good method to generate a small synthetic dataset under data/, create or adapt an initial rollout and grader for the task, run a quick local eval baseline, inspect the results, and recommend how we should iterate before submitting training.
+I want to train a model for <task> in this Osmosis workspace. Start with the `plan-training` skill: read the workspace instructions, help me settle the dataset plan, and propose the next step before creating rollouts, running evals, or submitting training.
 ```
