@@ -9,7 +9,7 @@ dataset = "data/<your-dataset>.jsonl" # Local eval dataset under data/
 # limit = 200                         # Optional row cap for local eval
 
 [llm]
-model = "openai/gpt-5-mini"           # Model used for rollout LLM calls
+model = "openai/gpt-5.5"             # Current latest eval model; keep provider/model format
 # api_key_env = "OPENAI_API_KEY"      # Environment variable containing the API key
 # base_url = "http://localhost:8080"  # Optional custom API base URL
 

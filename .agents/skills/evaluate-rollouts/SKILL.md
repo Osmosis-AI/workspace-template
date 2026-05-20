@@ -13,8 +13,9 @@ Use fast local evals to decide what to keep, fix, or try next. A clean eval also
 2. Run `osmosis --json doctor`.
 3. Identify the target rollout and `configs/eval/<name>.toml`.
 4. If creating an eval config, copy from `configs/eval/default.toml`; if it is missing, use `references/eval-default.toml`.
-5. If rollout dependencies changed, run `pip install -e rollouts/<name>` before eval.
-6. Use `--fresh` after changing rollout files, configs, datasets, dependencies, or anything not covered by eval cache invalidation.
+5. For eval configs, set `[llm].model` to `openai/gpt-5.5` for the current latest eval model; if changing this later, verify the replacement with LiteLLM or current SDK docs. Do not preserve stale model names from older examples, and do not use the invalid spelling `gpt5.5`.
+6. If rollout dependencies changed, run `pip install -e rollouts/<name>` before eval.
+7. Use `--fresh` after changing rollout files, configs, datasets, dependencies, or anything not covered by eval cache invalidation.
 
 ## Core loop
 

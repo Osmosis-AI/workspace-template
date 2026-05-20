@@ -7,7 +7,7 @@ description: Use when an Osmosis rollout has passed local eval and the user want
 
 Submit only after every gate below is green.
 
-- Config `dataset` is a **platform dataset name** from `osmosis --json dataset list`, not a `data/` path.
+- Config `dataset` is a **platform dataset name** from `osmosis --json dataset list`, not a `dataset_id` and not a `data/` path.
 - The configured `entrypoint` is a **server** cloned from Git and run during training; it is often `main.py` but does not have to be.
 - `osmosis --json train submit ... --yes` starts a managed training run. Use `--yes` only after the user has explicitly confirmed submission intent.
 
@@ -49,7 +49,7 @@ Commit and push the intended revision. Push to the default branch for Git Sync, 
 
 ### D. Training config completeness
 
-Start from `configs/training/default.toml` when creating a new training config; if it is missing, use `references/training-default.toml`. Ensure `[experiment]` has real `rollout`, `entrypoint`, `model_path`, and platform `dataset` values; no `<your-...>` placeholders. Read `references/training-config-gates.md` when editing config fields, env/secrets, or remote rollout concurrency.
+If the rollout was already created with `osmosis --json rollout init <name>` and `configs/training/<name>.toml` exists, edit that original config instead of creating a new training TOML. Only start from `configs/training/default.toml` when no rollout-specific training config exists; if it is missing, use `references/training-default.toml`. Ensure `[experiment]` has real `rollout`, `entrypoint`, `model_path`, and platform dataset name values; no `<your-...>` placeholders and no `dataset_id`. Include training config edits in the intended commit before submit. Read `references/training-config-gates.md` when editing config fields, env/secrets, or remote rollout concurrency.
 
 ## Submit
 
