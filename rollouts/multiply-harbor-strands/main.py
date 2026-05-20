@@ -204,7 +204,7 @@ def main() -> None:
     )
 
     app = create_rollout_server(backend=backend)
-    port = int(os.environ.get("ROLLOUT_PORT", "8000"))
+    port = int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000"))
     logger.info(
         "Harbor rollout server starting on http://0.0.0.0:%d (environment=%s)",
         port,

@@ -131,7 +131,7 @@ def main() -> None:
         grader_config=multiply_grader_config,
     )
     app = create_rollout_server(backend=backend)
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("ROLLOUT_PORT", "8000")))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000")))
 
 
 if __name__ == "__main__":
