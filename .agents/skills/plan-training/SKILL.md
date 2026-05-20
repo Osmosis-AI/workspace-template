@@ -21,7 +21,9 @@ Before writing any rollout code, settle the dataset. Ask the user which case app
 1. **Local sample file already on disk**
    - Place it at `data/<name>.jsonl` (or `.csv` / `.parquet`).
    - Run `osmosis --json dataset validate <path>` and inspect `warnings`.
-   - Read 5-10 rows to confirm every row has non-empty string `system_prompt`, `user_prompt`, and `ground_truth`, and note the actual `ground_truth` format (numeric string? JSON? free text?).
+   - If validation fails because the source schema differs from Osmosis' expected row shape, inspect 5-10 rows and ask the user to confirm the intended field mapping.
+   - When the source has enough information, create one normalized dataset copy under `data/<name>.jsonl` with the expected columns, preserve the original file, then validate and inspect the normalized copy before continuing.
+   - Read 5-10 normalized rows to confirm every row has non-empty string `system_prompt`, `user_prompt`, and `ground_truth`, and note the actual `ground_truth` format (numeric string? JSON? free text?).
 
 2. **Already uploaded to the Osmosis platform**
    - List with `osmosis --json dataset list` and confirm the name is in the active workspace.
@@ -55,5 +57,6 @@ Record the dataset decision, hypotheses, eval plan, and stop conditions in `.osm
 
 - Do not skip the dataset decision; the rollout has nothing to bind to without it.
 - Do not invent benchmark examples. Generate sample rows only after the user has agreed on the use case.
+- Do not design rollout or grader logic around a non-conforming raw dataset schema when a one-time normalization step can produce the expected dataset contract.
 - Do not launch platform training from planning.
 - Keep all artifacts in canonical Osmosis project paths.

@@ -51,4 +51,4 @@ osmosis --json eval run configs/eval/<name>.toml --limit 1 --fresh
 
 A clean `eval run` is the local smoke test for the same server, workflow, and grader that training will use.
 
-If a matching training config exists, inspect it now but do not submit training from this skill. `osmosis --json train submit configs/training/<run>.toml --yes` performs the current SDK preflight when the user is ready to train.
+If a matching training config exists, inspect and update that original file now, then include the config changes in the intended commit when the user is ready to prepare training. Do not submit training from this skill. `osmosis --json train submit configs/training/<run>.toml --yes` performs the current SDK preflight when the user is ready to train.
