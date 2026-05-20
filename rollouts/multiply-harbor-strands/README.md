@@ -7,8 +7,8 @@ inside this rollout folder under `multiply_harbor_task/`.
 Run from the project root:
 
 ```bash
-osmosis --json rollout validate configs/eval/multiply-harbor-strands.toml
-osmosis --json eval run configs/eval/multiply-harbor-strands.toml
+osmosis --json doctor
+osmosis --json eval run configs/eval/multiply-harbor-strands.toml --limit 1 --fresh
 osmosis --json train submit configs/training/multiply-harbor-strands.toml
 ```
 

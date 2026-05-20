@@ -7,7 +7,7 @@ integration. The workflow, tool, grader, and server entrypoint all live in
 Run from the project root:
 
 ```bash
-osmosis --json rollout validate configs/eval/multiply-local-openai.toml
-osmosis --json eval run configs/eval/multiply-local-openai.toml
+osmosis --json doctor
+osmosis --json eval run configs/eval/multiply-local-openai.toml --limit 1 --fresh
 osmosis --json train submit configs/training/multiply-local-openai.toml
 ```
