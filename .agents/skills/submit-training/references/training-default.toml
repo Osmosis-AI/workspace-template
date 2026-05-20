@@ -1,7 +1,6 @@
-# Osmosis Training Configuration
-# Copy and customize this file for your training run.
-#
-# Command: osmosis train submit configs/training/<your-config>.toml
+# Osmosis training config fallback.
+# Use when configs/training/default.toml is missing from a generated workspace.
+# Command after copying: osmosis train submit configs/training/<run>.toml
 # For AI agents or automation, use `osmosis --json ...` or `osmosis --plain ...`.
 #
 # Supported models:

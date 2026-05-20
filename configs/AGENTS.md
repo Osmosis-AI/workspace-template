@@ -9,8 +9,7 @@ Configs are workspace-scoped and must stay in their canonical directories.
 
 Do not place these configs elsewhere. The CLI validates these locations.
 
-For AI agents or automation, prefer `osmosis --json ...` for structured output
-or `osmosis --plain ...` for low-noise text.
+For AI agents or automation, prefer `osmosis --json ...` for structured output or `osmosis --plain ...` for low-noise text.
 
 ## Training Configs
 
@@ -20,11 +19,12 @@ Start from the default template:
 cp configs/training/default.toml configs/training/<run-name>.toml
 ```
 
+If `configs/training/default.toml` was deleted in this workspace, recover the shape from the repo-root fallback `.agents/skills/submit-training/references/training-default.toml` instead of inventing the TOML schema from memory.
+
 Required `[experiment]` fields:
 
 - `rollout` must match a directory under `rollouts/`.
-- `entrypoint` must be a Python file relative to that rollout, usually
-  `main.py`.
+- `entrypoint` must be a Python file relative to that rollout. SDK-generated configs usually use `main.py`, but any in-rollout Python entrypoint is valid when the config names it.
 - `model_path` must be a supported base model.
 - `dataset` must be a platform dataset name from `osmosis dataset list`.
 - `commit_sha` is optional and pins training code to a specific pushed commit.
@@ -57,8 +57,7 @@ LOG_LEVEL = "INFO"
 MY_CONFIG = "some-value"
 
 [rollout.secrets]
-# Value is the name of a workspace environment_secret record, not the secret
-# value itself. The platform resolves and injects it server-side.
+# Value is the name of a workspace environment_secret record, not the secret value itself. The platform resolves and injects it server-side.
 OPENAI_API_KEY = "openai-api-key"
 ```
 
@@ -66,8 +65,7 @@ Rules:
 
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
 - The same key cannot appear in both sections.
-- Env var names starting with `_OSMOSIS_` are reserved by the platform and
-  forbidden in both sections.
+- Env var names starting with `_OSMOSIS_` are reserved by the platform and forbidden in both sections.
 
 Inside the rollout container both sets of vars are available via `os.environ`.
 
@@ -79,14 +77,14 @@ Start from the default template:
 cp configs/eval/default.toml configs/eval/<run-name>.toml
 ```
 
-Use one eval config per rollout/model setup. `entrypoint` should usually be
-`main.py`. Local datasets must point at `data/*`; use `[eval].limit` or the
-`--limit` flag for smoke tests.
+If `configs/eval/default.toml` was deleted in this workspace, recover the shape from the repo-root fallback `.agents/skills/evaluate-rollouts/references/eval-default.toml`.
+
+Use one eval config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. Local datasets must point at `data/*`; use `[eval].limit` or the `--limit` flag for smoke tests.
 
 ```toml
 [eval]
 rollout = "calculator"
-entrypoint = "main.py"
+entrypoint = "main.py" # SDK default; change this if the rollout uses another server file.
 dataset = "data/calculator.jsonl"
 limit = 200
 

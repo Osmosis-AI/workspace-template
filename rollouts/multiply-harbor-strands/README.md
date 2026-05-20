@@ -1,8 +1,6 @@
 # Multiply Harbor Strands
 
-Self-contained multiply rollout using `HarborBackend` with a Daytona Harbor
-sandbox and the Strands agent integration. The Harbor task definition is kept
-inside this rollout folder under `multiply_harbor_task/`.
+Self-contained multiply rollout using `HarborBackend` with a Daytona Harbor sandbox and the Strands agent integration. The Harbor task definition is kept inside this rollout folder under `multiply_harbor_task/`.
 
 Run from the project root:
 

@@ -1,6 +1,6 @@
 ---
 name: debug-rollouts
-description: Diagnose rollout, grader, config, eval, dataset, or training-preflight failures in a structured Osmosis project. Use when the user sees errors, low rewards, broken local evals, rollout validation failures, or train submit preflight failures.
+description: Use when Osmosis doctor, local eval, rollout server startup, grader rewards, dataset/config validation, Git readiness, environment variables, or training preflight fails or produces low/zero rewards.
 ---
 
 # Debug Rollouts
@@ -15,28 +15,22 @@ Find the smallest fix that makes the project runnable again.
 
 ## Common failure buckets
 
-1. Project structure is invalid.
-2. Config lives outside the canonical path.
-3. Entrypoint is wrong or escapes the rollout directory.
-4. Multiple workflows or graders are exported.
-5. No concrete `Grader` exists, or `Grader.grade` is not async.
-6. **Rollout entrypoint is not a server** - `main.py` is missing a backend (`LocalBackend` or `HarborBackend`), `create_rollout_server`, or `uvicorn.run`. The platform cannot serve a non-server entrypoint even if local eval still imports the workflow class.
-7. **Workflow / dataset shape mismatch** - `AgentWorkflow.run` reads fields the dataset rows do not carry, or ignores fields the dataset assumes will be used.
-8. **Grader / `ground_truth` format mismatch** - `Grader.grade` cannot parse `ctx.label` as the dataset's actual `ground_truth` format (e.g. expects a float but rows contain JSON).
-9. Local dataset path or row shape is wrong.
-10. **Platform dataset not usable** - the name in `configs/training/<run>.toml` is not in `osmosis --json dataset list` for the active workspace, status is not `uploaded`, or its schema diverges from the local copy.
-11. **Git remote not aligned** - uncommitted or unpushed code, no upstream branch, `commit_sha` pinned to an unpushed commit, or workspace has no Git Sync configured.
-12. **Missing or wrong env vars / secrets** - rollout fails at startup (`status=failed` within ~30 s) because a `[rollout.env]` key is absent or has the wrong value, or a `[rollout.secrets]` reference points to a workspace `environment_secret` record that does not exist. Pre-register secrets in the platform UI and verify names match exactly.
-13. **No rewards assigned** - `Grader.grade` returns without calling `ctx.set_sample_reward(...)` for every sample.
-14. Grader logic is too strict, too lenient, or broken.
-15. **Intermittent dropped rows** - a small number of rows (2-10) show zero reward and empty output while the rest succeed. Causes: (a) the rollout server's async event loop is blocked by synchronous calls (e.g. `mcp.list_tools_sync()`) preventing it from responding to the default 30 s HTTP timeout; wrap blocking calls in `asyncio.get_running_loop().run_in_executor(None, ...)`. (b) `agent_workflow_timeout_s` too low for long-horizon tasks; increase it in `[training]`.
+- Structure/config: missing scaffold paths, config outside canonical directories, wrong entrypoint, or entrypoint escapes `rollouts/<name>/`.
+- Discovery: zero/multiple concrete `AgentWorkflow` classes, no concrete `Grader`, or `Grader.grade` is not async.
+- Server: the configured entrypoint, often `main.py`, lacks backend construction, `create_rollout_server`, `uvicorn.run`, or `_OSMOSIS_ROLLOUT_PORT`; local eval health can also fail if port `8000` is occupied, `pyproject.toml` is missing, or imports only work from repo root. Inspect `.osmosis/cache/eval/<model>/<dataset>/user-server-<task_id>.log`.
+- Dataset contract: local path is wrong, required columns are missing, `AgentWorkflow.run` ignores `ctx.prompt`, or `Grader.grade` parses `ctx.label` differently from the real `ground_truth` format.
+- Sample/reward contract: workflow bypasses Osmosis with direct fixed-model provider calls; no sample source is registered; grader skips `ctx.set_sample_reward(...)`; reward logic is too strict, lenient, or broken.
+- Platform handoff: training config names a dataset not returned by `osmosis --json dataset list`, dataset status is not `uploaded`, schema diverges from local eval data, code is uncommitted/unpushed, `commit_sha` is not pushed, or Git Sync is not configured.
+- Runtime config: `[rollout.env]` is absent/wrong, `[rollout.secrets]` names a missing platform secret record, or reserved `_OSMOSIS_` vars are used.
+- Intermittent zero-output rows: blocked async event loop from sync calls such as `mcp.list_tools_sync()`; wrap blocking calls in `asyncio.get_running_loop().run_in_executor(None, ...)`, or raise `agent_workflow_timeout_s` for long-horizon tasks.
 
 ## Process
 
 1. Reproduce the failure with the narrowest command.
 2. Fix one issue at a time.
 3. Re-run immediately after each fix.
-4. Stop once the local baseline is healthy again.
+4. Use `--fresh` after changing datasets, rollout files, configs, or dependencies.
+5. Stop once the local baseline is healthy again.
 
 ## Useful commands
 
