@@ -79,9 +79,8 @@ Rules:
 - Both sections are optional; omit them entirely if not needed.
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
 - The same key cannot appear in both sections.
-- Reserved names (`GITHUB_CLONE_URL`, `GITHUB_TOKEN`, `ENTRYPOINT_SCRIPT`,
-  `REPOSITORY_PATH`, `TRAINING_RUN_ID`, `ROLLOUT_NAME`, `ROLLOUT_PORT`) are
-  forbidden in both sections.
+- Env var names starting with `_OSMOSIS_` are reserved by the platform and
+ forbidden in both sections.
 - Inside the container, all injected vars are available via `os.environ`.
 
 ## AI Skills

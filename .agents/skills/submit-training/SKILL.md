@@ -116,9 +116,8 @@ OPENAI_API_KEY = "openai-api-key"
 Rules:
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
 - The same key cannot appear in both sections.
-- Reserved names are forbidden: `GITHUB_CLONE_URL`, `GITHUB_TOKEN`,
-  `ENTRYPOINT_SCRIPT`, `REPOSITORY_PATH`, `TRAINING_RUN_ID`, `ROLLOUT_NAME`,
-  `ROLLOUT_PORT`.
+- Env var names starting with `_OSMOSIS_` are reserved by the platform and
+  forbidden in both sections.
 - Inside the container, all injected vars are accessible via `os.environ`.
 
 ## Submit

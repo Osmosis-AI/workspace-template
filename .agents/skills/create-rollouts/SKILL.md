@@ -16,6 +16,8 @@ Create the smallest rollout that can load, evaluate, and later train. The datase
 
 ## Required files
 
+For a blank SDK-owned scaffold, start with `osmosis --json rollout init <name>`; it writes all files below. Use `--force` only when intentionally replacing existing rollout paths.
+
 - `rollouts/<name>/main.py` - server entrypoint.
 - `rollouts/<name>/README.md`
 - `rollouts/<name>/pyproject.toml`
@@ -65,14 +67,14 @@ class MyGrader(Grader):
 def main() -> None:
     backend = LocalBackend(workflow=MyWorkflow, grader=MyGrader)
     app = create_rollout_server(backend=backend)
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("ROLLOUT_PORT", "8000")))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000")))
 
 
 if __name__ == "__main__":
     main()
 ```
 
-For a blank SDK-owned scaffold, run `osmosis --json rollout init <name>` and fill in `MyWorkflow.run()` / `MyGrader.grade()`. For worked examples, run `osmosis --json template list`, then apply one of the current multiply recipes such as `osmosis --json template apply multiply-local-strands` and adapt it to your dataset.
+For worked examples, run `osmosis --json template list`, then apply one of the current multiply recipes such as `osmosis --json template apply multiply-local-strands` and adapt it to your dataset.
 
 ## Validation
 

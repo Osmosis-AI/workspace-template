@@ -66,9 +66,8 @@ Rules:
 
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
 - The same key cannot appear in both sections.
-- Reserved names are forbidden: `GITHUB_CLONE_URL`, `GITHUB_TOKEN`,
-  `ENTRYPOINT_SCRIPT`, `REPOSITORY_PATH`, `TRAINING_RUN_ID`, `ROLLOUT_NAME`,
-  `ROLLOUT_PORT`.
+- Env var names starting with `_OSMOSIS_` are reserved by the platform and
+  forbidden in both sections.
 
 Inside the rollout container both sets of vars are available via `os.environ`.
 
