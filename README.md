@@ -1,7 +1,6 @@
 # Osmosis Workspace Repository
 
-This repository is the local source for rollouts, eval configs, training configs,
-and datasets connected to an Osmosis platform workspace.
+This repository is the local source for rollouts, eval configs, training configs, and datasets connected to an Osmosis platform workspace.
 
 ## Quick Start
 
@@ -21,14 +20,11 @@ osmosis auth login
 osmosis doctor
 ```
 
-For AI agents or automation, use `osmosis --json ...` for structured output or
-`osmosis --plain ...` for low-noise text.
+For AI agents or automation, use `osmosis --json ...` for structured output or `osmosis --plain ...` for low-noise text.
 
 ## AI-Assisted Workflow
 
-This workspace includes project-local Agent Skills in `.agents/skills/`.
-Agents that support the open Agent Skills format can use those skills for the
-standard Osmosis flow:
+This workspace includes project-local Agent Skills in `.agents/skills/`. Agents that support the open Agent Skills format can use those skills for the standard Osmosis flow:
 
 - `plan-training`
 - `create-rollouts`
@@ -36,10 +32,7 @@ standard Osmosis flow:
 - `debug-rollouts`
 - `submit-training`
 
-`AGENTS.md` contains the always-loaded workspace contract. `CLAUDE.md` imports
-that contract for Claude Code, and `.claude/skills/<skill-name>` symlinks list
-the same skills for Claude while pointing back to the canonical `.agents`
-directories.
+`AGENTS.md` contains the always-loaded workspace contract. `CLAUDE.md` imports that contract for Claude Code, and `.claude/skills/<skill-name>` symlinks list the same skills for Claude while pointing back to the canonical `.agents` directories.
 
 ## Build a Rollout
 
@@ -82,9 +75,5 @@ osmosis deployment info <checkpoint-name>
 ## Ask Your Agent
 
 ```text
-I want to train a model for <task>. Read .osmosis/research/program.md,
-create or adapt a rollout in this workspace repository, iterate locally with
-evals, and prepare a training config. Use `osmosis --json` or
-`osmosis --plain` for Osmosis CLI commands when you need machine-readable or
-low-noise output.
+I want to train a model for <task>. Read .osmosis/research/program.md, create or adapt a rollout in this workspace repository, iterate locally with evals, and prepare a training config. Use `osmosis --json` or `osmosis --plain` for Osmosis CLI commands when you need machine-readable or low-noise output.
 ```

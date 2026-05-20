@@ -1,0 +1,55 @@
+# Training Config Gates
+
+Read this when editing `configs/training/<run>.toml`, adding rollout env/secrets, tuning remote rollout concurrency, or explaining why `train submit` is not ready.
+
+Use `configs/training/default.toml` as the canonical local template. If it was deleted, copy `references/training-default.toml`. This reference only calls out the gates that usually need judgment.
+
+## Required Experiment Fields
+
+```toml
+[experiment]
+rollout = "my-rollout"       # directory under rollouts/
+entrypoint = "main.py"       # example server file, relative to rollout directory
+model_path = "Qwen/..."      # supported base model
+dataset = "my-dataset"       # platform dataset name, not data/*.jsonl
+# commit_sha = "..."         # optional, must be pushed
+```
+
+Reject placeholder values such as `<your-rollout>`. Keep one config per run intent.
+
+## Remote Rollout Sizing
+
+Remote Harbor/MCP-style rollout servers can time out if concurrency is too high. Effective concurrent policy calls are roughly:
+
+```text
+rollout_batch_size * n_samples_per_prompt
+```
+
+Start conservatively:
+
+```toml
+[training]
+n_samples_per_prompt = 8
+rollout_batch_size = 8
+# agent_workflow_timeout_s = 900
+# grader_timeout_s = 300
+```
+
+Use `rollout_batch_size <= 32` for 35B+ remote agents unless eval/training evidence supports a higher value.
+
+## Environment Variables and Secrets
+
+```toml
+[rollout.env]
+LOG_LEVEL = "INFO"           # visible literal, never a secret
+
+[rollout.secrets]
+OPENAI_API_KEY = "openai-api-key"  # platform secret record name
+```
+
+Rules:
+
+- Keys must match `^[A-Z_][A-Z0-9_]*$`.
+- A key cannot appear in both sections.
+- Keys starting with `_OSMOSIS_` are reserved.
+- `[rollout.secrets]` values are platform secret record names, not secret values.

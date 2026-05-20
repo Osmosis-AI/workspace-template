@@ -1,14 +1,15 @@
 ---
 name: submit-training
-description: Prepare and submit Osmosis training runs from canonical project configs. Use when the user has a validated rollout and wants to create or update a training config, tune submit-time hyperparameters, run `osmosis --json train submit`, or check training status.
+description: Use when an Osmosis rollout has passed local eval and the user wants to prepare, validate, or submit training, verify platform dataset and Git readiness, tune parameters, or inspect a run.
 ---
 
 # Submit Training
 
-Submit only after every gate below is green. Two facts shape the whole flow:
+Submit only after every gate below is green.
 
-- The training config's `dataset` is a **platform dataset name** (from `osmosis --json dataset list`), not a path under `data/`.
-- The rollout's `main.py` is a **server** the platform clones from your Git remote and runs during training.
+- Config `dataset` is a **platform dataset name** from `osmosis --json dataset list`, not a `data/` path.
+- The configured `entrypoint` is a **server** cloned from Git and run during training; it is often `main.py` but does not have to be.
+- `osmosis --json train submit ... --yes` starts a managed training run. Use `--yes` only after the user has explicitly confirmed submission intent.
 
 ## First checks
 
@@ -17,108 +18,38 @@ Submit only after every gate below is green. Two facts shape the whole flow:
 
 ## Pre-submit gates (run in order)
 
-### A. Project sanity
+### A. Project and local eval
 
 ```bash
 osmosis --json doctor
-```
-
-### B. Local eval clean
-
-```bash
 pip install -e rollouts/<name>
 osmosis --json eval run configs/eval/<name>.toml --limit 1 --fresh
 ```
 
-Then run the intended eval size without `--limit`. This is the server smoke test by proxy - the same workflow + grader objects the server would expose are exercised end-to-end. Every sample must receive a non-null reward; apply any task-specific pass threshold from `.osmosis/research/program.md`.
+Then run the intended eval size without `--limit`; every sample must receive reward and meet any threshold in `.osmosis/research/program.md`.
 
-### C. Platform dataset gate
+### B. Platform dataset gate
 
 Walk through this whenever the dataset, rollout, or grader changes:
 
-1. Decide which platform dataset to use.
-   - First-time use of a local file: upload it.
-     ```bash
-     osmosis --json dataset upload data/<name>.jsonl
-     ```
-   - Reusing an existing platform dataset: confirm it lives in the active workspace.
-     ```bash
-     osmosis --json dataset list
-     ```
-2. Inspect status and a quick preview:
-   ```bash
-   osmosis --json dataset info <dataset-name>           # status must be "uploaded"
-   osmosis --json dataset preview <dataset-name> --rows 5
-   ```
-3. Pull the platform copy into the project for review:
-   ```bash
-   osmosis --json dataset download <dataset-name> -o data/<dataset-name>.jsonl
-   ```
-   Use `--overwrite` if a local file with the same name already exists. Keeping the canonical copy under `data/` makes it easy to re-run local eval against the exact rows the platform will train on.
-4. Read 5-10 rows of the downloaded copy and verify against the rollout:
-   - All three required columns present: `system_prompt`, `user_prompt`, `ground_truth`.
-   - `ground_truth` format matches what `Grader.grade` parses from `ctx.label` (numeric string, JSON, free text, etc.).
-   - `system_prompt` + `user_prompt` shape matches what `AgentWorkflow.run` reads from `ctx.prompt`, and is realistic enough to drive the workflow to a terminal state.
-5. Optionally re-run local eval against the downloaded copy to confirm parity end-to-end.
-
-If any check fails, fix the dataset, the workflow, or the grader before submitting - do not proceed with a mismatched contract.
-
-### D. Git push & commit pin
-
-`osmosis --json train submit` reads the config from disk but fetches **rollout code** from the workspace's connected Git repository. Local edits to code that have not been pushed are silently ignored.
-
-- All rollout changes committed and pushed.
-- Prefer an up-to-date upstream branch, or pin `commit_sha` to a pushed commit when the intended source revision matters. The SDK warns about dirty, ahead, or no-upstream state; it does not treat those warnings as automatic preflight failures once the user confirms.
-- The workspace must have Git Sync configured in the Osmosis Platform.
-
-### E. Training config completeness
-
-Under `configs/training/<run>.toml`:
-
-- `[experiment]` populated with real values for `rollout`, `entrypoint`, `model_path`, `dataset`. No `<your-...>` template placeholders.
-- One config per run intent. For a new rollout, prefer the SDK scaffold:
-  ```bash
-  osmosis --json rollout init <name>
-  ```
-  For an existing rollout, copy and adapt a nearby `configs/training/<rollout>.toml` or a cookbook template.
-
-#### Key `[training]` parameters for remote rollout servers
-
-When submitting a run with a remote rollout server (Harbor or MCP-based), set `rollout_batch_size` explicitly. A batch size of 32 combined with `n_samples_per_prompt = 8` sends 256 concurrent LLM calls to the inference engine per step, which can overwhelm large remote agents and cause rollouts to timeout with zero reward.
-
-```toml
-[training]
-n_samples_per_prompt = 8
-rollout_batch_size = 8      # 8 x 8 = 64 concurrent calls; safe for 35B+ models
-# agent_workflow_timeout_s = 900   # increase for long-horizon tasks (default: 450 s)
-# grader_timeout_s = 300           # increase for slow verification graders (default: 150 s)
+```bash
+osmosis --json dataset list
+osmosis --json dataset info <dataset-name>
+osmosis --json dataset preview <dataset-name> --rows 5
+osmosis --json dataset download <dataset-name> -o data/<dataset-name>.jsonl
 ```
 
-Rule of thumb: `rollout_batch_size <= 32` for remote MCP/Harbor rollout servers with 35B+ models.
+For first uploads, run `osmosis --json dataset upload data/<name>.jsonl`. Confirm status is `uploaded`, required columns exist, `ground_truth` matches `Grader.grade(ctx.label)`, and prompts match `AgentWorkflow.run(ctx.prompt)`. Re-run local eval when parity is uncertain.
 
-#### Optional: environment variables and secrets
+### C. Git push & commit pin
 
-If the rollout reads env vars at runtime, declare them in the config. Both sections are optional - omit them entirely if not needed.
+`osmosis --json train submit` reads the config from disk but fetches rollout code from the connected Git repository. Local edits that are not pushed are ignored.
 
-```toml
-[rollout.env]
-# Literal key = "value" pairs injected verbatim into the rollout container.
-# Visible in this file - do NOT put secrets here.
-LOG_LEVEL = "INFO"
+Commit and push the intended revision. Push to the default branch for Git Sync, or set `commit_sha` to a specific pushed commit. Treat dirty/ahead/no-upstream warnings as blockers until the user explicitly accepts them.
 
-[rollout.secrets]
-# Maps env-var name -> workspace environment_secret record *name*.
-# Values are resolved server-side; they never appear in this file or in transit.
-# Pre-register secrets at /:orgName/secrets in the platform UI first.
-OPENAI_API_KEY = "openai-api-key"
-```
+### D. Training config completeness
 
-Rules:
-- Keys must match `^[A-Z_][A-Z0-9_]*$`.
-- The same key cannot appear in both sections.
-- Env var names starting with `_OSMOSIS_` are reserved by the platform and
-  forbidden in both sections.
-- Inside the container, all injected vars are accessible via `os.environ`.
+Start from `configs/training/default.toml` when creating a new training config; if it is missing, use `references/training-default.toml`. Ensure `[experiment]` has real `rollout`, `entrypoint`, `model_path`, and platform `dataset` values; no `<your-...>` placeholders. Read `references/training-config-gates.md` when editing config fields, env/secrets, or remote rollout concurrency.
 
 ## Submit
 
