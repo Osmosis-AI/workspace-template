@@ -11,10 +11,10 @@ from harbor.models.trial.config import EnvironmentConfig as HarborEnvironmentCon
 from harbor.models.trial.config import EnvironmentType
 from harbor.trial.queue import TrialQueue
 
-from multiply_harbor_strands_rollout.grader import MultiplyGrader
-from multiply_harbor_strands_rollout.grader import multiply_grader_config
-from multiply_harbor_strands_rollout.workflow import MultiplyWorkflow
-from multiply_harbor_strands_rollout.workflow import multiply_workflow_config
+from multiply_rollout.grader import MultiplyGrader
+from multiply_rollout.grader import multiply_grader_config
+from multiply_rollout.workflow import MultiplyWorkflow
+from multiply_rollout.workflow import multiply_workflow_config
 from osmosis_ai.rollout.backend.harbor import HarborBackend
 from osmosis_ai.rollout.server import create_rollout_server
 
@@ -29,7 +29,7 @@ def main() -> None:
     backend = HarborBackend(
         orchestrator=orchestrator,
         task_dir=ROLLOUT_DIR / "multiply_harbor_task",
-        user_code_dir=ROLLOUT_DIR / "multiply_harbor_strands_rollout",
+        user_code_dir=ROLLOUT_DIR / "multiply_rollout",
         workflow=MultiplyWorkflow,
         workflow_config=multiply_workflow_config,
         grader=MultiplyGrader,

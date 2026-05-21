@@ -5,8 +5,8 @@ from typing import Any
 from strands.agent.agent_result import AgentResult
 from strands.models.model import Model
 
-from multiply_harbor_strands_rollout.tools import multiply_tool
-from multiply_harbor_strands_rollout.utils import extract_solution
+from multiply_rollout.tools import multiply_tool
+from multiply_rollout.utils import extract_solution
 from osmosis_ai.rollout.agent_workflow import AgentWorkflow
 from osmosis_ai.rollout.context import AgentWorkflowContext
 from osmosis_ai.rollout.integrations.agents.strands import OsmosisRolloutModel
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class MultiplyAgentWorkflowConfig(AgentWorkflowConfig):
     name: str = "MultiplyAgentWorkflow"
-    description: str = "Multiply two numbers using Harbor and Strands"
+    description: str = "Multiply two numbers using Strands"
     model: Model
     tools: Any
 
