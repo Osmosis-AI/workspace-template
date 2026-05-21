@@ -14,8 +14,8 @@ dataset = "multiply"
 # Uncomment a field only when you want to override the default value.
 # lr = 1e-6
 # total_epochs = 1
-# n_samples_per_prompt = 8
-# rollout_batch_size = 32
+n_samples_per_prompt = 8
+rollout_batch_size = 16
 # max_prompt_length = 8192
 # max_response_length = 8192
 # agent_workflow_timeout_s = 450
