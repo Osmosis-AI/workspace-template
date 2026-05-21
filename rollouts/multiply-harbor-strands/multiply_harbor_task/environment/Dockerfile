@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
-    "osmosis-ai[server] @ git+https://github.com/Osmosis-AI/osmosis-sdk-python.git@main" \
+    "osmosis-ai[server]==0.2.21" \
     httpx \
     fastapi \
     uvicorn \
