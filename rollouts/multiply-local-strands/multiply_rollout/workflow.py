@@ -1,5 +1,3 @@
-import asyncio
-import logging
 from typing import Any
 
 from strands.agent.agent_result import AgentResult
@@ -14,8 +12,6 @@ from osmosis_ai.rollout.integrations.agents.strands import (
     OsmosisStrandsAgent as StrandsAgent,
 )
 from osmosis_ai.rollout.types import AgentWorkflowConfig
-
-logger = logging.getLogger(__name__)
 
 
 class MultiplyAgentWorkflowConfig(AgentWorkflowConfig):
@@ -35,65 +31,6 @@ multiply_workflow_config = MultiplyAgentWorkflowConfig(
     ),
     tools=[multiply_tool],
 )
-
-
-def _is_transient_model_error(exc: Exception) -> bool:
-    transient_type_names = {
-        "APIConnectionError",
-        "APITimeoutError",
-        "InternalServerError",
-        "ReadError",
-        "ServerDisconnectedError",
-        "EventLoopException",
-        "OpenAIError",
-    }
-    transient_message_fragments = (
-        "connection error",
-        "server disconnected",
-        "connection reset",
-        "timed out",
-        "temporarily unavailable",
-    )
-
-    current: BaseException | None = exc
-    while current is not None:
-        if type(current).__name__ in transient_type_names:
-            return True
-
-        message = str(current).lower()
-        if any(fragment in message for fragment in transient_message_fragments):
-            return True
-
-        current = current.__cause__ or current.__context__
-
-    return False
-
-
-async def _invoke_with_retry(
-    agent: StrandsAgent,
-    *,
-    max_attempts: int = 3,
-    initial_backoff_seconds: float = 2.0,
-) -> AgentResult:
-    """Retry transient model failures; the multiply tool is pure."""
-    for attempt in range(1, max_attempts + 1):
-        try:
-            return await agent.invoke_async()
-        except Exception as exc:
-            if attempt >= max_attempts or not _is_transient_model_error(exc):
-                raise
-
-            backoff_seconds = initial_backoff_seconds * (2 ** (attempt - 1))
-            logger.warning(
-                "Transient model failure on attempt %d/%d: %s. Retrying in %.1fs",
-                attempt,
-                max_attempts,
-                exc,
-                backoff_seconds,
-            )
-            await asyncio.sleep(backoff_seconds)
-
-    raise RuntimeError("unreachable")
 
 
 class MultiplyWorkflow(AgentWorkflow):
@@ -121,6 +58,6 @@ class MultiplyWorkflow(AgentWorkflow):
         )
 
         for _ in range(8):
-            result = await _invoke_with_retry(agent)
+            result = await agent.invoke_async()
             if await self.check_done(result):
                 break
