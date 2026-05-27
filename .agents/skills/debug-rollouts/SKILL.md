@@ -17,7 +17,7 @@ Find the smallest fix that makes the project runnable again.
 
 - Structure/config: missing scaffold paths, config outside canonical directories, wrong entrypoint, or entrypoint escapes `rollouts/<name>/`.
 - Discovery: zero/multiple concrete `AgentWorkflow` classes, no concrete `Grader`, or `Grader.grade` is not async.
-- Server: the configured entrypoint, often `main.py`, lacks backend construction, `create_rollout_server`, `uvicorn.run`, or `_OSMOSIS_ROLLOUT_PORT`; cloud eval startup can also fail if `pyproject.toml` is missing, dependencies are incomplete, or imports only work from an unpushed local checkout. Inspect `osmosis --json eval status <eval-name>` and any platform failure details.
+- Server: the configured entrypoint, often `main.py`, lacks backend construction, `create_rollout_server`, `uvicorn.run`, or `_OSMOSIS_ROLLOUT_PORT`; cloud eval startup can also fail if `pyproject.toml` is missing, dependencies are incomplete, or imports only work from an unpushed local checkout. Inspect `osmosis --json eval info <eval-name>` and any platform failure details.
 - Dataset contract: the eval config names a missing platform dataset, required columns are missing, `AgentWorkflow.run` ignores `ctx.prompt`, or `Grader.grade` parses `ctx.label` differently from the real `ground_truth` format.
 - Sample/reward contract: workflow bypasses Osmosis with direct fixed-model provider calls; no sample source is registered; grader skips `ctx.set_sample_reward(...)`; reward logic is too strict, lenient, or broken.
 - Platform handoff: eval or training config names a dataset not returned by `osmosis --json dataset list`, dataset status is not `uploaded`, local source data diverges from the platform dataset, code is uncommitted/unpushed, `commit_sha` is not pushed, or Git Sync is not configured.
@@ -38,7 +38,7 @@ Find the smallest fix that makes the project runnable again.
 ```bash
 osmosis --json doctor
 osmosis --json eval submit configs/eval/<name>.toml --yes
-osmosis --json eval status <eval-name>
+osmosis --json eval info <eval-name>
 osmosis --json eval list --limit 10
 
 # Platform dataset checks

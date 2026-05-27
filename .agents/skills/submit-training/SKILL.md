@@ -14,7 +14,7 @@ Submit only after every gate below is green.
 ## First checks
 
 1. Read `AGENTS.md` and `configs/AGENTS.md` if present.
-2. Confirm there is a working rollout, an eval config, and a recorded baseline in `.osmosis/research/`.
+2. Confirm there is a working rollout, an eval config, and a recorded cloud eval result in `.osmosis/research/`.
 
 ## Pre-submit gates (run in order)
 
@@ -24,7 +24,7 @@ Submit only after every gate below is green.
 osmosis --json doctor
 pip install -e rollouts/<name>
 osmosis --json eval submit configs/eval/<name>.toml --yes
-osmosis --json eval status <eval-name-from-submit>
+osmosis --json eval info <eval-name-from-submit>
 ```
 
 For a smoke eval, set `[evaluation].limit = 1` in the eval config before submit. Then run the intended eval size by removing the temporary limit override; every sample must receive reward and meet any threshold in `.osmosis/research/program.md`.

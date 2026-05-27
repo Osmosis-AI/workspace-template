@@ -46,6 +46,7 @@ Use the included multiply example to verify the full loop before building a cust
 pip install -e rollouts/multiply-local-openai
 export OPENAI_API_KEY="sk-..."
 osmosis dataset upload data/multiply.jsonl
+git push
 osmosis eval submit configs/eval/multiply-local-openai.toml
 osmosis train submit configs/training/multiply-local-openai.toml
 ```
@@ -59,6 +60,9 @@ Create a blank scaffold:
 ```bash
 osmosis rollout init my-rollout
 pip install -e rollouts/my-rollout
+git add rollouts/my-rollout configs/eval/my-rollout.toml configs/training/my-rollout.toml
+git commit -m "add my rollout"
+git push
 osmosis eval submit configs/eval/my-rollout.toml
 ```
 
@@ -66,6 +70,7 @@ Or adapt one of the starter rollouts included in this repository by default: `mu
 
 ```bash
 pip install -e rollouts/multiply-local-strands
+git push
 osmosis eval submit configs/eval/multiply-local-strands.toml
 ```
 
@@ -79,9 +84,10 @@ Eval and training configs live in `configs/eval/*.toml` and `configs/training/*.
 osmosis dataset list
 ```
 
-Submit evals with:
+Push rollout code and configs, then submit evals with:
 
 ```bash
+git push
 osmosis eval submit configs/eval/<name>.toml
 ```
 
@@ -93,18 +99,19 @@ osmosis dataset upload data/<dataset>.jsonl
 
 Never put secret values in TOML. Use `[secrets]` in eval and training configs to map environment variable names to workspace secret record names that the platform resolves server-side.
 
-## Git Sync and Training
+## Git Sync, Eval, and Training
 
-Push rollout code and configs to the connected workspace repository before submitting training. Automatic Git Sync runs from the default branch, and training uses the synced code version.
+Push rollout code and configs to the connected workspace repository before submitting evals or training. Automatic Git Sync runs from the default branch, and platform runs use the synced code version.
 
 ```bash
 git add .
 git commit -m "add rollout"
 git push
+osmosis eval submit configs/eval/<name>.toml
 osmosis train submit configs/training/<name>.toml
 ```
 
-Use `commit_sha` in the training config when you need to pin a run to a specific commit.
+Use `commit_sha` in eval or training configs when you need to pin a run to a specific pushed commit.
 
 Inspect training runs and deploy checkpoints:
 

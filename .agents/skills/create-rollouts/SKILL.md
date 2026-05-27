@@ -48,7 +48,7 @@ python -m py_compile rollouts/<name>/<entrypoint-from-config>
 pip install -e rollouts/<name>
 osmosis --json dataset info <dataset-name-from-eval-config>
 osmosis --json eval submit configs/eval/<name>.toml --yes
-osmosis --json eval status <eval-name-from-submit>
+osmosis --json eval info <eval-name-from-submit>
 ```
 
 A clean cloud eval submit is the platform smoke test for the same Git-synced entrypoint, workflow, grader, model config, and platform dataset that training will use. If the eval config still has a placeholder dataset, upload or select a platform dataset first; `[experiment].dataset` must be a platform dataset name, not a local path.

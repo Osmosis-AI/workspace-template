@@ -110,8 +110,8 @@ dataset = "calculator"
 ```bash
 osmosis doctor
 osmosis dataset upload data/train.jsonl
-osmosis eval submit configs/eval/<name>.toml
 git push
+osmosis eval submit configs/eval/<name>.toml
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>
 ```

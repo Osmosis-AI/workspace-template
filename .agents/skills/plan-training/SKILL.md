@@ -45,13 +45,13 @@ Record the dataset decision, hypotheses, eval plan, and stop conditions in `.osm
 
 1. Settle the dataset (above) before anything else.
 2. Clarify the task, interaction shape, and success criteria against the dataset's actual rows.
-3. Define the first measurable cloud eval baseline.
+3. Define the first measurable cloud eval result to compare against future runs.
 4. Choose the smallest next step that keeps the project runnable.
 5. Route execution:
    - no runnable rollout -> `create-rollouts`
-   - runnable baseline needs improvement -> `evaluate-rollouts`
+   - runnable eval result needs improvement -> `evaluate-rollouts`
    - eval, config, loading, or grader fails -> `debug-rollouts`
-   - validated baseline is ready for platform training -> `submit-training`
+   - validated eval result is ready for platform training -> `submit-training`
 
 ## Guardrails
 

@@ -1,6 +1,6 @@
 ---
 name: evaluate-rollouts
-description: Use when submitting Osmosis cloud evals, smoke-testing rollout configs, comparing rewards or baselines, inspecting sample failures, checking platform dataset readiness, or iterating on rollout/grader performance.
+description: Use when submitting Osmosis cloud evals, smoke-testing rollout configs, comparing eval results or rewards, inspecting sample failures, checking platform dataset readiness, or iterating on rollout/grader performance.
 ---
 
 # Evaluate Rollouts
@@ -33,24 +33,25 @@ Use cloud evals to decide what to keep, fix, or try next. `osmosis eval submit` 
 ## Core loop
 
 1. For a smoke eval, temporarily set `[evaluation].limit = 1`; otherwise leave optional evaluation fields commented to use platform defaults.
-2. Submit the eval:
+2. Ensure the intended rollout code and config are committed and pushed to the connected workspace repository.
+3. Submit the eval:
    ```bash
    osmosis --json eval submit configs/eval/<name>.toml --yes
    ```
-3. Inspect the returned run name, then check status/results:
+4. Inspect the returned run name, then check details/results:
    ```bash
-   osmosis --json eval status <eval-name>
+   osmosis --json eval info <eval-name>
    ```
-4. If the smoke run starts, completes, and grades every sample, run the intended eval size by removing the temporary `limit` override.
-5. Inspect score, pass rate, sample count, and failure details returned by status or the platform UI.
-6. Choose one small hypothesis or data improvement.
-7. Change only the necessary surface:
+5. If the smoke run starts, completes, and grades every sample, run the intended eval size by removing the temporary `limit` override.
+6. Inspect score, pass rate, sample count, and failure details returned by `eval info` or the platform UI.
+7. Choose one small hypothesis or data improvement.
+8. Change only the necessary surface:
    - `rollouts/<name>/<entrypoint-from-config>` or its package modules
    - `configs/eval/<name>.toml`
    - local source datasets under `data/` when preparing a new platform upload
-8. Re-submit the same eval config and compare against the prior baseline.
-9. Keep or discard the change.
-10. Log the experiment under `.osmosis/research/experiments/`.
+9. Commit and push the change, then re-submit the same eval config and compare against the prior cloud eval run.
+10. Keep or discard the change.
+11. Log the experiment under `.osmosis/research/experiments/`.
 
 ## Dataset rules
 

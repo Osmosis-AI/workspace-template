@@ -89,7 +89,7 @@ Detailed workflow guidance lives in project-local Agent Skills under `.agents/sk
 | --- | --- |
 | `plan-training` | Turn a vague task into a concrete local training plan. |
 | `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial eval configs. |
-| `evaluate-rollouts` | Run evals, compare baselines, and iterate with data. |
+| `evaluate-rollouts` | Run cloud evals, compare results, and iterate with data. |
 | `debug-rollouts` | Diagnose rollout, grader, config, dataset, or preflight failures. |
 | `submit-training` | Prepare a training config and submit it safely. |
 
