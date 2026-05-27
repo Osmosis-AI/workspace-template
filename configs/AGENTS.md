@@ -45,18 +45,18 @@ Optional sections:
 - `[sampling]` for rollout sampling parameters.
 - `[checkpoints]` for eval and checkpoint cadence.
 - `[advanced]` for backend-specific fields.
-- `[rollout.env]` for non-secret literal environment variables.
-- `[rollout.secrets]` for platform secret record names.
+- `[env]` for non-secret literal environment variables.
+- `[secrets]` for platform secret record names.
 
 ### Environment Variables and Secrets
 
 ```toml
-[rollout.env]
+[env]
 # Literal values visible in this file. Do NOT put secrets here.
 LOG_LEVEL = "INFO"
 MY_CONFIG = "some-value"
 
-[rollout.secrets]
+[secrets]
 # Value is the name of a workspace environment_secret record, not the secret value itself. The platform resolves and injects it server-side.
 OPENAI_API_KEY = "openai-api-key"
 ```

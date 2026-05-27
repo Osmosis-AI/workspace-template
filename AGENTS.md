@@ -78,7 +78,7 @@ osmosis template apply multiply-local-strands
 ## Config Guidance
 
 - Config-specific rules live in `configs/AGENTS.md`.
-- Never put secret values in TOML. Eval `[secrets]` and training `[rollout.secrets]` map env-var names to workspace secret record names that the platform resolves server-side.
+- Never put secret values in TOML. Eval and training `[secrets]` map env-var names to workspace secret record names that the platform resolves server-side.
 - Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## AI Skills

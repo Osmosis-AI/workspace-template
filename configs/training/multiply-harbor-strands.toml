@@ -29,5 +29,5 @@ rollout_batch_size = 16
 # eval_interval = 10
 # checkpoint_save_freq = 20
 
-[rollout.secrets]
+[secrets]
 DAYTONA_API_KEY = "DAYTONA_API_KEY"

@@ -91,7 +91,7 @@ Upload local JSONL, CSV, or Parquet datasets when you are ready to train:
 osmosis dataset upload data/<dataset>.jsonl
 ```
 
-Never put secret values in TOML. Use `[secrets]` in eval configs and `[rollout.secrets]` in training configs to map environment variable names to workspace secret record names that the platform resolves server-side.
+Never put secret values in TOML. Use `[secrets]` in eval and training configs to map environment variable names to workspace secret record names that the platform resolves server-side.
 
 ## Git Sync and Training
 
