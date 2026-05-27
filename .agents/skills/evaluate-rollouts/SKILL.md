@@ -14,10 +14,9 @@ Use cloud evals to decide what to keep, fix, or try next. `osmosis eval submit` 
 3. Identify the target rollout, `configs/eval/<name>.toml`, and platform dataset name.
 4. If creating an eval config, copy from `configs/eval/default.toml`; if it is missing, use `references/eval-default.toml`.
 5. Confirm the eval config uses the cloud schema:
-   - `[experiment].rollout`, `entrypoint`, and `dataset` are required.
+   - `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required.
    - `dataset` is a platform dataset name, not a `data/` path or dataset ID.
-   - `[llm].model_path` is required and uses a LiteLLM-style model name.
-   - `[llm].base_url` is optional, LiteLLM/OpenAI-compatible, and normally commented out because no default is applied when omitted.
+   - `model_path` uses a LiteLLM-style model name; the platform resolves the provider endpoint from its prefix.
    - `[evaluation]` values are optional; leave them commented unless deliberately overriding platform defaults.
 6. Confirm dataset availability:
    ```bash

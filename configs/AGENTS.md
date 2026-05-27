@@ -85,13 +85,9 @@ Use one eval config per rollout/model setup. `entrypoint` must point at the roll
 [experiment]
 rollout = "calculator"
 entrypoint = "main.py" # SDK default; change this if the rollout uses another server file.
+model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
 dataset = "calculator"
 # commit_sha =
-
-[llm]
-model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
-# Optional LiteLLM/OpenAI-compatible base URL; no default is applied when omitted.
-# base_url = "https://api.openai.com/v1"
 
 [evaluation]
 # Optional. Omit values to use platform defaults.

@@ -4,14 +4,10 @@
 [experiment]
 rollout = "multiply-local-openai"
 entrypoint = "main.py"
+model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
 # Eval datasets are platform dataset names, not local data/*.jsonl paths.
 dataset = "multiply"
 # commit_sha =
-
-[llm]
-model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
-# Optional LiteLLM/OpenAI-compatible base URL; no default is applied when omitted.
-# base_url = "https://api.openai.com/v1"
 
 [evaluation]
 # Optional. Omit values to use platform defaults.

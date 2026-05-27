@@ -22,7 +22,7 @@ Find the smallest fix that makes the project runnable again.
 - Sample/reward contract: workflow bypasses Osmosis with direct fixed-model provider calls; no sample source is registered; grader skips `ctx.set_sample_reward(...)`; reward logic is too strict, lenient, or broken.
 - Platform handoff: eval or training config names a dataset not returned by `osmosis --json dataset list`, dataset status is not `uploaded`, local source data diverges from the platform dataset, code is uncommitted/unpushed, `commit_sha` is not pushed, or Git Sync is not configured.
 - Runtime config: eval or training `[env]` / `[secrets]` is absent/wrong, a secret section names a missing platform secret record, or reserved `_OSMOSIS_` vars are used.
-- LLM config: `[llm].model_path` is missing or not a LiteLLM-style model name, or `[llm].base_url` is set to the wrong LiteLLM/OpenAI-compatible endpoint. Leave `base_url` commented unless the eval model needs a custom provider URL.
+- LLM config: `[experiment].model_path` is missing or not a LiteLLM-style model name. The platform resolves the provider endpoint from the `model_path` prefix; there is no SDK-side base URL override.
 - Intermittent zero-output rows: blocked async event loop from sync calls such as `mcp.list_tools_sync()`; wrap blocking calls in `asyncio.get_running_loop().run_in_executor(None, ...)`, or raise `agent_workflow_timeout_s` for long-horizon tasks.
 
 ## Process
