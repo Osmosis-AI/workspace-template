@@ -1,6 +1,6 @@
 ---
 name: submit-training
-description: Use when an Osmosis rollout has passed local eval and the user wants to prepare, validate, or submit training, verify platform dataset and Git readiness, tune parameters, or inspect a run.
+description: Use when an Osmosis rollout has passed cloud eval and the user wants to prepare, validate, or submit training, verify platform dataset and Git readiness, tune parameters, or inspect a run.
 ---
 
 # Submit Training
@@ -18,15 +18,16 @@ Submit only after every gate below is green.
 
 ## Pre-submit gates (run in order)
 
-### A. Project and local eval
+### A. Project and cloud eval
 
 ```bash
 osmosis --json doctor
 pip install -e rollouts/<name>
-osmosis --json eval run configs/eval/<name>.toml --limit 1 --fresh
+osmosis --json eval submit configs/eval/<name>.toml --yes
+osmosis --json eval status <eval-name-from-submit>
 ```
 
-Then run the intended eval size without `--limit`; every sample must receive reward and meet any threshold in `.osmosis/research/program.md`.
+For a smoke eval, set `[evaluation].limit = 1` in the eval config before submit. Then run the intended eval size by removing the temporary limit override; every sample must receive reward and meet any threshold in `.osmosis/research/program.md`.
 
 ### B. Platform dataset gate
 
@@ -39,7 +40,7 @@ osmosis --json dataset preview <dataset-name> --rows 5
 osmosis --json dataset download <dataset-name> -o data/<dataset-name>.jsonl
 ```
 
-For first uploads, run `osmosis --json dataset upload data/<name>.jsonl`. Confirm status is `uploaded`, required columns exist, `ground_truth` matches `Grader.grade(ctx.label)`, and prompts match `AgentWorkflow.run(ctx.prompt)`. Re-run local eval when parity is uncertain.
+For first uploads, run `osmosis --json dataset upload data/<name>.jsonl`. Confirm status is `uploaded`, required columns exist, `ground_truth` matches `Grader.grade(ctx.label)`, and prompts match `AgentWorkflow.run(ctx.prompt)`. Re-run cloud eval when parity is uncertain.
 
 ### C. Git push & commit pin
 

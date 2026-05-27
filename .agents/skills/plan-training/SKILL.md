@@ -45,7 +45,7 @@ Record the dataset decision, hypotheses, eval plan, and stop conditions in `.osm
 
 1. Settle the dataset (above) before anything else.
 2. Clarify the task, interaction shape, and success criteria against the dataset's actual rows.
-3. Define the first measurable local baseline.
+3. Define the first measurable cloud eval baseline.
 4. Choose the smallest next step that keeps the project runnable.
 5. Route execution:
    - no runnable rollout -> `create-rollouts`

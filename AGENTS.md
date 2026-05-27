@@ -17,7 +17,7 @@ Conventions:
 - Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the eval or training config is authoritative.
 - Eval configs live in `configs/eval/<name>.toml`.
 - Training configs live in `configs/training/<name>.toml`.
-- Eval configs reference local datasets under `data/`; training configs reference platform dataset names from `osmosis dataset list`.
+- Eval and training configs reference platform dataset names from `osmosis dataset list`.
 - Local training guidance lives in `.osmosis/research/program.md`.
 - Local cache and metrics state lives in `.osmosis/` and should not be treated as source.
 - Do not create new top-level directories unless the user explicitly asks.
@@ -44,20 +44,21 @@ osmosis doctor --fix
 
 1. Settle the dataset schema: `system_prompt`, `user_prompt`, `ground_truth`.
 2. Create or adapt a rollout with `osmosis rollout init <name>` or an SDK template.
-3. Run local eval: `osmosis eval run configs/eval/<name>.toml --limit 1 --fresh`.
-4. Debug until the rollout starts, produces samples, and every sample is graded.
-5. Upload or verify the platform dataset, commit and push rollout code, then submit training only after the user is ready.
+3. Upload or verify the platform dataset with `osmosis dataset list`.
+4. Commit and push rollout code and config changes.
+5. Submit cloud eval with `osmosis eval submit configs/eval/<name>.toml`.
+6. Submit training only after the user is ready.
 
 ## Rollout Contract
 
 - Each configured rollout entrypoint must expose one concrete `AgentWorkflow`.
-- Local eval and managed training require a concrete `Grader` in the rollout server.
+- Cloud eval and managed training require a concrete `Grader` in the rollout server.
 - The configured entrypoint must start a rollout server using the SDK backend and `create_rollout_server`, and bind `uvicorn` to `_OSMOSIS_ROLLOUT_PORT` defaulting to `8000`.
 - `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`.
 - Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context, usually via `OsmosisStrandsAgent` or `OsmosisAgent` with `OsmosisMemorySession`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
 - `Grader.grade` must be async and assign rewards in `[0.0, 1.0]`.
-- Before `osmosis train submit`, run a local eval and push code to the connected workspace repository.
+- Before `osmosis train submit`, submit a cloud eval and push code to the connected workspace repository.
 
 Create a blank rollout scaffold with:
 
@@ -77,8 +78,8 @@ osmosis template apply multiply-local-strands
 ## Config Guidance
 
 - Config-specific rules live in `configs/AGENTS.md`.
-- Never put secret values in TOML. `[rollout.secrets]` maps env-var names to workspace secret record names that the platform resolves server-side.
-- Env var names must be uppercase-style keys, cannot overlap between `[rollout.env]` and `[rollout.secrets]`, and cannot start with `_OSMOSIS_`.
+- Never put secret values in TOML. Eval `[secrets]` and training `[rollout.secrets]` map env-var names to workspace secret record names that the platform resolves server-side.
+- Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## AI Skills
 
@@ -88,7 +89,7 @@ Detailed workflow guidance lives in project-local Agent Skills under `.agents/sk
 | --- | --- |
 | `plan-training` | Turn a vague task into a concrete local training plan. |
 | `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial eval configs. |
-| `evaluate-rollouts` | Run local evals, compare baselines, and iterate with data. |
+| `evaluate-rollouts` | Run evals, compare baselines, and iterate with data. |
 | `debug-rollouts` | Diagnose rollout, grader, config, dataset, or preflight failures. |
 | `submit-training` | Prepare a training config and submit it safely. |
 
@@ -108,8 +109,8 @@ osmosis doctor
 osmosis template list
 osmosis template apply multiply-local-strands
 osmosis rollout init <name>
-osmosis eval run configs/eval/<name>.toml --limit 1
 osmosis dataset upload data/train.jsonl
+osmosis eval submit configs/eval/<name>.toml
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>
 osmosis deploy <checkpoint-name>

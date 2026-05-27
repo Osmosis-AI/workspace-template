@@ -79,34 +79,42 @@ cp configs/eval/default.toml configs/eval/<run-name>.toml
 
 If `configs/eval/default.toml` was deleted in this workspace, recover the shape from the repo-root fallback `.agents/skills/evaluate-rollouts/references/eval-default.toml`.
 
-Use one eval config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. Local datasets must point at `data/*`; use `[eval].limit` or the `--limit` flag for smoke tests.
+Use one eval config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. `dataset` must be a platform dataset name from `osmosis dataset list`.
 
 ```toml
-[eval]
+[experiment]
 rollout = "calculator"
 entrypoint = "main.py" # SDK default; change this if the rollout uses another server file.
-dataset = "data/calculator.jsonl"
-limit = 200
+dataset = "calculator"
+# commit_sha =
 
 [llm]
-model = "openai/gpt-5-mini"
+model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
+# Optional LiteLLM/OpenAI-compatible base URL; no default is applied when omitted.
+# base_url = "https://api.openai.com/v1"
 
-[runs]
-n = 3
-batch_size = 2
-pass_threshold = 1.0
+[evaluation]
+# Optional. Omit values to use platform defaults.
+# limit = 200
+# n = 3
+# batch_size = 2
+# pass_threshold = 1.0
+# agent_workflow_timeout_s = 450
+# grader_timeout_s = 150
 
-[timeouts]
-agent_workflow_timeout_s = 450
-grader_timeout_s = 150
+# [env]
+# LOG_LEVEL = "INFO"
+
+# [secrets]
+# OPENAI_API_KEY = "openai-api-key"
 ```
 
 ## Commands
 
 ```bash
 osmosis doctor
-osmosis eval run configs/eval/<name>.toml --limit 1
 osmosis dataset upload data/train.jsonl
+osmosis eval submit configs/eval/<name>.toml
 git push
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>

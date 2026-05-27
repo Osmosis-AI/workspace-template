@@ -1,17 +1,17 @@
 ---
 name: create-rollouts
-description: Use when creating or adapting Osmosis rollout code, scaffolding configs, adding an AgentWorkflow, Grader, or rollout server entrypoint, or making a rollout load under eval or training preflight.
+description: Use when creating or adapting Osmosis rollout code, scaffolding configs, adding an AgentWorkflow, Grader, or rollout server entrypoint, or making a rollout load under cloud eval or training preflight.
 ---
 
 # Create Rollouts
 
-Create the smallest rollout that can load, evaluate, and later train. The dataset shape from `plan-training` is the contract for both workflow and grader.
+Create the smallest rollout that can load, submit to cloud eval, and later train. The dataset shape from `plan-training` is the contract for both workflow and grader.
 
 ## First checks
 
 1. Read `AGENTS.md` and `configs/AGENTS.md` if present.
 2. Run `osmosis --json doctor`. If scaffold paths are missing, ask before running `osmosis --json doctor --fix`.
-3. Confirm `data/<name>.jsonl` exists with valid `system_prompt` / `user_prompt` / `ground_truth` rows. If not, run `plan-training` first.
+3. Confirm the local source dataset exists with valid `system_prompt` / `user_prompt` / `ground_truth` rows. If not, run `plan-training` first.
 4. Pick a rollout name matching `^[a-z][a-z0-9-]*$` (lowercase letters, digits, hyphens; starts with a letter) and not `default`.
 5. Treat `osmosis --json rollout init <name>`, SDK templates, and generated files as source of truth if a hand-written skeleton differs.
 
@@ -46,9 +46,11 @@ After creating or adapting the rollout, run:
 osmosis --json doctor
 python -m py_compile rollouts/<name>/<entrypoint-from-config>
 pip install -e rollouts/<name>
-osmosis --json eval run configs/eval/<name>.toml --limit 1 --fresh
+osmosis --json dataset info <dataset-name-from-eval-config>
+osmosis --json eval submit configs/eval/<name>.toml --yes
+osmosis --json eval status <eval-name-from-submit>
 ```
 
-A clean `eval run` is the local smoke test for the same server, workflow, and grader that training will use.
+A clean cloud eval submit is the platform smoke test for the same Git-synced entrypoint, workflow, grader, model config, and platform dataset that training will use. If the eval config still has a placeholder dataset, upload or select a platform dataset first; `[experiment].dataset` must be a platform dataset name, not a local path.
 
 If a matching training config exists, inspect and update that original file now, then include the config changes in the intended commit when the user is ready to prepare training. Do not submit training from this skill. `osmosis --json train submit configs/training/<run>.toml --yes` performs the current SDK preflight when the user is ready to train.
