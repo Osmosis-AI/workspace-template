@@ -1,4 +1,4 @@
-# Osmosis eval config fallback.
+# Osmosis evaluation config fallback.
 # Use when configs/eval/default.toml is missing from a generated workspace.
 # Command after copying: osmosis eval submit configs/eval/<name>.toml
 
@@ -11,7 +11,7 @@ dataset = "<your-dataset-name>"       # Platform dataset name
 
 [evaluation]
 # Optional. Omit values to use platform defaults.
-# limit = 200                         # Optional row cap for cloud eval
+# limit = 200                         # Optional row cap for evaluation run
 # n = 1                               # Number of evaluation attempts
 # batch_size = 1                      # Rows evaluated per batch
 # pass_threshold = 1.0                # Minimum passing score

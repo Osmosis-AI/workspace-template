@@ -1,11 +1,11 @@
 ---
 name: create-rollouts
-description: Use when creating or adapting Osmosis rollout code, scaffolding configs, adding an AgentWorkflow, Grader, or rollout server entrypoint, or making a rollout load under cloud eval or training preflight.
+description: Use when creating or adapting Osmosis rollout code, scaffolding configs, adding an AgentWorkflow, Grader, or rollout server entrypoint, or making a rollout load under an evaluation run or training run preflight.
 ---
 
 # Create Rollouts
 
-Create the smallest rollout that can load, submit to cloud eval, and later train. The dataset shape from `plan-training` is the contract for both workflow and grader.
+Create the smallest rollout that can load, submit an evaluation run, and later submit a training run. The dataset shape from `plan-training` is the contract for both workflow and grader.
 
 ## First checks
 
@@ -17,7 +17,7 @@ Create the smallest rollout that can load, submit to cloud eval, and later train
 
 ## Scaffold
 
-For a blank rollout, start with `osmosis --json rollout init <name>`; it usually writes `rollouts/<name>/main.py`, `pyproject.toml`, `README.md`, and matching eval/training configs from the SDK scaffold. That default filename is not mandatory once the eval/training configs name a different in-rollout entrypoint. Use `--force` only when intentionally replacing those paths.
+For a blank rollout, start with `osmosis --json rollout init <name>`; it usually writes `rollouts/<name>/main.py`, `pyproject.toml`, `README.md`, and matching evaluation/training configs from the SDK scaffold. That default filename is not mandatory once the evaluation/training configs name a different in-rollout entrypoint. Use `--force` only when intentionally replacing those paths.
 
 Do not reapply default TOML after `rollout init`. Use `configs/eval/default.toml`, `configs/training/default.toml`, or the skill fallback TOMLs only when repairing missing configs or creating configs without `rollout init`.
 
@@ -28,9 +28,9 @@ Read `references/entrypoint-patterns.md` only when hand-writing or substantially
 ## Rollout rules
 
 - Keep the entrypoint inside `rollouts/<name>/`.
-- Default new scaffolds to `main.py`, but preserve and honor any explicit `entrypoint` already named in eval or training configs.
+- Default new scaffolds to `main.py`, but preserve and honor any explicit `entrypoint` already named in evaluation or training configs.
 - Expose exactly one concrete `AgentWorkflow`.
-- Expose exactly one concrete `Grader`; eval configs no longer carry a separate `[grader]` section.
+- Expose exactly one concrete `Grader`; evaluation configs no longer carry a separate `[grader]` section.
 - The workflow's `run` receives `ctx.prompt`, a list of system/user messages converted from the dataset's `system_prompt` + `user_prompt` columns.
 - The workflow must register at least one sample source, either through an SDK integration (`OsmosisStrandsAgent`, `OsmosisAgent` + `OsmosisMemorySession`) or by calling `get_rollout_context().register_sample_source(...)`.
 - Policy model calls inside `AgentWorkflow.run` must route through the active rollout context. Do not call `litellm`, the OpenAI SDK, or another provider SDK directly with a fixed policy model from the workflow.
@@ -51,6 +51,6 @@ osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval info <eval-name-from-submit>
 ```
 
-A clean cloud eval submit is the platform smoke test for the same Git-synced entrypoint, workflow, grader, model config, and platform dataset that training will use. If the eval config still has a placeholder dataset, upload or select a platform dataset first; `[experiment].dataset` must be a platform dataset name, not a local path.
+A clean evaluation run submit is the platform smoke test for the same Git-synced entrypoint, workflow, grader, model config, and platform dataset that a training run will use. If the evaluation config still has a placeholder dataset, upload or select a platform dataset first; `[experiment].dataset` must be a platform dataset name, not a local path.
 
-If a matching training config exists, inspect and update that original file now, then include the config changes in the intended commit when the user is ready to prepare training. Do not submit training from this skill. `osmosis --json train submit configs/training/<run>.toml --yes` performs the current SDK preflight when the user is ready to train.
+If a matching training config exists, inspect and update that original file now, then include the config changes in the intended commit when the user is ready to prepare a training run. Do not submit a training run from this skill. `osmosis --json train submit configs/training/<run>.toml --yes` performs the current SDK preflight when the user is ready to train.

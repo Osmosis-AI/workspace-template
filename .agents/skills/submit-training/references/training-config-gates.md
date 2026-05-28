@@ -35,7 +35,7 @@ rollout_batch_size = 8
 # grader_timeout_s = 300
 ```
 
-Use `rollout_batch_size <= 32` for 35B+ remote agents unless eval/training evidence supports a higher value.
+Use `rollout_batch_size <= 32` for 35B+ remote agents unless evaluation/training evidence supports a higher value.
 
 ## Environment Variables and Secrets
 

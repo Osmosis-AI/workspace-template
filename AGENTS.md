@@ -14,10 +14,10 @@ Required paths:
 Conventions:
 
 - New rollouts live in `rollouts/<name>/`.
-- Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the eval or training config is authoritative.
-- Eval configs live in `configs/eval/<name>.toml`.
+- Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the evaluation or training config is authoritative.
+- Evaluation configs live in `configs/eval/<name>.toml`.
 - Training configs live in `configs/training/<name>.toml`.
-- Eval and training configs reference platform dataset names from `osmosis dataset list`.
+- Evaluation and training configs reference platform dataset names from `osmosis dataset list`.
 - Local training guidance lives in `.osmosis/research/program.md`.
 - Local cache and metrics state lives in `.osmosis/` and should not be treated as source.
 - Do not create new top-level directories unless the user explicitly asks.
@@ -46,19 +46,19 @@ osmosis doctor --fix
 2. Create or adapt a rollout with `osmosis rollout init <name>` or an SDK template.
 3. Upload or verify the platform dataset with `osmosis dataset list`.
 4. Commit and push rollout code and config changes.
-5. Submit cloud eval with `osmosis eval submit configs/eval/<name>.toml`.
+5. Submit an evaluation run with `osmosis eval submit configs/eval/<name>.toml`.
 6. Submit training only after the user is ready.
 
 ## Rollout Contract
 
 - Each configured rollout entrypoint must expose one concrete `AgentWorkflow`.
-- Cloud eval and managed training require a concrete `Grader` in the rollout server.
+- Evaluation runs and managed training require a concrete `Grader` in the rollout server.
 - The configured entrypoint must start a rollout server using the SDK backend and `create_rollout_server`, and bind `uvicorn` to `_OSMOSIS_ROLLOUT_PORT` defaulting to `8000`.
 - `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`.
 - Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context, usually via `OsmosisStrandsAgent` or `OsmosisAgent` with `OsmosisMemorySession`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
 - `Grader.grade` must be async and assign rewards in `[0.0, 1.0]`.
-- Before `osmosis train submit`, submit a cloud eval and push code to the connected workspace repository.
+- Before `osmosis train submit`, submit an evaluation run and push code to the connected workspace repository.
 
 Create a blank rollout scaffold with:
 
@@ -66,7 +66,7 @@ Create a blank rollout scaffold with:
 osmosis rollout init <name>
 ```
 
-This writes `rollouts/<name>/` and matching eval/training configs from the SDK scaffold.
+This writes `rollouts/<name>/` and matching evaluation/training configs from the SDK scaffold.
 
 Apply a starter template with:
 
@@ -88,10 +88,10 @@ Detailed workflow guidance lives in project-local Agent Skills under `.agents/sk
 | Skill | What it does |
 | --- | --- |
 | `plan-training` | Turn a vague task into a concrete local training plan. |
-| `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial eval configs. |
-| `evaluate-rollouts` | Run cloud evals, compare results, and iterate with data. |
+| `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial evaluation configs. |
+| `evaluate-rollouts` | Run evaluation runs, compare results, and iterate with data. |
 | `debug-rollouts` | Diagnose rollout, grader, config, dataset, or preflight failures. |
-| `submit-training` | Prepare a training config and submit it safely. |
+| `submit-training` | Prepare a training run config and submit it safely. |
 
 Some skills include `references/` files for fallback config templates and entrypoint patterns. Use those only when the workspace scaffold or local defaults are missing or when a skill explicitly tells you to read them.
 

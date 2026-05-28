@@ -1,6 +1,6 @@
 # Osmosis Workspace Repository
 
-This repository is the source of truth for rollout code, eval configs, training configs, and datasets connected to one Osmosis platform workspace. Run Osmosis CLI commands from inside this clone so the CLI can resolve the workspace from the GitHub `origin` remote.
+This repository is the source of truth for rollout code, evaluation configs, training configs, and datasets connected to one Osmosis platform workspace. Run Osmosis CLI commands from inside this clone so the CLI can resolve the workspace from the GitHub `origin` remote.
 
 ## Setup
 
@@ -28,7 +28,7 @@ For AI agents or automation, prefer `osmosis --json ...` for structured output o
 repository/
 ├── rollouts/            # AgentWorkflow + Grader code
 ├── configs/
-│   ├── eval/            # Cloud eval configs
+│   ├── eval/            # Evaluation run configs
 │   └── training/        # Training run configs
 ├── data/                # Local dataset files for upload
 ├── AGENTS.md            # Workspace contract for AI coding assistants
@@ -36,7 +36,7 @@ repository/
 └── pyproject.toml       # Workspace Python package
 ```
 
-The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Keep rollout code and configs in those canonical paths so eval and training submissions can discover them.
+The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Keep rollout code and configs in those canonical paths so evaluation run and training run submissions can discover them.
 
 ## Run the Starter Example
 
@@ -51,7 +51,7 @@ osmosis eval submit configs/eval/multiply-local-openai.toml
 osmosis train submit configs/training/multiply-local-openai.toml
 ```
 
-The eval and training configs reference the uploaded platform dataset as `multiply`.
+The evaluation and training configs reference the uploaded platform dataset as `multiply`.
 
 ## Build Your Own Rollout
 
@@ -74,11 +74,11 @@ git push
 osmosis eval submit configs/eval/multiply-local-strands.toml
 ```
 
-Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Route policy model calls through Osmosis-supported integrations such as `OsmosisStrandsAgent` or `OsmosisAgent` so eval and training can collect samples and attach rewards.
+Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Route policy model calls through Osmosis-supported integrations such as `OsmosisStrandsAgent` or `OsmosisAgent` so evaluation runs and training runs can collect samples and attach rewards.
 
 ## Configs and Data
 
-Eval and training configs live in `configs/eval/*.toml` and `configs/training/*.toml`. Both use platform dataset names from:
+Evaluation and training configs live in `configs/eval/*.toml` and `configs/training/*.toml`. Both use platform dataset names from:
 
 ```bash
 osmosis dataset list
@@ -97,11 +97,11 @@ Upload local JSONL, CSV, or Parquet datasets when you are ready to train:
 osmosis dataset upload data/<dataset>.jsonl
 ```
 
-Never put secret values in TOML. Use `[secrets]` in eval and training configs to map environment variable names to workspace secret record names that the platform resolves server-side.
+Never put secret values in TOML. Use `[secrets]` in evaluation and training configs to map environment variable names to workspace secret record names that the platform resolves server-side.
 
 ## Git Sync, Eval, and Training
 
-Push rollout code and configs to the connected workspace repository before submitting evals or training. Automatic Git Sync runs from the default branch, and platform runs use the synced code version.
+Push rollout code and configs to the connected workspace repository before submitting evaluation runs or training runs. Automatic Git Sync runs from the default branch, and platform runs use the synced code version.
 
 ```bash
 git add .
@@ -111,7 +111,7 @@ osmosis eval submit configs/eval/<name>.toml
 osmosis train submit configs/training/<name>.toml
 ```
 
-Use `commit_sha` in eval or training configs when you need to pin a run to a specific pushed commit.
+Use `commit_sha` in evaluation or training configs when you need to pin a run to a specific pushed commit.
 
 Inspect training runs and deploy checkpoints:
 
@@ -136,5 +136,5 @@ This workspace includes project-local Agent Skills in `.agents/skills/`:
 A useful initial prompt for a coding agent:
 
 ```text
-I want to train a model for <task> in this Osmosis workspace. Start with the `plan-training` skill: read the workspace instructions, help me settle the dataset plan, and propose the next step before creating rollouts, running evals, or submitting training.
+I want to train a model for <task> in this Osmosis workspace. Start with the `plan-training` skill: read the workspace instructions, help me settle the dataset plan, and propose the next step before creating rollouts, running evaluation runs, or submitting a training run.
 ```

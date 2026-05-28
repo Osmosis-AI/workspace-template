@@ -1,19 +1,19 @@
 ---
 name: evaluate-rollouts
-description: Use when submitting Osmosis cloud evals, smoke-testing rollout configs, comparing eval results or rewards, inspecting sample failures, checking platform dataset readiness, or iterating on rollout/grader performance.
+description: Use when submitting Osmosis evaluation runs, smoke-testing rollout configs, comparing evaluation run results or rewards, inspecting sample failures, checking platform dataset readiness, or iterating on rollout/grader performance.
 ---
 
 # Evaluate Rollouts
 
-Use cloud evals to decide what to keep, fix, or try next. `osmosis eval submit` sends a platform evaluation job against the platform dataset named in `configs/eval/<name>.toml`, using the Git-synced rollout entrypoint, workflow, and grader.
+Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval submit` sends a platform evaluation job against the platform dataset named in `configs/eval/<name>.toml`, using the Git-synced rollout entrypoint, workflow, and grader.
 
 ## First checks
 
 1. Read `AGENTS.md`, `configs/AGENTS.md` if present, and `.osmosis/research/program.md` if present.
 2. Run `osmosis --json doctor`.
 3. Identify the target rollout, `configs/eval/<name>.toml`, and platform dataset name.
-4. If creating an eval config, copy from `configs/eval/default.toml`; if it is missing, use `references/eval-default.toml`.
-5. Confirm the eval config uses the cloud schema:
+4. If creating an evaluation config, copy from `configs/eval/default.toml`; if it is missing, use `references/eval-default.toml`.
+5. Confirm the evaluation config uses the evaluation run schema:
    - `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required.
    - `dataset` is a platform dataset name, not a `data/` path or dataset ID.
    - `model_path` uses a LiteLLM-style model name; the platform resolves the provider endpoint from its prefix.
@@ -34,7 +34,7 @@ Use cloud evals to decide what to keep, fix, or try next. `osmosis eval submit` 
 
 1. For a smoke eval, temporarily set `[evaluation].limit = 1`; otherwise leave optional evaluation fields commented to use platform defaults.
 2. Ensure the intended rollout code and config are committed and pushed to the connected workspace repository.
-3. Submit the eval:
+3. Submit the evaluation run:
    ```bash
    osmosis --json eval submit configs/eval/<name>.toml --yes
    ```
@@ -42,14 +42,14 @@ Use cloud evals to decide what to keep, fix, or try next. `osmosis eval submit` 
    ```bash
    osmosis --json eval info <eval-name>
    ```
-5. If the smoke run starts, completes, and grades every sample, run the intended eval size by removing the temporary `limit` override.
+5. If the smoke run starts, completes, and grades every sample, run the intended evaluation size by removing the temporary `limit` override.
 6. Inspect score, pass rate, sample count, and failure details returned by `eval info` or the platform UI.
 7. Choose one small hypothesis or data improvement.
 8. Change only the necessary surface:
    - `rollouts/<name>/<entrypoint-from-config>` or its package modules
    - `configs/eval/<name>.toml`
    - local source datasets under `data/` when preparing a new platform upload
-9. Commit and push the change, then re-submit the same eval config and compare against the prior cloud eval run.
+9. Commit and push the change, then re-submit the same evaluation config and compare against the prior evaluation run.
 10. Keep or discard the change.
 11. Log the experiment under `.osmosis/research/experiments/`.
 
@@ -59,12 +59,12 @@ Use cloud evals to decide what to keep, fix, or try next. `osmosis eval submit` 
 - `ctx.prompt` is derived from `system_prompt` + `user_prompt`; `ctx.label` is the `ground_truth` string passed to `Grader.grade`.
 - Prefer real or user-approved examples.
 - Add failure cases that exercise the grader and common user mistakes.
-- When local data changes, upload or replace the platform dataset before treating a cloud eval as representative.
+- When local data changes, upload or replace the platform dataset before treating an evaluation run as representative.
 
 ## Guardrails
 
-- Cloud eval validates platform-side dataset availability, Git sync, rollout startup, workflow execution, and grader behavior together.
-- Do not launch platform training from the eval loop.
-- Local edits that are not pushed can be ignored by platform eval unless the config pins a pushed `commit_sha`.
+- Evaluation run validates platform-side dataset availability, Git sync, rollout startup, workflow execution, and grader behavior together.
+- Do not launch a platform training run from the evaluation loop.
+- Local edits that are not pushed can be ignored by platform evaluation runs unless the config pins a pushed `commit_sha`.
 - Prefer small, reviewable diffs over rewrites.
-- If the rollout cannot load, the platform eval fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.
+- If the rollout cannot load, the platform evaluation run fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.
