@@ -25,13 +25,13 @@ Conventions:
 Check the workspace scaffold with:
 
 ```bash
-osmosis doctor
+osmosis --json doctor
 ```
 
 Repair missing scaffold directories with:
 
 ```bash
-osmosis doctor --fix
+osmosis --json doctor --fix
 ```
 
 ## Source of Truth
@@ -43,10 +43,10 @@ osmosis doctor --fix
 ## Standard Workflow
 
 1. Settle the dataset schema: `system_prompt`, `user_prompt`, `ground_truth`.
-2. Create or adapt a rollout with `osmosis rollout init <name>` or an SDK template.
-3. Upload your dataset with `osmosis dataset upload data/<name>.jsonl`, or confirm it's already on the platform with `osmosis dataset list`.
+2. Create or adapt a rollout with `osmosis --json rollout init <name>` or an SDK template.
+3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl`, or confirm it's already on the platform with `osmosis --json dataset list`.
 4. Commit and push rollout code and config changes.
-5. Submit an evaluation run with `osmosis eval submit configs/eval/<name>.toml`.
+5. Submit an evaluation run with `osmosis --json eval submit configs/eval/<name>.toml`.
 6. Submit training only after the user is ready.
 
 ## Rollout Contract
@@ -63,7 +63,7 @@ osmosis doctor --fix
 Create a blank rollout scaffold with:
 
 ```bash
-osmosis rollout init <name>
+osmosis --json rollout init <name>
 ```
 
 This writes `rollouts/<name>/` and matching evaluation/training configs from the SDK scaffold.
@@ -71,8 +71,8 @@ This writes `rollouts/<name>/` and matching evaluation/training configs from the
 Apply a starter template with:
 
 ```bash
-osmosis template list
-osmosis template apply multiply-local-strands
+osmosis --json template list
+osmosis --json template apply multiply-local-strands
 ```
 
 ## Config Guidance
@@ -99,20 +99,20 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 
 ## CLI Output
 
-- The commands below use the default rich output for interactive human sessions.
-- For AI agents or automation, prefer `osmosis --json ...` for structured output or `osmosis --plain ...` for low-noise text.
+- Command examples in this guide use `osmosis --json ...` because this file is written for AI agents and automation, where structured output is the default expectation (use `osmosis --plain ...` for low-noise text).
+- Humans running these commands interactively can drop `--json` to get the default rich output.
 
 ## Common Commands
 
 ```bash
-osmosis doctor
-osmosis template list
-osmosis template apply multiply-local-strands
-osmosis rollout init <name>
-osmosis dataset upload data/train.jsonl
-osmosis eval submit configs/eval/<name>.toml
-osmosis train submit configs/training/<name>.toml
-osmosis train info <run-name>
-osmosis deploy <checkpoint-name>
-osmosis deployment info <checkpoint-name>
+osmosis --json doctor
+osmosis --json template list
+osmosis --json template apply multiply-local-strands
+osmosis --json rollout init <name>
+osmosis --json dataset upload data/<name>.jsonl
+osmosis --json eval submit configs/eval/<name>.toml
+osmosis --json train submit configs/training/<name>.toml
+osmosis --json train info <run-name>
+osmosis --json deploy <checkpoint-name>
+osmosis --json deployment info <checkpoint-name>
 ```
