@@ -27,7 +27,7 @@ osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval info <eval-name-from-submit>
 ```
 
-For a smoke evaluation run, set `[evaluation].limit = 1` in the evaluation config before submit. Then run the intended evaluation size by removing the temporary limit override; every sample must receive reward and meet any threshold in `.osmosis/research/program.md`.
+For a quick smoke test, set `[evaluation].limit = 1` in the evaluation config before submitting. Then run the full evaluation by removing the temporary limit override; every sample must receive a reward and meet any threshold in `.osmosis/research/program.md`.
 
 ### B. Platform dataset gate
 
@@ -59,4 +59,4 @@ osmosis --json train submit configs/training/<run>.toml --yes
 osmosis --json train info <run-name>
 ```
 
-There is no separate `rollout validate` command in the current SDK. `osmosis --json train submit` performs the training run preflight and submits if it passes. If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying.
+`osmosis --json train submit configs/training/<run>.toml --yes` performs the training-run preflight checks and, if they pass, submits the run. If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying.

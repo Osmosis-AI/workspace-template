@@ -44,7 +44,7 @@ osmosis doctor --fix
 
 1. Settle the dataset schema: `system_prompt`, `user_prompt`, `ground_truth`.
 2. Create or adapt a rollout with `osmosis rollout init <name>` or an SDK template.
-3. Upload or verify the platform dataset with `osmosis dataset list`.
+3. Upload your dataset with `osmosis dataset upload data/<name>.jsonl`, or confirm it's already on the platform with `osmosis dataset list`.
 4. Commit and push rollout code and config changes.
 5. Submit an evaluation run with `osmosis eval submit configs/eval/<name>.toml`.
 6. Submit training only after the user is ready.

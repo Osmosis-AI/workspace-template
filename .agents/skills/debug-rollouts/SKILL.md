@@ -18,11 +18,11 @@ Find the smallest fix that makes the project runnable again.
 - Structure/config: missing scaffold paths, config outside canonical directories, wrong entrypoint, or entrypoint escapes `rollouts/<name>/`.
 - Discovery: zero/multiple concrete `AgentWorkflow` classes, no concrete `Grader`, or `Grader.grade` is not async.
 - Server: the configured entrypoint, often `main.py`, lacks backend construction, `create_rollout_server`, `uvicorn.run`, or `_OSMOSIS_ROLLOUT_PORT`; evaluation run startup can also fail if `pyproject.toml` is missing, dependencies are incomplete, or imports only work from an unpushed local checkout. Inspect `osmosis --json eval info <eval-name>` and any platform failure details.
-- Dataset contract: the evaluation config names a missing platform dataset, required columns are missing, `AgentWorkflow.run` ignores `ctx.prompt`, or `Grader.grade` parses `ctx.label` differently from the real `ground_truth` format.
+- **Dataset readiness:** The dataset in your evaluation or training config isn't listed by `osmosis --json dataset list`, its status isn't `uploaded`, your local source data has diverged from the platform dataset, required columns are missing, `AgentWorkflow.run` ignores `ctx.prompt`, or `Grader.grade` parses `ctx.label` in a format that doesn't match the real `ground_truth`.
 - Sample/reward contract: workflow bypasses Osmosis with direct fixed-model provider calls; no sample source is registered; grader skips `ctx.set_sample_reward(...)`; reward logic is too strict, lenient, or broken.
-- Platform handoff: evaluation or training config names a dataset not returned by `osmosis --json dataset list`, dataset status is not `uploaded`, local source data diverges from the platform dataset, code is uncommitted/unpushed, `commit_sha` is not pushed, or Git Sync is not configured.
-- Runtime config: evaluation or training `[env]` / `[secrets]` is absent/wrong, a secret section names a missing platform secret record, or reserved `_OSMOSIS_` vars are used.
-- LLM config: `[experiment].model_path` is missing or not a LiteLLM-style model name. The platform resolves the provider endpoint from the `model_path` prefix; there is no SDK-side base URL override.
+- **Git sync:** Your code is uncommitted or unpushed, the `commit_sha` hasn't been pushed, or Git Sync isn't configured.
+- **Runtime config:** The evaluation or training `[env]` or `[secrets]` is missing or incorrect, a secret section points to a platform secret record that doesn't exist, or you're using reserved `_OSMOSIS_` variables.
+- **LLM config:** `[experiment].model_path` is missing or isn't a LiteLLM-style model name. The platform resolves the provider endpoint from the `model_path` prefix. There is no SDK-side base URL override.
 - Intermittent zero-output rows: blocked async event loop from sync calls such as `mcp.list_tools_sync()`; wrap blocking calls in `asyncio.get_running_loop().run_in_executor(None, ...)`, or raise `agent_workflow_timeout_s` for long-horizon tasks.
 
 ## Process
@@ -52,4 +52,4 @@ git status
 git log --oneline -5
 ```
 
-There is no separate `rollout validate` command in the current SDK. `osmosis --json train submit configs/training/<run>.toml --yes` performs training run preflight and submits if it passes, so do not run it until the user intends to submit.
+`osmosis --json train submit configs/training/<run>.toml --yes` performs the training-run preflight checks and, if they pass, submits the run. Don't run this command until the user actually intends to submit.

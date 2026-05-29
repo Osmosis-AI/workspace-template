@@ -51,6 +51,6 @@ osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval info <eval-name-from-submit>
 ```
 
-A clean evaluation run submit is the platform smoke test for the same Git-synced entrypoint, workflow, grader, model config, and platform dataset that a training run will use. If the evaluation config still has a placeholder dataset, upload or select a platform dataset first; `[experiment].dataset` must be a platform dataset name, not a local path.
+Submit an evaluation run first to confirm your config works before you submit a training run. The evaluation run uses the same Git-synced entrypoint, workflow, grader, and model config, so a passing run means that setup is correct. The dataset can differ (e.g. a held-out eval set), but `[experiment].dataset` must be a platform dataset name, not a placeholder or local path.
 
 If a matching training config exists, inspect and update that original file now, then include the config changes in the intended commit when the user is ready to prepare a training run. Do not submit a training run from this skill. `osmosis --json train submit configs/training/<run>.toml --yes` performs the current SDK preflight when the user is ready to train.

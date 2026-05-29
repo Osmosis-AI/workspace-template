@@ -32,7 +32,7 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 
 ## Core loop
 
-1. For a smoke eval, temporarily set `[evaluation].limit = 1`; otherwise leave optional evaluation fields commented to use platform defaults.
+1. For a quick smoke test, temporarily set `[evaluation].limit = 1`. Otherwise, leave the optional evaluation fields commented out to use the platform defaults.
 2. Ensure the intended rollout code and config are committed and pushed to the connected workspace repository.
 3. Submit the evaluation run:
    ```bash

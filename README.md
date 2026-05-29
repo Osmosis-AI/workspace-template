@@ -1,6 +1,6 @@
 # Osmosis Workspace Repository
 
-This repository is the source of truth for rollout code, evaluation configs, training configs, and datasets connected to one Osmosis platform workspace. Run Osmosis CLI commands from inside this clone so the CLI can resolve the workspace from the GitHub `origin` remote.
+This repository is the source of truth for the rollout code, evaluation configs, and training configs linked to a single Osmosis platform workspace. Datasets in this folder are just local copies for inspecting data; the real datasets live on the platform. Run Osmosis CLI commands from within this repository so they're scoped to the linked workspace, which the CLI identifies from the GitHub `origin` remote.
 
 ## Setup
 

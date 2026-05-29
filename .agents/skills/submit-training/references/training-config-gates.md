@@ -52,4 +52,4 @@ Rules:
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
 - A key cannot appear in both sections.
 - Keys starting with `_OSMOSIS_` are reserved.
-- `[secrets]` values are platform secret record names, not secret values.
+- `[secrets]` values are the names of secrets stored on the platform, not the secrets themselves.
