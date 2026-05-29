@@ -6,7 +6,7 @@ Run from the project root:
 
 ```bash
 osmosis --json doctor
-osmosis --json eval run configs/eval/multiply-harbor-strands.toml --limit 1 --fresh
+osmosis --json eval submit configs/eval/multiply-harbor-strands.toml --yes
 osmosis --json train submit configs/training/multiply-harbor-strands.toml
 ```
 

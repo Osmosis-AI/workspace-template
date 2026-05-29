@@ -1,26 +1,25 @@
-# Osmosis eval config fallback.
+# Osmosis evaluation config fallback.
 # Use when configs/eval/default.toml is missing from a generated workspace.
-# Command after copying: osmosis eval run configs/eval/<name>.toml
+# Command after copying: osmosis eval submit configs/eval/<name>.toml
 
-[eval]
-rollout = "<your-rollout>"            # Rollout name (directory under rollouts/)
-entrypoint = "main.py"                # SDK default; change if the rollout uses another server file
-dataset = "data/<your-dataset>.jsonl" # Local eval dataset under data/
-# limit = 200                         # Optional row cap for local eval
+[experiment]
+rollout = "<your-rollout>"            # Rollout name
+entrypoint = "main.py"                # Entrypoint file name inside rollouts/<rollout>/
+model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
+dataset = "<your-dataset-name>"       # Platform dataset name
+# commit_sha =                        # Optional pinned pushed commit
 
-[llm]
-model = "openai/gpt-5.5"             # Current latest eval model; keep provider/model format
-# api_key_env = "OPENAI_API_KEY"      # Environment variable containing the API key
-# base_url = "http://localhost:8080"  # Optional custom API base URL
+[evaluation]
+# Optional. Omit values to use platform defaults.
+# limit = 200                         # Optional row cap for evaluation run
+# n = 1                               # Number of evaluation attempts
+# batch_size = 1                      # Rows evaluated per batch
+# pass_threshold = 1.0                # Minimum passing score
+# agent_workflow_timeout_s = 450      # Agent workflow timeout per row
+# grader_timeout_s = 150              # Grader timeout per row
 
-[runs]
-n = 1                                 # Number of eval runs
-batch_size = 1                        # Rows evaluated per batch
-pass_threshold = 1.0                  # Minimum passing score
+# [env]
+# LOG_LEVEL = "INFO"
 
-[timeouts]
-agent_workflow_timeout_s = 450        # Agent workflow timeout per row
-grader_timeout_s = 150                # Grader timeout per row
-
-[output]
-log_samples = false                   # Include sample logs in output
+# [secrets]
+# OPENAI_API_KEY = "openai-api-key"

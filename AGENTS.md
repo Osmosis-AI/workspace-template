@@ -14,10 +14,10 @@ Required paths:
 Conventions:
 
 - New rollouts live in `rollouts/<name>/`.
-- Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the eval or training config is authoritative.
-- Eval configs live in `configs/eval/<name>.toml`.
+- Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the evaluation or training config is authoritative.
+- Evaluation configs live in `configs/eval/<name>.toml`.
 - Training configs live in `configs/training/<name>.toml`.
-- Eval configs reference local datasets under `data/`; training configs reference platform dataset names from `osmosis dataset list`.
+- Evaluation and training configs reference platform dataset names from `osmosis dataset list`.
 - Local training guidance lives in `.osmosis/research/program.md`.
 - Local cache and metrics state lives in `.osmosis/` and should not be treated as source.
 - Do not create new top-level directories unless the user explicitly asks.
@@ -25,13 +25,13 @@ Conventions:
 Check the workspace scaffold with:
 
 ```bash
-osmosis doctor
+osmosis --json doctor
 ```
 
 Repair missing scaffold directories with:
 
 ```bash
-osmosis doctor --fix
+osmosis --json doctor --fix
 ```
 
 ## Source of Truth
@@ -43,42 +43,43 @@ osmosis doctor --fix
 ## Standard Workflow
 
 1. Settle the dataset schema: `system_prompt`, `user_prompt`, `ground_truth`.
-2. Create or adapt a rollout with `osmosis rollout init <name>` or an SDK template.
-3. Run local eval: `osmosis eval run configs/eval/<name>.toml --limit 1 --fresh`.
-4. Debug until the rollout starts, produces samples, and every sample is graded.
-5. Upload or verify the platform dataset, commit and push rollout code, then submit training only after the user is ready.
+2. Create or adapt a rollout with `osmosis --json rollout init <name>` or an SDK template.
+3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl`, or confirm it's already on the platform with `osmosis --json dataset list`.
+4. Commit and push rollout code and config changes.
+5. Submit an evaluation run with `osmosis --json eval submit configs/eval/<name>.toml`.
+6. Submit training only after the user is ready.
 
 ## Rollout Contract
 
 - Each configured rollout entrypoint must expose one concrete `AgentWorkflow`.
-- Local eval and managed training require a concrete `Grader` in the rollout server.
+- Evaluation runs and managed training require a concrete `Grader` in the rollout server.
 - The configured entrypoint must start a rollout server using the SDK backend and `create_rollout_server`, and bind `uvicorn` to `_OSMOSIS_ROLLOUT_PORT` defaulting to `8000`.
 - `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`.
 - Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context, usually via `OsmosisStrandsAgent` or `OsmosisAgent` with `OsmosisMemorySession`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
 - `Grader.grade` must be async and assign rewards in `[0.0, 1.0]`.
-- Before `osmosis train submit`, run a local eval and push code to the connected workspace repository.
+- Before `osmosis train submit`, submit an evaluation run and push code to the connected workspace repository.
 
 Create a blank rollout scaffold with:
 
 ```bash
-osmosis rollout init <name>
+osmosis --json rollout init <name>
 ```
 
-This writes `rollouts/<name>/` and matching eval/training configs from the SDK scaffold.
+This writes `rollouts/<name>/` and matching evaluation/training configs from the SDK scaffold.
 
 Apply a starter template with:
 
 ```bash
-osmosis template list
-osmosis template apply multiply-local-strands
+osmosis --json template list
+osmosis --json template apply multiply-local-strands
 ```
 
 ## Config Guidance
 
 - Config-specific rules live in `configs/AGENTS.md`.
-- Never put secret values in TOML. `[rollout.secrets]` maps env-var names to workspace secret record names that the platform resolves server-side.
-- Env var names must be uppercase-style keys, cannot overlap between `[rollout.env]` and `[rollout.secrets]`, and cannot start with `_OSMOSIS_`.
+- Never put secret values in TOML. Eval and training `[secrets]` map env-var names to workspace secret record names that the platform resolves server-side.
+- Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## AI Skills
 
@@ -87,10 +88,10 @@ Detailed workflow guidance lives in project-local Agent Skills under `.agents/sk
 | Skill | What it does |
 | --- | --- |
 | `plan-training` | Turn a vague task into a concrete local training plan. |
-| `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial eval configs. |
-| `evaluate-rollouts` | Run local evals, compare baselines, and iterate with data. |
+| `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial evaluation configs. |
+| `evaluate-rollouts` | Run evaluation runs, compare results, and iterate with data. |
 | `debug-rollouts` | Diagnose rollout, grader, config, dataset, or preflight failures. |
-| `submit-training` | Prepare a training config and submit it safely. |
+| `submit-training` | Prepare a training run config and submit it safely. |
 
 Some skills include `references/` files for fallback config templates and entrypoint patterns. Use those only when the workspace scaffold or local defaults are missing or when a skill explicitly tells you to read them.
 
@@ -98,20 +99,20 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 
 ## CLI Output
 
-- The commands below use the default rich output for interactive human sessions.
-- For AI agents or automation, prefer `osmosis --json ...` for structured output or `osmosis --plain ...` for low-noise text.
+- Command examples in this guide use `osmosis --json ...` because this file is written for AI agents and automation, where structured output is the default expectation (use `osmosis --plain ...` for low-noise text).
+- Humans running these commands interactively can drop `--json` to get the default rich output.
 
 ## Common Commands
 
 ```bash
-osmosis doctor
-osmosis template list
-osmosis template apply multiply-local-strands
-osmosis rollout init <name>
-osmosis eval run configs/eval/<name>.toml --limit 1
-osmosis dataset upload data/train.jsonl
-osmosis train submit configs/training/<name>.toml
-osmosis train info <run-name>
-osmosis deploy <checkpoint-name>
-osmosis deployment info <checkpoint-name>
+osmosis --json doctor
+osmosis --json template list
+osmosis --json template apply multiply-local-strands
+osmosis --json rollout init <name>
+osmosis --json dataset upload data/<name>.jsonl
+osmosis --json eval submit configs/eval/<name>.toml
+osmosis --json train submit configs/training/<name>.toml
+osmosis --json train info <run-name>
+osmosis --json deploy <checkpoint-name>
+osmosis --json deployment info <checkpoint-name>
 ```

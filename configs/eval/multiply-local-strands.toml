@@ -1,24 +1,25 @@
 # Multiply eval - local Strands backend.
-# Command: osmosis eval run configs/eval/multiply-local-strands.toml
+# Command: osmosis eval submit configs/eval/multiply-local-strands.toml
 
-[eval]
+[experiment]
 rollout = "multiply-local-strands"
 entrypoint = "main.py"
-dataset = "data/multiply.jsonl" # Full local dataset; cap rows here instead of using a sample file
-limit = 200                     # Optional row cap for local eval
+model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
+# Eval datasets are platform dataset names, not local data/*.jsonl paths.
+dataset = "multiply"
+# commit_sha =
 
-[llm]
-model = "openai/gpt-5-mini"
-api_key_env = "OPENAI_API_KEY"
+[evaluation]
+# Optional. Omit values to use platform defaults.
+# limit = 200
+# n = 1
+# batch_size = 1
+# pass_threshold = 1.0
+# agent_workflow_timeout_s = 450
+# grader_timeout_s = 150
 
-[runs]
-n = 1
-batch_size = 1
-pass_threshold = 1.0
+# [env]
+# LOG_LEVEL = "INFO"
 
-[timeouts]
-agent_workflow_timeout_s = 450
-grader_timeout_s = 150
-
-[output]
-log_samples = false
+# [secrets]
+# OPENAI_API_KEY = "openai-api-key"

@@ -6,6 +6,6 @@ Run from the project root:
 
 ```bash
 osmosis --json doctor
-osmosis --json eval run configs/eval/multiply-local-openai.toml --limit 1 --fresh
+osmosis --json eval submit configs/eval/multiply-local-openai.toml --yes
 osmosis --json train submit configs/training/multiply-local-openai.toml
 ```

@@ -1,11 +1,11 @@
 ---
 name: plan-training
-description: Use when an Osmosis task idea, dataset, or training goal is not settled; the user asks what to train or evaluate next; or a rollout/eval/training path needs planning before code changes.
+description: Use when an Osmosis task idea, dataset, or training goal is not settled; the user asks what to train or evaluate next; or a rollout/evaluation/training path needs planning before code changes.
 ---
 
 # Plan Training
 
-Anchor the plan on the dataset. The row shape (`system_prompt`, `user_prompt`, `ground_truth`) is the contract for rollout, grader, eval, and training.
+Anchor the plan on the dataset. The row shape (`system_prompt`, `user_prompt`, `ground_truth`) is the contract for rollout, grader, evaluation, and training.
 
 ## First checks
 
@@ -45,13 +45,13 @@ Record the dataset decision, hypotheses, eval plan, and stop conditions in `.osm
 
 1. Settle the dataset (above) before anything else.
 2. Clarify the task, interaction shape, and success criteria against the dataset's actual rows.
-3. Define the first measurable local baseline.
+3. Define the first measurable evaluation run result to compare against future runs.
 4. Choose the smallest next step that keeps the project runnable.
 5. Route execution:
    - no runnable rollout -> `create-rollouts`
-   - runnable baseline needs improvement -> `evaluate-rollouts`
-   - eval, config, loading, or grader fails -> `debug-rollouts`
-   - validated baseline is ready for platform training -> `submit-training`
+   - runnable eval result needs improvement -> `evaluate-rollouts`
+   - evaluation, config, loading, or grader fails -> `debug-rollouts`
+   - validated evaluation run result is ready for a platform training run -> `submit-training`
 
 ## Guardrails
 

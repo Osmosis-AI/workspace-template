@@ -35,15 +35,15 @@ rollout_batch_size = 8
 # grader_timeout_s = 300
 ```
 
-Use `rollout_batch_size <= 32` for 35B+ remote agents unless eval/training evidence supports a higher value.
+Use `rollout_batch_size <= 32` for 35B+ remote agents unless evaluation/training evidence supports a higher value.
 
 ## Environment Variables and Secrets
 
 ```toml
-[rollout.env]
+[env]
 LOG_LEVEL = "INFO"           # visible literal, never a secret
 
-[rollout.secrets]
+[secrets]
 OPENAI_API_KEY = "openai-api-key"  # platform secret record name
 ```
 
@@ -52,4 +52,4 @@ Rules:
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
 - A key cannot appear in both sections.
 - Keys starting with `_OSMOSIS_` are reserved.
-- `[rollout.secrets]` values are platform secret record names, not secret values.
+- `[secrets]` values are the names of secrets stored on the platform, not the secrets themselves.
