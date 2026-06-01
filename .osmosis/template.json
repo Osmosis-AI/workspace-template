@@ -1,0 +1,15 @@
+{
+  "overwriteManaged": [
+    ".agents/skills/**",
+    ".claude/skills/**",
+    "CLAUDE.md",
+    "AGENTS.md",
+    "configs/AGENTS.md",
+    "configs/**/default.toml"
+  ],
+  "additive": [
+    "rollouts/*",
+    "data/*",
+    "configs/**"
+  ]
+}

@@ -1,0 +1,10 @@
+# Osmosis workspace-template — update opt-out
+#
+# This file is yours to edit. List any Osmosis-managed paths you've customized
+# and want to keep as-is; Osmosis update PRs will skip anything matched here.
+# gitignore-style globs, one per line. Ships empty — by default nothing is excluded.
+#
+# Examples (uncomment and adapt):
+#   CLAUDE.md
+#   .agents/skills/create-rollouts/**
+#   configs/eval/default.toml
