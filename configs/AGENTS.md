@@ -44,11 +44,8 @@ Optional sections:
 
 - `[sampling]` for rollout sampling parameters.
 - `[checkpoints]` for eval and checkpoint cadence.
-- `[advanced]` for backend-specific fields.
 - `[env]` for non-secret literal environment variables.
-- `[secrets].required` for platform secret record names.
-  - Eval configs must include `[secrets].required`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs.
-  - Training configs may omit `[secrets]` when no secret refs are needed; if the section is present, it must include `required`.
+- `[secrets]` for platform secret record names. Training configs may omit `[secrets]` when no secret refs are needed; if the section is present, it must include `required`.
 
 ### Environment Variables and Secrets
 
@@ -83,6 +80,8 @@ cp configs/eval/default.toml configs/eval/<run-name>.toml
 ```
 
 If `configs/eval/default.toml` was deleted in this workspace, recover the shape from the repo-root fallback `.agents/skills/evaluate-rollouts/references/eval-default.toml`.
+
+Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs.
 
 Use one evaluation config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. `dataset` must be a platform dataset name from `osmosis dataset list`.
 

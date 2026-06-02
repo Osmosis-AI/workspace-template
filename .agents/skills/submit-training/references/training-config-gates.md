@@ -51,6 +51,6 @@ Rules:
 
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
 - Secret names must match `^[A-Z][A-Z0-9_]*$`.
-- A name cannot appear in both `[env]` and `[secrets].required`.
+- A name cannot appear in both `[env]` and `[secrets]`.
 - Keys starting with `_OSMOSIS_` are reserved.
-- `[secrets].required` values are names of secrets stored on the platform, not the secrets themselves.
+- `[secrets]` names are names of secrets stored on the platform, not the secrets themselves.

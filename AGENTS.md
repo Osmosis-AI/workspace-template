@@ -78,7 +78,7 @@ osmosis --json template apply multiply-local-strands
 ## Config Guidance
 
 - Config-specific rules live in `configs/AGENTS.md`.
-- Never put secret values in TOML. `[secrets].required` lists platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Eval configs must include the field; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
+- Never put secret values in TOML. The `[secrets]` section must contain a `required` list of platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
 - Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## AI Skills
