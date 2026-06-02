@@ -107,7 +107,7 @@ dataset = "calculator"
 
 [secrets]
 # Default OpenAI eval models need this platform secret.
-# Use [] only when this evaluation needs no secret refs.
+# Use required = [] only when this evaluation needs no secret refs.
 required = ["OPENAI_API_KEY"]
 ```
 
