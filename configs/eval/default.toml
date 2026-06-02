@@ -18,12 +18,15 @@ dataset = "<your-dataset-name>"       # Platform dataset name
 # agent_workflow_timeout_s = 450      # Agent workflow timeout per row
 # grader_timeout_s = 150              # Grader timeout per row
 
-# Environment variables & secrets
-# Both sections are optional. Omit them entirely if your rollout needs no
-# additional environment configuration.
+# Environment variables
+# Omit this block if your rollout needs no literal environment configuration.
 #
 # [env]
 # LOG_LEVEL = "INFO"
-#
-# [secrets]
-# OPENAI_API_KEY = "openai-api-key"
+
+[secrets]
+# Default OpenAI eval models need this platform secret.
+# Use [] only when this evaluation needs no secret refs.
+# Register secret records first with `osmosis secret set NAME` (personal is the default),
+# or pass `--scope workspace` for workspace-shared secrets.
+required = ["OPENAI_API_KEY"]

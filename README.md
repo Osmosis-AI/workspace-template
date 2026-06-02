@@ -97,7 +97,7 @@ Upload local JSONL, CSV, or Parquet datasets when you are ready to train:
 osmosis dataset upload data/<dataset>.jsonl
 ```
 
-Never put secret values in TOML. Use `[secrets]` in evaluation and training configs to map environment variable names to workspace secret record names that the platform resolves server-side.
+Never put secret values in TOML. Use `[secrets].required` to list platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Evaluation configs must include the field; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create secret records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
 
 ## Git Sync, Eval, and Training
 

@@ -46,7 +46,9 @@ Optional sections:
 - `[checkpoints]` for eval and checkpoint cadence.
 - `[advanced]` for backend-specific fields.
 - `[env]` for non-secret literal environment variables.
-- `[secrets]` for platform secret record names.
+- `[secrets].required` for platform secret record names.
+  - Eval configs must include `[secrets].required`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs.
+  - Training configs may omit `[secrets]` when no secret refs are needed; if the section is present, it must include `required`.
 
 ### Environment Variables and Secrets
 
@@ -57,15 +59,18 @@ LOG_LEVEL = "INFO"
 MY_CONFIG = "some-value"
 
 [secrets]
-# Value is the name of a workspace environment_secret record, not the secret value itself. The platform resolves and injects it server-side.
-OPENAI_API_KEY = "openai-api-key"
+# Each name is a platform environment_secret record name. The platform resolves and injects it server-side.
+# Include this block only when the rollout needs platform secret refs.
+# When this block is present, it must include `required`.
+required = ["OPENAI_API_KEY"]
 ```
 
 Rules:
 
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
-- The same key cannot appear in both sections.
-- Env var names starting with `_OSMOSIS_` are reserved by the platform and forbidden in both sections.
+- Secret names must match `^[A-Z][A-Z0-9_]*$`.
+- The same name cannot appear in both sections.
+- Env var names starting with `_OSMOSIS_` are reserved by the platform.
 
 Inside the rollout container both sets of vars are available via `os.environ`.
 
@@ -101,8 +106,10 @@ dataset = "calculator"
 # [env]
 # LOG_LEVEL = "INFO"
 
-# [secrets]
-# OPENAI_API_KEY = "openai-api-key"
+[secrets]
+# Default OpenAI eval models need this platform secret.
+# Use [] only when this evaluation needs no secret refs.
+required = ["OPENAI_API_KEY"]
 ```
 
 ## Commands
