@@ -44,12 +44,13 @@ Use `rollout_batch_size <= 32` for 35B+ remote agents unless evaluation/training
 LOG_LEVEL = "INFO"           # visible literal, never a secret
 
 [secrets]
-OPENAI_API_KEY = "openai-api-key"  # platform secret record name
+required = ["OPENAI_API_KEY"]      # platform secret record names
 ```
 
 Rules:
 
 - Keys must match `^[A-Z_][A-Z0-9_]*$`.
-- A key cannot appear in both sections.
+- Secret names must match `^[A-Z][A-Z0-9_]*$`.
+- A name cannot appear in both `[env]` and `[secrets]`.
 - Keys starting with `_OSMOSIS_` are reserved.
-- `[secrets]` values are the names of secrets stored on the platform, not the secrets themselves.
+- `[secrets]` names are names of secrets stored on the platform, not the secrets themselves.
