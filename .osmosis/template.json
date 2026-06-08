@@ -11,7 +11,7 @@
   "additive": [
     ".osmosis/template-ignore",
     "configs/**",
-    "data/*",
-    "rollouts/*"
+    "data/**",
+    "rollouts/**"
   ]
 }
