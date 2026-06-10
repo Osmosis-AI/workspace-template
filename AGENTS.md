@@ -85,7 +85,7 @@ osmosis --json template apply multiply-local-strands
 
 - Checkpoints from a finished training run appear as LoRA models in `osmosis --json model list`, alongside the workspace's base models.
 - `osmosis --json model deploy <lora-model-name>` serves a LoRA model for inference. When choosing among checkpoints, prefer the highest training reward from `model list`, and confirm the choice with the user before deploying.
-- A workspace can have at most 5 active deployments; if deploy fails on that limit, free a slot with `osmosis --json model undeploy <lora-model-name>` instead of retrying.
+- A workspace can have at most 5 active deployments. The `model list` JSON reports `active_deployments` and `max_active_deployments` — check them before deploying, and free a slot with `osmosis --json model undeploy <lora-model-name>` when at the limit instead of retrying.
 - Deploy and undeploy are idempotent, and base models cannot be deployed.
 
 ## AI Skills
@@ -117,10 +117,18 @@ osmosis --json doctor
 osmosis --json template list
 osmosis --json template apply multiply-local-strands
 osmosis --json rollout init <name>
+osmosis --json rollout list
 osmosis --json dataset upload data/<name>.jsonl --yes
+osmosis --json secret list
 osmosis --json eval submit configs/eval/<name>.toml --yes
+osmosis --json eval logs <eval-name>
+osmosis --json eval stop <eval-name> --yes
+osmosis --json dataset logs <dataset-name>
 osmosis --json train submit configs/training/<name>.toml --yes
+osmosis --json train list
 osmosis --json train info <run-name>
+osmosis --json train logs <run-name>
+osmosis --json train stop <run-name> --yes
 osmosis --json model list
 osmosis --json model deploy <lora-model-name>
 osmosis --json model undeploy <lora-model-name>

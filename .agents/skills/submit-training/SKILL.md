@@ -61,6 +61,8 @@ osmosis --json train info <run-name>
 
 `osmosis --json train submit configs/training/<run>.toml --yes` performs the training-run preflight checks and, if they pass, submits the run. If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying.
 
+Find run names with `osmosis --json train list`. If a run fails or crashes, inspect `osmosis --json train logs <run-name>`. Stop a pending or running run with `osmosis --json train stop <run-name> --yes` — only after the user explicitly asks. `train info -o <path>` exports the run's metrics JSON.
+
 ## After the run finishes
 
 Checkpoints from a finished run appear as LoRA models. List them and serve one for inference only when the user asks to deploy:
