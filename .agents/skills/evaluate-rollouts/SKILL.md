@@ -5,7 +5,7 @@ description: Use when submitting Osmosis evaluation runs, smoke-testing rollout 
 
 # Evaluate Rollouts
 
-Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval submit` sends a platform evaluation job against the platform dataset named in `configs/eval/<name>.toml`, using the Git-synced rollout entrypoint, workflow, and grader.
+Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval submit` sends a platform evaluation run against the platform dataset named in `configs/eval/<name>.toml`, using the Git-synced rollout entrypoint, workflow, and grader.
 
 ## First checks
 

@@ -134,4 +134,4 @@ osmosis --json model deploy <lora-model-name>
 osmosis --json model undeploy <lora-model-name>
 ```
 
-Renames, deletions, and model weight downloads are not available in the CLI — direct the user to the platform web UI for those.
+Renames and deletions are not available in the CLI — direct the user to the platform web UI for those.
