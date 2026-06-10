@@ -27,7 +27,7 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 7. If the dataset has not been uploaded yet, validate and upload the local source file, then update `[experiment].dataset` to the platform dataset name:
    ```bash
    osmosis --json dataset validate data/<name>.jsonl
-   osmosis --json dataset upload data/<name>.jsonl
+   osmosis --json dataset upload data/<name>.jsonl --yes
    ```
 
 ## Core loop

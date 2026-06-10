@@ -44,9 +44,9 @@ osmosis --json doctor --fix
 
 1. Settle the dataset schema: `system_prompt`, `user_prompt`, `ground_truth`.
 2. Create or adapt a rollout with `osmosis --json rollout init <name>` or an SDK template.
-3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl`, or confirm it's already on the platform with `osmosis --json dataset list`.
+3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl --yes`, or confirm it's already on the platform with `osmosis --json dataset list`.
 4. Commit and push rollout code and config changes.
-5. Submit an evaluation run with `osmosis --json eval submit configs/eval/<name>.toml`.
+5. Submit an evaluation run with `osmosis --json eval submit configs/eval/<name>.toml --yes`.
 6. Submit training only after the user is ready.
 
 ## Rollout Contract
@@ -81,6 +81,13 @@ osmosis --json template apply multiply-local-strands
 - Never put secret values in TOML. The `[secrets]` section must contain a `required` list of platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
 - Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
+## Models
+
+- Checkpoints from a finished training run appear as LoRA models in `osmosis --json model list`, alongside the workspace's base models.
+- `osmosis --json model deploy <lora-model-name>` serves a LoRA model for inference. When choosing among checkpoints, prefer the highest training reward from `model list`, and confirm the choice with the user before deploying.
+- A workspace can have at most 5 active deployments; if deploy fails on that limit, free a slot with `osmosis --json model undeploy <lora-model-name>` instead of retrying.
+- Deploy and undeploy are idempotent, and base models cannot be deployed.
+
 ## AI Skills
 
 Detailed workflow guidance lives in project-local Agent Skills under `.agents/skills/`. Treat those files as the canonical AI workflow source for this workspace.
@@ -101,6 +108,7 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 
 - Command examples in this guide use `osmosis --json ...` because this file is written for AI agents and automation, where structured output is the default expectation (use `osmosis --plain ...` for low-noise text).
 - Humans running these commands interactively can drop `--json` to get the default rich output.
+- Commands that ask for confirmation (`dataset upload`, `eval submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`train submit`), pass `--yes` only after the user has explicitly confirmed.
 
 ## Common Commands
 
@@ -109,10 +117,13 @@ osmosis --json doctor
 osmosis --json template list
 osmosis --json template apply multiply-local-strands
 osmosis --json rollout init <name>
-osmosis --json dataset upload data/<name>.jsonl
-osmosis --json eval submit configs/eval/<name>.toml
-osmosis --json train submit configs/training/<name>.toml
+osmosis --json dataset upload data/<name>.jsonl --yes
+osmosis --json eval submit configs/eval/<name>.toml --yes
+osmosis --json train submit configs/training/<name>.toml --yes
 osmosis --json train info <run-name>
-osmosis --json deploy <checkpoint-name>
-osmosis --json deployment info <checkpoint-name>
+osmosis --json model list
+osmosis --json model deploy <lora-model-name>
+osmosis --json model undeploy <lora-model-name>
 ```
+
+Renames, deletions, and model weight downloads are not available in the CLI — direct the user to the platform web UI for those.

@@ -113,12 +113,13 @@ osmosis train submit configs/training/<name>.toml
 
 Use `commit_sha` in evaluation or training configs when you need to pin a run to a specific pushed commit.
 
-Inspect training runs and deploy checkpoints:
+Inspect training runs and deploy LoRA models:
 
 ```bash
 osmosis train info <run-name>
-osmosis deploy <checkpoint-name>
-osmosis deployment info <checkpoint-name>
+osmosis model list
+osmosis model deploy <lora-model-name>
+osmosis model undeploy <lora-model-name>
 ```
 
 ## AI-Assisted Workflow
