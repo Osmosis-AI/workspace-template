@@ -65,17 +65,4 @@ Find run names with `osmosis --json train list`. If a run fails or crashes, insp
 
 ## After the run finishes
 
-Checkpoints from a finished run appear as LoRA models. List them and serve one for inference only when the user asks to deploy:
-
-```bash
-osmosis --json model list
-osmosis --json model info <lora-model-name>
-osmosis --json model deploy <lora-model-name>
-osmosis --json model undeploy <lora-model-name>
-```
-
-`model info` reports a single model's checkpoint step, training reward, Hugging Face upload status, deployment status, and `platform_url`.
-
-Once deployed, the model serves an OpenAI-compatible API at `https://inference.osmosis.ai/v1` — `POST /chat/completions` with `Authorization: Bearer $OSMOSIS_API_KEY` (a workspace API key) and `model` set to `<base_model_path>:<lora-model-name>` (`stream: true` supported). `osmosis model info <lora-model-name>` prints a ready-to-run request.
-
-If `OSMOSIS_API_KEY` is unset, ask the user to create a key on the platform's API Keys page (`model info` prints the link) and add it to `.env` themselves — never ask for the secret in chat or print its value. Load `.env` into the shell with `set -a && source .env && set +a` before running the curl.
+Checkpoints from a finished run appear as LoRA models (`osmosis --json model list`). Deploying one for inference is a separate, user-initiated workflow — use the `deploy-models` skill when the user asks.
