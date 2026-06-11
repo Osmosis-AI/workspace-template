@@ -86,7 +86,9 @@ osmosis --json template apply multiply-local-strands
 - Checkpoints from a finished training run appear as LoRA models in `osmosis --json model list`, alongside the workspace's base models.
 - `osmosis --json model info <lora-model-name>` shows one LoRA model's details — base model, training run, checkpoint step, training reward, Hugging Face upload status/URL, deployment status, and a `platform_url` link to its detail page.
 - `osmosis --json model deploy <lora-model-name>` serves a LoRA model for inference. When choosing among checkpoints, prefer the highest training reward from `model list`, and confirm the choice with the user before deploying.
-- A workspace can have at most 5 active deployments. The `model list` JSON reports `active_deployments` and `max_active_deployments` — check them before deploying, and free a slot with `osmosis --json model undeploy <lora-model-name>` when at the limit instead of retrying.
+- Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/v1` — `POST /chat/completions` with header `Authorization: Bearer $OSMOSIS_API_KEY` and `model` set to the `inference_model` value from `osmosis --json model info` (`<base_model_path>:<lora-model-name>`, e.g. `Qwen/Qwen3.6-35B-A3B:code-reviewer-v1`). `stream: true` is supported. `osmosis model info` also prints a ready-to-run request for deployed models.
+- `OSMOSIS_API_KEY` is a workspace API key, kept in `.env`. If it's unset, ask the user to create one on the platform's API Keys page (`osmosis model info` prints the link) and add it to `.env` themselves — never ask for the secret in chat, and never print its value. `.env` is not auto-exported to the shell; load it with `set -a && source .env && set +a` before running curl commands that reference the variable.
+- A workspace can have at most 5 inference deployments. The `model list` JSON reports `active_deployments` and `max_active_deployments` — check them before deploying, and undeploy a model with `osmosis --json model undeploy <lora-model-name>` when at the limit instead of retrying.
 - Deploy and undeploy are idempotent, and base models cannot be deployed.
 
 ## AI Skills
