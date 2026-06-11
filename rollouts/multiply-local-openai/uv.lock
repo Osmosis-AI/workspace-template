@@ -1520,7 +1520,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "openai-agents", specifier = ">=0.14,<0.15" },
-    { name = "osmosis-ai", extras = ["server"], specifier = ">=0.2.20" },
+    { name = "osmosis-ai", extras = ["server"], specifier = ">=0.2.25" },
 ]
 
 [[package]]
@@ -1831,10 +1831,9 @@ wheels = [
 
 [[package]]
 name = "osmosis-ai"
-version = "0.2.20"
+version = "0.2.25"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "filelock" },
     { name = "harbor", extra = ["daytona"] },
     { name = "httpx" },
     { name = "keyring" },
@@ -1842,25 +1841,22 @@ dependencies = [
     { name = "openai-agents", extra = ["litellm"] },
     { name = "pydantic" },
     { name = "python-dotenv" },
-    { name = "pyyaml" },
     { name = "questionary" },
     { name = "requests" },
     { name = "rich" },
     { name = "strands-agents", extra = ["litellm"] },
     { name = "tqdm" },
     { name = "typer" },
-    { name = "xxhash" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/40/ad/0930d898db6733499e82a4ffba6e007ab9beca9dc4472004b676200a4404/osmosis_ai-0.2.20.tar.gz", hash = "sha256:3f4cc191375b400fea5da8aa397f9d919f9739aaae726b6f15bee230e2bf04d8", size = 212678, upload-time = "2026-05-10T07:14:39.508Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/64/e5999ff3eb0c8c1077528ce739f92242001588a4b33a7c3dc530c557945f/osmosis_ai-0.2.25.tar.gz", hash = "sha256:60cc9b85b6c3a779883772f6244fd572e6fcdaad116090046fc1268135ba3ab3", size = 161659, upload-time = "2026-06-04T23:50:31.537Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f4/36/53352a07fd8158809e3dd913518085b05cd307a13c36bcf6e6f9c89f4a89/osmosis_ai-0.2.20-py3-none-any.whl", hash = "sha256:3310985620210d585a4e6627218c727336e554490f877f09f16636b3b6bb531b", size = 259012, upload-time = "2026-05-10T07:14:38.035Z" },
+    { url = "https://files.pythonhosted.org/packages/78/89/b90c165791f721d6bb65b73fa6964b4d2280df28afeadbc9426552c033ff/osmosis_ai-0.2.25-py3-none-any.whl", hash = "sha256:0e8e4a1e3cc51ca0cd5b09e3aba34547f78dedabad9492fce0c34a9bfd5dbcde", size = 206031, upload-time = "2026-06-04T23:50:29.96Z" },
 ]
 
 [package.optional-dependencies]
 server = [
     { name = "fastapi" },
     { name = "pyarrow" },
-    { name = "pydantic-settings" },
     { name = "uvicorn" },
 ]
 
@@ -2743,8 +2739,8 @@ name = "secretstorage"
 version = "3.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cryptography" },
-    { name = "jeepney" },
+    { name = "cryptography", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "jeepney", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/1c/03/e834bcd866f2f8a49a85eaff47340affa3bfa391ee9912a952a1faa68c7b/secretstorage-3.5.0.tar.gz", hash = "sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be", size = 19884, upload-time = "2025-11-23T19:02:53.191Z" }
 wheels = [
