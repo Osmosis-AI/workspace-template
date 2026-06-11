@@ -84,6 +84,7 @@ osmosis --json template apply multiply-local-strands
 ## Models
 
 - Checkpoints from a finished training run appear as LoRA models in `osmosis --json model list`, alongside the workspace's base models.
+- `osmosis --json model info <lora-model-name>` shows one LoRA model's details — base model, training run, checkpoint step, training reward, Hugging Face upload status/URL, deployment status, and a `platform_url` link to its detail page.
 - `osmosis --json model deploy <lora-model-name>` serves a LoRA model for inference. When choosing among checkpoints, prefer the highest training reward from `model list`, and confirm the choice with the user before deploying.
 - A workspace can have at most 5 active deployments. The `model list` JSON reports `active_deployments` and `max_active_deployments` — check them before deploying, and free a slot with `osmosis --json model undeploy <lora-model-name>` when at the limit instead of retrying.
 - Deploy and undeploy are idempotent, and base models cannot be deployed.
@@ -130,6 +131,7 @@ osmosis --json train info <run-name>
 osmosis --json train logs <run-name>
 osmosis --json train stop <run-name> --yes
 osmosis --json model list
+osmosis --json model info <lora-model-name>
 osmosis --json model deploy <lora-model-name>
 osmosis --json model undeploy <lora-model-name>
 ```

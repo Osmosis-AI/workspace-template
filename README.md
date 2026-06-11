@@ -118,6 +118,7 @@ Inspect training runs and deploy LoRA models:
 ```bash
 osmosis train info <run-name>
 osmosis model list
+osmosis model info <lora-model-name>
 osmosis model deploy <lora-model-name>
 osmosis model undeploy <lora-model-name>
 ```

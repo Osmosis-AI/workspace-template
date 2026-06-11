@@ -69,6 +69,9 @@ Checkpoints from a finished run appear as LoRA models. List them and serve one f
 
 ```bash
 osmosis --json model list
+osmosis --json model info <lora-model-name>
 osmosis --json model deploy <lora-model-name>
 osmosis --json model undeploy <lora-model-name>
 ```
+
+`model info` reports a single model's checkpoint step, training reward, Hugging Face upload status, deployment status, and `platform_url`.
