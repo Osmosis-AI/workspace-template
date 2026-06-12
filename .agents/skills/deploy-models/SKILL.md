@@ -30,7 +30,7 @@ Both are idempotent, and base models cannot be deployed. A workspace can have at
 Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/v1`:
 
 - `POST /chat/completions`
-- Header `Authorization: Bearer $OSMOSIS_API_KEY` (a workspace API key)
+- Header `Authorization: Bearer $OSMOSIS_API_KEY` (an Osmosis API key)
 - `model` set to the `inference_model` value from `osmosis --json model info` (`<base_model_path>:<lora-model-name>`)
 - `stream: true` is supported
 
@@ -38,4 +38,4 @@ Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/
 
 ## API key
 
-`OSMOSIS_API_KEY` is a workspace API key kept in `.env`. If it's unset, ask the user to create one on the platform's API Keys page (`model info` prints the link) and add it to `.env` themselves — never ask for the secret in chat or print its value. `.env` is not auto-exported to the shell; load it with `set -a && source .env && set +a` before running curl commands that reference the variable.
+`OSMOSIS_API_KEY` is an Osmosis API key kept in `.env`. If it's unset, ask the user to create one on the platform's API Keys page (`model info` prints the link) and add it to `.env` themselves — never ask for the secret in chat or print its value. `.env` is not auto-exported to the shell; load it with `set -a && source .env && set +a` before running curl commands that reference the variable.

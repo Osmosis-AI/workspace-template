@@ -123,7 +123,7 @@ osmosis model deploy <lora-model-name>
 osmosis model undeploy <lora-model-name>
 ```
 
-Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/v1` (`model` = `<base_model_path>:<lora-model-name>`, e.g. `Qwen/Qwen3.6-35B-A3B:code-reviewer-v1`, authenticated with a workspace API key as the bearer token). The model's detail page on the platform has ready-to-run snippets.
+Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/v1` (`model` = `<base_model_path>:<lora-model-name>`, e.g. `Qwen/Qwen3.6-35B-A3B:code-reviewer-v1`, authenticated with an Osmosis API key as the bearer token). The model's detail page on the platform has ready-to-run snippets.
 
 ## AI-Assisted Workflow
 
