@@ -113,13 +113,17 @@ osmosis train submit configs/training/<name>.toml
 
 Use `commit_sha` in evaluation or training configs when you need to pin a run to a specific pushed commit.
 
-Inspect training runs and deploy checkpoints:
+Inspect training runs and deploy LoRA models:
 
 ```bash
 osmosis train info <run-name>
-osmosis deploy <checkpoint-name>
-osmosis deployment info <checkpoint-name>
+osmosis model list
+osmosis model info <lora-model-name>
+osmosis model deploy <lora-model-name>
+osmosis model undeploy <lora-model-name>
 ```
+
+Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/v1` (`model` = `<base_model_path>:<lora-model-name>`, e.g. `Qwen/Qwen3.6-35B-A3B:code-reviewer-v1`, authenticated with an Osmosis API key as the bearer token). The model's detail page on the platform has ready-to-run snippets.
 
 ## AI-Assisted Workflow
 
@@ -130,6 +134,7 @@ This workspace includes project-local Agent Skills in `.agents/skills/`:
 - `evaluate-rollouts`
 - `debug-rollouts`
 - `submit-training`
+- `deploy-models`
 
 `AGENTS.md` contains the always-loaded workspace contract. `CLAUDE.md` imports that contract for Claude Code, and `.claude/skills/<skill-name>` symlinks expose the same skills while pointing back to the canonical `.agents` directories.
 

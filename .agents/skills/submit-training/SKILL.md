@@ -40,7 +40,7 @@ osmosis --json dataset preview <dataset-name> --rows 5
 osmosis --json dataset download <dataset-name> -o data/<dataset-name>.jsonl
 ```
 
-For first uploads, run `osmosis --json dataset upload data/<name>.jsonl`. Confirm status is `uploaded`, required columns exist, `ground_truth` matches `Grader.grade(ctx.label)`, and prompts match `AgentWorkflow.run(ctx.prompt)`. Re-run the evaluation run when parity is uncertain.
+For first uploads, run `osmosis --json dataset upload data/<name>.jsonl --yes`. Confirm status is `uploaded`, required columns exist, `ground_truth` matches `Grader.grade(ctx.label)`, and prompts match `AgentWorkflow.run(ctx.prompt)`. Re-run the evaluation run when parity is uncertain.
 
 ### C. Git push & commit pin
 
@@ -60,3 +60,9 @@ osmosis --json train info <run-name>
 ```
 
 `osmosis --json train submit configs/training/<run>.toml --yes` performs the training-run preflight checks and, if they pass, submits the run. If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying.
+
+Find run names with `osmosis --json train list`. If a run fails or crashes, inspect `osmosis --json train logs <run-name>`. Stop an in-progress run with `osmosis --json train stop <run-name> --yes` — only after the user explicitly asks. `train info -o <path>` exports the run's metrics JSON.
+
+## After the run finishes
+
+Checkpoints from a finished run appear as LoRA models (`osmosis --json model list`). Deploying one for inference is a separate, user-initiated workflow — use the `deploy-models` skill when the user asks.

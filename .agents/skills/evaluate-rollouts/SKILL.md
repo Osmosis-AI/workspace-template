@@ -5,7 +5,7 @@ description: Use when submitting Osmosis evaluation runs, smoke-testing rollout 
 
 # Evaluate Rollouts
 
-Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval submit` sends a platform evaluation job against the platform dataset named in `configs/eval/<name>.toml`, using the Git-synced rollout entrypoint, workflow, and grader.
+Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval submit` sends a platform evaluation run against the platform dataset named in `configs/eval/<name>.toml`, using the Git-synced rollout entrypoint, workflow, and grader.
 
 ## First checks
 
@@ -27,7 +27,7 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 7. If the dataset has not been uploaded yet, validate and upload the local source file, then update `[experiment].dataset` to the platform dataset name:
    ```bash
    osmosis --json dataset validate data/<name>.jsonl
-   osmosis --json dataset upload data/<name>.jsonl
+   osmosis --json dataset upload data/<name>.jsonl --yes
    ```
 
 ## Core loop
@@ -43,7 +43,7 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
    osmosis --json eval info <eval-name>
    ```
 5. If the smoke run starts, completes, and grades every sample, run the intended evaluation size by removing the temporary `limit` override.
-6. Inspect score, pass rate, sample count, and failure details returned by `eval info` or the platform UI.
+6. Inspect score, pass rate, sample count, and failure details returned by `eval info` (add `-o <path>` to export the metrics JSON for comparisons) or the platform UI.
 7. Choose one small hypothesis or data improvement.
 8. Change only the necessary surface:
    - `rollouts/<name>/<entrypoint-from-config>` or its package modules
@@ -64,6 +64,7 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 ## Guardrails
 
 - Evaluation run validates platform-side dataset availability, Git sync, rollout startup, workflow execution, and grader behavior together.
+- Stop a runaway run (e.g. a full-size submit that should have been a smoke test) with `osmosis --json eval stop <eval-name> --yes`.
 - Do not launch a platform training run from the evaluation loop.
 - Local edits that are not pushed can be ignored by platform evaluation runs unless the config pins a pushed `commit_sha`.
 - Prefer small, reviewable diffs over rewrites.
