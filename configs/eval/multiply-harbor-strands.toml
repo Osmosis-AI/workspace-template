@@ -19,4 +19,4 @@ dataset = "multiply"
 # grader_timeout_s = 150
 
 [secrets]
-required = ["DAYTONA_API_KEY", "OPENAI_API_KEY"]
+required = ["OPENAI_API_KEY"]
