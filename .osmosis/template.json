@@ -2,16 +2,14 @@
   "overwriteManaged": [
     ".agents/skills/**",
     ".claude/skills/**",
-    "configs/AGENTS.md",
-    "configs/**/default.toml",
+    "configs/**",
+    "data/**",
+    "rollouts/**",
     "AGENTS.md",
     "CLAUDE.md",
     "README.md"
   ],
   "additive": [
-    ".osmosis/template-ignore",
-    "configs/**",
-    "data/**",
-    "rollouts/**"
+    ".osmosis/template-ignore"
   ]
 }

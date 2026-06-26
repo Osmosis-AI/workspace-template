@@ -7,8 +7,8 @@ import os
 from pathlib import Path
 
 import uvicorn
+from harbor.models.environment_type import EnvironmentType
 from harbor.models.trial.config import EnvironmentConfig as HarborEnvironmentConfig
-from harbor.models.trial.config import EnvironmentType
 from harbor.trial.queue import TrialQueue
 
 from multiply_rollout.grader import MultiplyGrader
