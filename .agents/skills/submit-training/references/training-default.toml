@@ -14,6 +14,14 @@ model_path = "<your-model-path>"      # Must be a supported model (see above)
 dataset = "<your-dataset-name>"       # Platform dataset name from `osmosis dataset list`, not dataset_id
 # commit_sha =                        # Pin to a specific commit (default: latest on default branch)
 
+# Optional webhook: a GET fired when the run finishes, with
+# ?training_run_id=...&status=... appended. Must be an https:// URL.
+#
+# [experiment.completion_webhook]
+# url = "https://example.com/training-complete"
+# headers = { "Authorization" = "Bearer <token>" }
+# query_params = { "source" = "osmosis" }
+
 [training]
 # Optional. Omit values to use platform defaults.
 # Uncomment a field only when you want to override the default value.
