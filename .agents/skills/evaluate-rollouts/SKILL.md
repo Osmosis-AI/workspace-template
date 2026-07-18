@@ -16,6 +16,7 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 5. Confirm the evaluation config uses the evaluation run schema:
    - `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required.
    - `dataset` is a platform dataset name, not a `data/` path or dataset ID.
+   - `branch` and `commit_sha` are optional and mutually exclusive; omit both to use the default branch.
    - `model_path` uses a LiteLLM-style model name; the platform resolves the provider endpoint from its prefix.
    - `[evaluation]` values are optional; leave them commented unless deliberately overriding platform defaults.
 6. Confirm dataset availability:
@@ -66,6 +67,6 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 - Evaluation run validates platform-side dataset availability, Git sync, rollout startup, workflow execution, and grader behavior together.
 - Stop a runaway run (e.g. a full-size submit that should have been a smoke test) with `osmosis --json eval stop <eval-name> --yes`.
 - Do not launch a platform training run from the evaluation loop.
-- Local edits that are not pushed can be ignored by platform evaluation runs unless the config pins a pushed `commit_sha`.
+- Local edits that are not pushed can be ignored by platform evaluation runs; use `branch` or `commit_sha` to pin pushed code.
 - Prefer small, reviewable diffs over rewrites.
 - If the rollout cannot load, the platform evaluation run fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.

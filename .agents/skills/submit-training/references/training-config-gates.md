@@ -12,8 +12,11 @@ rollout = "my-rollout"       # directory under rollouts/
 entrypoint = "main.py"       # example server file, relative to rollout directory
 model_path = "Qwen/..."      # supported base model
 dataset = "my-dataset"       # platform dataset name, not dataset_id or data/*.jsonl
+# branch = "my-feature"      # optional pushed branch
 # commit_sha = "..."         # optional, must be pushed
 ```
+
+`branch` and `commit_sha` are mutually exclusive. Omit both to use the connected repository's default branch.
 
 Reject placeholder values such as `<your-rollout>`. For a rollout that already has `configs/training/<name>.toml` from `rollout init`, edit that original config instead of creating a new file, and include the change in the intended commit before submit.
 

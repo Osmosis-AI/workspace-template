@@ -27,7 +27,9 @@ Required `[experiment]` fields:
 - `entrypoint` must be a Python file relative to that rollout. SDK-generated configs usually use `main.py`, but any in-rollout Python entrypoint is valid when the config names it.
 - `model_path` must be a supported base model.
 - `dataset` must be a platform dataset name from `osmosis dataset list`.
+- `branch` is optional and pins training code to a pushed branch.
 - `commit_sha` is optional and pins training code to a specific pushed commit.
+- `branch` and `commit_sha` are mutually exclusive; omit both to use the connected repository's default branch.
 
 Common optional `[training]` fields:
 
@@ -91,6 +93,7 @@ rollout = "calculator"
 entrypoint = "main.py" # SDK default; change this if the rollout uses another server file.
 model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
 dataset = "calculator"
+# branch = "my-feature"
 # commit_sha =
 
 [evaluation]
