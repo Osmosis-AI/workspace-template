@@ -337,6 +337,93 @@
     border: 2px solid #000;
     display:inline-block;
   }
+
+  /* ---------- Overworld Village ---------- */
+  .village-bg {
+    position: relative;
+    overflow: hidden;
+    min-height: 360px;
+    background:
+      linear-gradient(180deg, #4a6ab5 0%, #6f97d6 34%, #7ec850 34%, #5aa63a 100%);
+  }
+  .village-bg::before {
+    content:"";
+    position:absolute; left:0; right:0; top:0; height:34%;
+    background-image:
+      radial-gradient(closest-side, #fff 92%, transparent 95%) ,
+      radial-gradient(closest-side, #fff 92%, transparent 95%);
+    background-size: 70px 30px, 50px 24px;
+    background-position: 15% 30%, 70% 55%;
+    background-repeat: no-repeat;
+    opacity: 0.85;
+  }
+  /* grass tile texture on lower band */
+  .village-bg::after {
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:66%;
+    background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.06) 0 22px, rgba(255,255,255,0.05) 22px 44px),
+                      repeating-linear-gradient(90deg, rgba(0,0,0,0.06) 0 22px, rgba(255,255,255,0.05) 22px 44px);
+    pointer-events:none;
+  }
+  .village-path {
+    position:absolute; left:50%; transform:translateX(-50%);
+    bottom:0; width:120px; height:66%;
+    background: repeating-linear-gradient(0deg, #caa46a 0 16px, #b8925a 16px 32px);
+    border-left:4px solid #8a6a3a; border-right:4px solid #8a6a3a;
+    z-index:1;
+  }
+
+  .npc-station {
+    position:absolute;
+    z-index:5;
+    display:flex; flex-direction:column; align-items:center;
+    cursor:pointer;
+    transition: transform 0.1s;
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.4));
+  }
+  .npc-station:hover { transform: translateY(-3px) scale(1.05); }
+  .npc-emoji { font-size: 52px; line-height:1; }
+  .npc-station.done { cursor: default; }
+  .npc-station.done:hover { transform:none; }
+
+  .npc-mark {
+    font-family:'Press Start 2P', monospace;
+    font-size: 18px;
+    margin-bottom: 2px;
+    animation: markBob 0.9s infinite ease-in-out;
+  }
+  .npc-mark.excl { color:#ffd23f; text-shadow: 2px 2px 0 #000, 0 0 8px #ffd23f; }
+  .npc-mark.check { color:#38ff6a; text-shadow: 2px 2px 0 #000; animation:none; }
+  @keyframes markBob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+
+  .npc-plate {
+    font-family:'Press Start 2P', monospace;
+    font-size: 7px;
+    background:#0d0d2b; color:#fff;
+    border:2px solid #fff; box-shadow: inset 0 0 0 2px #000;
+    padding:2px 4px; margin-top:3px; white-space:nowrap;
+  }
+
+  .elder-gate {
+    position:absolute; top:8px; left:50%; transform:translateX(-50%);
+    z-index:6; display:flex; flex-direction:column; align-items:center;
+  }
+  .gate-door {
+    font-size: 56px; line-height:1;
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.5));
+  }
+  .gate-door.locked { filter: grayscale(0.4) drop-shadow(3px 3px 0 rgba(0,0,0,0.5)); }
+  .gate-door.open { animation: gateGlow 1s infinite alternate; }
+  @keyframes gateGlow { 0%{filter:drop-shadow(0 0 4px #ffd23f);} 100%{filter:drop-shadow(0 0 20px #ffd23f) brightness(1.3);} }
+
+  .village-hero {
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+    z-index:4; font-size:46px; animation: playerIdle 2.6s infinite ease-in-out;
+    filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.5));
+  }
+
+  /* NPC dialogue typewriter reveal */
+  .dlg-appear { animation: fadeIn 0.25s ease; }
 </style>
 </head>
 <body class="font-body">
@@ -393,17 +480,56 @@
       </div>
     </section>
 
+    <!-- ============ OVERWORLD VILLAGE QUEST ============ -->
+    <section id="screen-village" class="screen">
+      <div class="pixel-frame p-4 sm:p-6">
+        <div id="village-hud"></div>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h2 id="village-title" class="font-title text-sm sm:text-lg text-yellow-300 glow-text">🏘️ VILLAGE</h2>
+          <span id="village-progress" class="badge bg-yellow-500 text-black">0/3 QUESTS</span>
+        </div>
+        <p class="text-xs text-gray-300 mb-3">
+          Step 1 of 3 — <span class="text-cyan-300">Learning &amp; Dialogue Phase</span>. Talk to every villager marked with a
+          <span class="text-yellow-300 font-title text-[9px]">!</span> and diagnose their psych dilemma to craft Spell Cards. The
+          Elder opens the Boss Gate only once all quests are solved.
+        </p>
+
+        <!-- The village map -->
+        <div id="village-map" class="village-bg pixel-frame-dark" style="border-width:4px;">
+          <div class="village-path"></div>
+          <!-- Elder + gate -->
+          <div class="elder-gate">
+            <div id="gate-door" class="gate-door locked" onclick="Game.tryElderGate()">🚪</div>
+            <div class="text-3xl" style="filter:drop-shadow(2px 2px 0 rgba(0,0,0,0.5));" id="elder-sprite">🧙</div>
+            <div class="npc-plate" id="elder-plate">ELDER</div>
+          </div>
+          <!-- NPC stations injected here -->
+          <div id="npc-layer"></div>
+          <!-- Hero avatar -->
+          <div id="village-hero" class="village-hero">👨‍🌾</div>
+        </div>
+
+        <div id="gate-hint" class="text-center text-[11px] text-red-300 mt-3 blink">🔒 Boss Gate sealed — solve every villager's quest first.</div>
+
+        <div class="flex flex-wrap gap-2 mt-4">
+          <button id="gate-enter-btn" class="pixel-btn font-title text-xs opacity-40" disabled onclick="Game.tryElderGate()">🚪 APPROACH BOSS GATE ▶</button>
+          <button class="pixel-btn-sm" onclick="Game.openDeck()">🃏 MIND DECK</button>
+          <button class="pixel-btn-sm" onclick="Game.goToWorldMap()">◀ WORLD MAP</button>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ LOADOUT SELECT ============ -->
     <section id="screen-loadout" class="screen">
       <div class="pixel-frame p-4 sm:p-6">
         <div id="loadout-hud"></div>
         <h2 class="font-title text-sm sm:text-lg text-yellow-300 mb-1 glow-text">⚙️ SPELL LOADOUT</h2>
-        <p class="text-xs text-gray-300 mb-1">Self-Determination Theory: <span class="text-cyan-300">choose your own</span> path into battle.</p>
+        <p class="text-xs text-gray-300 mb-1">Step 2 of 3 — Self-Determination Theory: <span class="text-cyan-300">choose your own</span> path into battle. Cards below were crafted from your village Mind Deck.</p>
         <p class="text-xs text-yellow-200 mb-4">Equip EXACTLY 2 spells. Selected: <span id="loadout-count" class="text-green-300">0</span>/2</p>
         <div id="spell-list" class="grid sm:grid-cols-2 gap-3 mb-5"></div>
         <div class="flex flex-wrap gap-2">
           <button id="enter-battle-btn" class="pixel-btn font-title text-xs" disabled onclick="Game.startBattle()">⚔️ ENTER BOSS ENCOUNTER</button>
-          <button class="pixel-btn-sm" onclick="Game.goToWorldMap()">◀ BACK TO MAP</button>
+          <button class="pixel-btn-sm" onclick="Game.backToVillage()">◀ BACK TO VILLAGE</button>
         </div>
       </div>
     </section>
@@ -526,6 +652,46 @@
   </div>
 </div>
 
+<!-- ============ NPC DIALOGUE MODAL ============ -->
+<div id="modal-npc" class="modal-backdrop">
+  <div class="pixel-frame p-4 sm:p-6 max-w-xl w-full max-h-[92vh] overflow-y-auto">
+    <div class="flex items-center gap-3 mb-3">
+      <span id="npc-modal-sprite" class="text-5xl">🕹️</span>
+      <div>
+        <div id="npc-modal-name" class="font-title text-[10px] text-yellow-300">NPC</div>
+        <div id="npc-modal-concept" class="badge bg-cyan-600 text-white mt-1">[ CONCEPT ]</div>
+      </div>
+    </div>
+
+    <!-- RPG dialogue window -->
+    <div class="pixel-frame-dark p-3 mb-3">
+      <div class="font-title text-[8px] text-cyan-300 mb-1" id="npc-modal-speaker">NPC:</div>
+      <div id="npc-modal-dialogue" class="text-sm leading-relaxed text-gray-100 dlg-appear">...</div>
+    </div>
+
+    <div id="npc-modal-q" class="text-sm text-yellow-100 mb-3">...</div>
+    <div id="npc-answer-grid" class="grid sm:grid-cols-2 gap-2"></div>
+
+    <div id="npc-feedback" class="hidden mt-3 pixel-frame-dark p-3"></div>
+
+    <div id="npc-modal-footer" class="mt-4 flex flex-wrap gap-2">
+      <button id="npc-close-btn" class="pixel-btn-sm" onclick="Game.closeNPC()">✕ LEAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MIND DECK MODAL ============ -->
+<div id="modal-deck" class="modal-backdrop">
+  <div class="pixel-frame p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-title text-sm sm:text-base text-yellow-300 glow-text">🃏 MIND DECK</h2>
+      <button class="pixel-btn-sm" onclick="Game.closeDeck()">✕</button>
+    </div>
+    <p class="text-xs text-gray-300 mb-4">Spell Cards you've crafted by solving village NPC quests. Equip any 2 as your battle loadout before a Boss Gate.</p>
+    <div id="deck-grid" class="grid sm:grid-cols-2 gap-3"></div>
+  </div>
+</div>
+
 <!-- ============ CHEST / SCAFFOLD MODAL ============ -->
 <div id="modal-chest" class="modal-backdrop">
   <div class="pixel-frame p-5 sm:p-7 max-w-md w-full text-center">
@@ -638,6 +804,274 @@ const CODEX = [
   { concept: "Group Polarization", game: "A toxic gaming Discord or subreddit where discussion pushes everyone toward the extreme echo-chamber view." },
   { concept: "Diathesis-Stress Model", game: "An unstable GPU overclock: fine in light gameplay (low stress), but crashes under 4K ray-traced boss fights (high stress trigger)." }
 ];
+
+/* -------------------- OVERWORLD VILLAGES + NPC MINI-QUESTS --------------------
+   Each unit has a village visited BEFORE the boss. Solving every NPC's
+   4-option diagnostic crafts a Spell Card into the Mind Deck (+50 MP) and
+   opens the Elder's Boss Gate. `spell` maps to a SPELLS[].id.
+------------------------------------------------------------------------------ */
+const VILLAGES = {
+  1: {
+    name: "NEURON HOLLOW",
+    elder: { sprite: "🧙", name: "ELDER AXON" },
+    gateName: "SYNAPSE GATE",
+    npcs: [
+      {
+        id: "u1n1", sprite: "🕹️", name: "ARCADE ARI", concept: "REFRACTORY PERIOD",
+        dialogue: "My combo inputs keep DROPPING the instant I dodge-roll! For a split second the game flat-out ignores my button mashes. Am I broken?!",
+        q: "Why can't Ari's neuron-like inputs register immediately after firing?",
+        options: [
+          "The neuron is in its refractory period and must reset before it can fire again",
+          "The action potential got bigger and overloaded the buttons",
+          "The resting potential permanently increased",
+          "The synapse ran out of glial cells"
+        ],
+        correct: 0,
+        debug: "A bigger action potential isn't a thing — firing is all-or-none. The dead split-second is the refractory reset.",
+        explain: "The refractory period is a mandatory recovery window after firing — exactly like Dark Souls stamina after a dodge roll.",
+        spell: "action_potential"
+      },
+      {
+        id: "u1n2", sprite: "😰", name: "PANIC PAT", concept: "PARASYMPATHETIC",
+        dialogue: "A jump-scare hit and now my heart is POUNDING, hands shaking, can't aim. How do I calm my body down fast?",
+        q: "Which system should Pat activate to return to a calm 'rest-and-digest' state?",
+        options: [
+          "The parasympathetic nervous system (slow, deep breathing)",
+          "The sympathetic nervous system",
+          "The somatic motor cortex",
+          "The reticular activating system"
+        ],
+        correct: 0,
+        debug: "The SYMPATHETIC branch is what revved Pat up (fight-flight). To calm down you engage the PARASYMPATHETIC branch.",
+        explain: "Parasympathetic activation slows heart rate — deep breathing crafts the calming spell.",
+        spell: "para_breath"
+      },
+      {
+        id: "u1n3", sprite: "🧪", name: "CHEMIST CYRA", concept: "GABA / INHIBITION",
+        dialogue: "My brain feels like it's firing WAY too much — totally overstimulated, can't focus on anything. What inhibitory messenger tones it down?",
+        q: "Which neurotransmitter would dampen Cyra's excessive neural firing?",
+        options: [
+          "GABA, the brain's main inhibitory neurotransmitter",
+          "Glutamate",
+          "Dopamine",
+          "Norepinephrine"
+        ],
+        correct: 0,
+        debug: "Glutamate is EXCITATORY — it would make it worse. The inhibitory brake is GABA.",
+        explain: "GABA inhibits neural firing — recognizing it forges your GABA Ward shield.",
+        spell: "gaba_ward"
+      }
+    ]
+  },
+  2: {
+    name: "CORTEX CROSSING",
+    elder: { sprite: "🧠", name: "ELDER HIPPOCAMPA" },
+    gateName: "MEMORY GATE",
+    npcs: [
+      {
+        id: "u2n1", sprite: "🎧", name: "CALLER KAI", concept: "WORKING MEMORY 7±2",
+        dialogue: "As in-game leader I'm shouting EIGHT callouts at once and my team only pulls off two of them! Why won't the info stick?",
+        q: "What limit is Kai overwhelming?",
+        options: [
+          "Working memory's roughly 7 ± 2 chunk capacity",
+          "Long-term memory capacity",
+          "Iconic sensory memory",
+          "The recency effect"
+        ],
+        correct: 0,
+        debug: "Long-term memory is effectively unlimited — the bottleneck is tiny WORKING memory (7 ± 2 chunks).",
+        explain: "Working memory holds ~7 ± 2 chunks. Spotting the overload crafts LTP Surge.",
+        spell: "ltp_surge"
+      },
+      {
+        id: "u2n2", sprite: "🦈", name: "NERVOUS NIA", concept: "AVAILABILITY HEURISTIC",
+        dialogue: "I saw ONE viral clip of a rare hacker and now I'm SURE every single match is full of them. Am I overreacting?",
+        q: "Which bias inflates Nia's probability estimate from that vivid clip?",
+        options: [
+          "The availability heuristic",
+          "The representativeness heuristic",
+          "Confirmation bias",
+          "The framing effect"
+        ],
+        correct: 0,
+        debug: "Representativeness is matching a prototype. Judging by how EASILY a vivid clip springs to mind is availability.",
+        explain: "The availability heuristic overweights memorable examples — clearing the fog crafts a 50/50 Decryptor.",
+        spell: "decryptor"
+      },
+      {
+        id: "u2n3", sprite: "🎯", name: "FOCUS FEN", concept: "CHANGE BLINDNESS",
+        dialogue: "There's SO much on my HUD that I miss enemies standing right in front of me — like I'm blind to the obvious!",
+        q: "Missing an obvious change because attention is elsewhere is called ___.",
+        options: [
+          "Change blindness (a product of selective attention)",
+          "Sensory adaptation",
+          "Prosopagnosia",
+          "Blindsight"
+        ],
+        correct: 0,
+        debug: "Prosopagnosia is face-blindness from brain damage. Missing an obvious change due to focus is change blindness.",
+        explain: "Selective attention filters info — training it crafts Amygdala Focus.",
+        spell: "amygdala_focus"
+      }
+    ]
+  },
+  3: {
+    name: "SKINNER SPRINGS",
+    elder: { sprite: "🐕", name: "ELDER PAVLOV" },
+    gateName: "CONDITIONING GATE",
+    npcs: [
+      {
+        id: "u3n1", sprite: "🎰", name: "LEVER LIAM", concept: "VARIABLE-RATIO",
+        dialogue: "I keep YANKING this loot-box lever hoping for a shiny. It pays out after a random number of pulls and I literally can't stop!",
+        q: "Which reinforcement schedule has Liam hooked?",
+        options: [
+          "Variable-ratio (reward after an unpredictable number of responses)",
+          "Fixed-ratio",
+          "Fixed-interval",
+          "Variable-interval"
+        ],
+        correct: 0,
+        debug: "Fixed-ratio pays after a SET number of responses. Unpredictable payouts = variable-ratio (gacha/gambling).",
+        explain: "Variable-ratio drives the highest, most persistent response rate — it crafts the Action Potential surge.",
+        spell: "action_potential"
+      },
+      {
+        id: "u3n2", sprite: "🚗", name: "BEEPER BEA", concept: "NEGATIVE REINFORCEMENT",
+        dialogue: "I only buckle my seatbelt to make the car's annoying BEEP stop. Is that a punishment or a reward for buckling?",
+        q: "Removing the aversive beep to INCREASE buckling is ___.",
+        options: [
+          "Negative reinforcement",
+          "Positive punishment",
+          "Negative punishment",
+          "Positive reinforcement"
+        ],
+        correct: 0,
+        debug: "CRITICAL FAIL: Reinforcement always INCREASES behavior. Removing the beep to boost buckling is negative reinforcement, not punishment.",
+        explain: "Negative reinforcement removes an aversive stimulus to strengthen a behavior.",
+        spell: "gaba_ward"
+      },
+      {
+        id: "u3n3", sprite: "🔔", name: "BELL-BOY BEN", concept: "CLASSICAL: CS",
+        dialogue: "My dog now DROOLS at the chest-opening jingle even when there's no treat inside. How did a plain sound get that power?",
+        q: "The once-neutral jingle that now triggers drooling has become the ___.",
+        options: [
+          "Conditioned stimulus (CS)",
+          "Unconditioned stimulus (UCS)",
+          "Unconditioned response (UCR)",
+          "Neutral stimulus (still neutral)"
+        ],
+        correct: 0,
+        debug: "The UCS is the treat (a natural trigger). A neutral sound that GAINS power through pairing becomes the CS.",
+        explain: "After repeated pairing, the neutral jingle becomes the conditioned stimulus.",
+        spell: "para_breath"
+      }
+    ]
+  },
+  4: {
+    name: "SOCIUS SQUARE",
+    elder: { sprite: "😇", name: "ELDER MILGRAM" },
+    gateName: "INFLUENCE GATE",
+    npcs: [
+      {
+        id: "u4n1", sprite: "🚦", name: "JUDGY JULES", concept: "FUND. ATTRIBUTION ERROR",
+        dialogue: "A driver cut me off — what a JERK! ...though maybe they had an emergency? Why did I instantly assume they're a bad person?",
+        q: "Blaming disposition over the situation for OTHERS' behavior is the ___.",
+        options: [
+          "Fundamental attribution error",
+          "Self-serving bias",
+          "Just-world phenomenon",
+          "Halo effect"
+        ],
+        correct: 0,
+        debug: "Self-serving bias is about excusing YOUR OWN outcomes. Judging others by disposition over situation is the FAE.",
+        explain: "The fundamental attribution error overweights personality and ignores the situation.",
+        spell: "amygdala_focus"
+      },
+      {
+        id: "u4n2", sprite: "💬", name: "ECHO EMMY", concept: "GROUP POLARIZATION",
+        dialogue: "Our Discord all leaned one way, we only ever talked to each other, and now everyone's views are EXTREME. What happened to us?",
+        q: "Like-minded discussion intensifying a group's shared views is ___.",
+        options: [
+          "Group polarization",
+          "Groupthink",
+          "Social facilitation",
+          "Deindividuation"
+        ],
+        correct: 0,
+        debug: "Groupthink suppresses dissent to preserve harmony in a DECISION. Views drifting to the extreme in an echo chamber is group polarization.",
+        explain: "Group polarization amplifies a group's pre-existing lean toward the extreme.",
+        spell: "decryptor"
+      },
+      {
+        id: "u4n3", sprite: "🛒", name: "BUYER BO", concept: "COGNITIVE DISSONANCE",
+        dialogue: "I trashed this game for months, then bought it at FULL price — and now I'm weirdly DEFENDING it to everyone. Why am I doing that?",
+        q: "Changing your attitude to match your action, easing the inner tension, is ___.",
+        options: [
+          "Cognitive dissonance reduction",
+          "The mere exposure effect",
+          "The foot-in-the-door effect",
+          "Informational social influence"
+        ],
+        correct: 0,
+        debug: "Mere exposure is liking something MORE from repeated contact. Resolving a belief–action clash by shifting attitude is dissonance reduction.",
+        explain: "Cognitive dissonance reduction realigns attitude with behavior to ease discomfort.",
+        spell: "ltp_surge"
+      }
+    ]
+  },
+  5: {
+    name: "AEGIS ASYLUM",
+    elder: { sprite: "👨‍⚕️", name: "ELDER SELYE" },
+    gateName: "TITAN GATE",
+    npcs: [
+      {
+        id: "u5n1", sprite: "🖥️", name: "OVERCLOCK OTTO", concept: "DIATHESIS-STRESS",
+        dialogue: "My rig runs FINE on light games but CRASHES under 4K ray-traced boss fights. It's like a hidden weakness that only shows up under heavy stress.",
+        q: "A predisposition that only manifests under stress reflects the ___.",
+        options: [
+          "Diathesis-stress model",
+          "General adaptation syndrome",
+          "Biomedical model",
+          "Tend-and-befriend theory"
+        ],
+        correct: 0,
+        debug: "GAS describes the STAGES of the stress response. A vulnerability + a stressor producing a disorder is the diathesis-stress model.",
+        explain: "Diathesis-stress: a predisposition needs an environmental stressor to surface.",
+        spell: "gaba_ward"
+      },
+      {
+        id: "u5n2", sprite: "🥵", name: "STRESSED SENA", concept: "GAS STAGES",
+        dialogue: "A brutal raid stressed me for WEEKS — first sheer panic, then I coped for a while, and now I'm totally DEPLETED and getting sick. Is there a pattern?",
+        q: "Selye's General Adaptation Syndrome runs in which order?",
+        options: [
+          "Alarm → Resistance → Exhaustion",
+          "Resistance → Alarm → Exhaustion",
+          "Exhaustion → Alarm → Resistance",
+          "Alarm → Exhaustion → Resistance"
+        ],
+        correct: 0,
+        debug: "The body must sound the ALARM first, then resist, then deplete. Resistance never comes first.",
+        explain: "General Adaptation Syndrome: Alarm, then Resistance, then Exhaustion.",
+        spell: "para_breath"
+      },
+      {
+        id: "u5n3", sprite: "🧗", name: "SHAKY SHAY", concept: "SYSTEMATIC DESENSITIZATION",
+        dialogue: "I'm terrified of one boss. A mentor taught me to relax first, then slowly face scarier and scarier versions until I stayed calm. What's that method called?",
+        q: "Pairing relaxation with an ascending fear hierarchy is ___.",
+        options: [
+          "Systematic desensitization",
+          "Aversion therapy",
+          "Cognitive restructuring",
+          "Free association"
+        ],
+        correct: 0,
+        debug: "Aversion therapy pairs an unwanted behavior with something UNPLEASANT. Calmly climbing a fear hierarchy is systematic desensitization.",
+        explain: "Systematic desensitization counterconditions fear via relaxation up a hierarchy.",
+        spell: "amygdala_focus"
+      }
+    ]
+  }
+};
 
 /* -------------------- QUESTION DATABASE (apPsychDatabase) --------------------
    Each unit boss draws from `questions`. `recall` feeds interleaving debuffs
@@ -1272,7 +1706,9 @@ const Game = (function () {
     equippedSkin: "peasant",
     unlockedSkins: ["peasant"],
     bossesDefeated: [],          // unit ids cleared
-    highestUnitUnlocked: 1
+    highestUnitUnlocked: 1,
+    craftedSpells: [],           // spell ids crafted into the Mind Deck via village NPCs
+    npcSolved: {}                // { unitId: [npcId, ...] } — persisted village quest completion
   });
 
   let S = loadState();
@@ -1385,6 +1821,10 @@ const Game = (function () {
           ? `<span class="badge bg-yellow-500 text-black">● OPEN</span>`
           : `<span class="badge bg-gray-600 text-white">🔒 LOCKED</span>`;
       const masterTag = u.master ? `<span class="badge bg-red-700 text-white ml-1">MASTER</span>` : "";
+      const v = getVillage(u.id);
+      const vSolved = v ? v.npcs.filter(n => isNpcSolved(u.id, n.id)).length : 0;
+      const vTotal = v ? v.npcs.length : 0;
+      const gateOpen = allNpcsSolved(u.id);
       return `
         <button class="pixel-btn ${unlocked ? "" : "opacity-50 cursor-not-allowed"} !text-left"
                 ${unlocked ? `onclick="Game.chooseUnit(${u.id})"` : "disabled"}>
@@ -1394,6 +1834,7 @@ const Game = (function () {
           </div>
           <div class="font-title text-[9px] leading-relaxed text-yellow-200 mb-1">${u.name}</div>
           <div class="text-[11px] text-red-300">BOSS: ${u.bossName} • ${u.bossHP} HP</div>
+          <div class="text-[10px] ${gateOpen ? "text-green-300" : "text-cyan-300"} mt-1">🏘️ ${v ? v.name : "Village"}: ${vSolved}/${vTotal} quests → ${gateOpen ? "🏯 gate open" : "🚪 gate sealed"}</div>
           ${u.hasMinion ? `<div class="text-[10px] text-purple-300 mt-1">☠ Summons recall debuffs</div>` : ""}
         </button>`;
     }).join("");
@@ -1402,7 +1843,226 @@ const Game = (function () {
   function chooseUnit(id) {
     if (id > S.highestUnitUnlocked) return;
     pendingUnit = getUnit(id);
+    openVillage(id);
+  }
+
+  /* =====================================================================
+     OVERWORLD VILLAGE QUEST (Step 1: Learning & Dialogue)
+     ===================================================================== */
+  let currentVillageId = null;
+  let currentNPC = null;
+
+  function getVillage(id) { return VILLAGES[id]; }
+  function solvedList(unitId) { return S.npcSolved[unitId] || []; }
+  function isNpcSolved(unitId, npcId) { return solvedList(unitId).includes(npcId); }
+  function allNpcsSolved(unitId) {
+    const v = getVillage(unitId);
+    if (!v) return true;
+    return v.npcs.every(n => isNpcSolved(unitId, n.id));
+  }
+
+  // fixed pixel-map anchor points for up to 3 NPC stations
+  const NPC_SPOTS = [
+    { left: "14%", bottom: "22%" },
+    { left: "70%", bottom: "30%" },
+    { left: "40%", bottom: "9%" }
+  ];
+
+  function openVillage(id) {
+    currentVillageId = id;
+    renderVillageHUD();
+    renderVillage();
+    show("screen-village");
+  }
+  function backToVillage() {
+    if (currentVillageId == null) { goToWorldMap(); return; }
+    openVillage(currentVillageId);
+  }
+
+  function renderVillageHUD() {
+    document.getElementById("village-hud").innerHTML = hudHTML();
+  }
+
+  function renderVillage() {
+    const id = currentVillageId;
+    const v = getVillage(id);
+    const unit = getUnit(id);
+    document.getElementById("village-title").textContent = "🏘️ " + v.name;
+
+    // hero avatar reflects equipped skin
+    document.getElementById("village-hero").textContent = getSkin(S.equippedSkin).emoji;
+
+    // elder
+    document.getElementById("elder-sprite").textContent = v.elder.sprite;
+    document.getElementById("elder-plate").textContent = v.elder.name;
+
+    // progress
+    const solved = v.npcs.filter(n => isNpcSolved(id, n.id)).length;
+    const total = v.npcs.length;
+    const done = solved === total;
+    document.getElementById("village-progress").textContent = `${solved}/${total} QUESTS`;
+    const prog = document.getElementById("village-progress");
+    prog.className = "badge " + (done ? "bg-green-600 text-white" : "bg-yellow-500 text-black");
+
+    // NPC stations
+    const layer = document.getElementById("npc-layer");
+    layer.innerHTML = v.npcs.map((n, i) => {
+      const spot = NPC_SPOTS[i] || NPC_SPOTS[0];
+      const isDone = isNpcSolved(id, n.id);
+      return `
+        <div class="npc-station ${isDone ? "done" : ""}" style="left:${spot.left}; bottom:${spot.bottom};"
+             ${isDone ? "" : `onclick="Game.talkToNPC('${n.id}')"`}>
+          <div class="npc-mark ${isDone ? "check" : "excl"}">${isDone ? "✔" : "!"}</div>
+          <div class="npc-emoji">${n.sprite}</div>
+          <div class="npc-plate">${n.name}</div>
+        </div>`;
+    }).join("");
+
+    // gate + hint
+    const gate = document.getElementById("gate-door");
+    const gateHint = document.getElementById("gate-hint");
+    const enterBtn = document.getElementById("gate-enter-btn");
+    if (done) {
+      gate.className = "gate-door open";
+      gate.textContent = "🏯";
+      gateHint.innerHTML = `✅ <span class="text-green-300">${v.elder.name} unseals the ${v.gateName}!</span> Approach to set your loadout and face <span class="text-red-300">${unit.bossName}</span>.`;
+      gateHint.className = "text-center text-[11px] text-green-300 mt-3";
+      enterBtn.disabled = false;
+      enterBtn.classList.remove("opacity-40");
+    } else {
+      gate.className = "gate-door locked";
+      gate.textContent = "🚪";
+      gateHint.innerHTML = `🔒 ${v.gateName} sealed — solve every villager's quest first (${solved}/${total} done).`;
+      gateHint.className = "text-center text-[11px] text-red-300 mt-3 blink";
+      enterBtn.disabled = true;
+      enterBtn.classList.add("opacity-40");
+    }
+  }
+
+  function talkToNPC(npcId) {
+    const v = getVillage(currentVillageId);
+    const npc = v.npcs.find(n => n.id === npcId);
+    if (!npc || isNpcSolved(currentVillageId, npcId)) return;
+    currentNPC = npc;
+
+    document.getElementById("npc-modal-sprite").textContent = npc.sprite;
+    document.getElementById("npc-modal-name").textContent = npc.name;
+    document.getElementById("npc-modal-concept").textContent = "[ " + npc.concept + " ]";
+    document.getElementById("npc-modal-speaker").textContent = npc.name + ":";
+    document.getElementById("npc-modal-dialogue").textContent = npc.dialogue;
+    document.getElementById("npc-modal-q").innerHTML =
+      `<span class="text-cyan-300 font-title text-[9px]">DIAGNOSTIC CHECK:</span><br>` + npc.q;
+    document.getElementById("npc-feedback").classList.add("hidden");
+
+    renderNpcAnswers(npc);
+    document.getElementById("npc-modal-footer").innerHTML =
+      `<button class="pixel-btn-sm" onclick="Game.closeNPC()">✕ LEAVE (COME BACK LATER)</button>`;
+    openModal("modal-npc");
+  }
+
+  function renderNpcAnswers(npc) {
+    const grid = document.getElementById("npc-answer-grid");
+    const letters = ["A", "B", "C", "D"];
+    grid.innerHTML = npc.options.map((opt, i) => `
+      <button class="pixel-btn text-xs sm:text-sm" id="npc-ans-${i}" onclick="Game.answerNPC(${i})">
+        <span class="text-yellow-300 font-title text-[10px] mr-1">${letters[i]}</span> ${opt}
+      </button>`).join("");
+  }
+
+  function answerNPC(i) {
+    const npc = currentNPC;
+    if (!npc) return;
+    const correct = (i === npc.correct);
+    const fb = document.getElementById("npc-feedback");
+
+    if (correct) {
+      // lock choices, show reward
+      document.querySelectorAll("#npc-answer-grid .pixel-btn").forEach((btn, idx) => {
+        btn.onclick = null;
+        if (idx === npc.correct) btn.classList.add("correct");
+        else btn.classList.add("faded");
+      });
+
+      // mark solved (persisted)
+      if (!S.npcSolved[currentVillageId]) S.npcSolved[currentVillageId] = [];
+      if (!S.npcSolved[currentVillageId].includes(npc.id)) {
+        S.npcSolved[currentVillageId].push(npc.id);
+        S.mp += 50; // +50 Intel Tokens
+        craftSpell(npc.spell);
+      }
+      saveState();
+
+      const sp = SPELLS.find(s => s.id === npc.spell);
+      fb.className = "mt-3 pixel-frame-dark p-3";
+      fb.style.borderColor = "#38ff6a";
+      fb.innerHTML =
+        `<div class="font-title text-[10px] text-green-300 mb-1">✔ QUEST SOLVED!</div>
+         <div class="text-xs text-gray-200 mb-2">${npc.explain}</div>
+         <div class="pixel-frame-dark p-2 mb-1 inline-block">
+            <span class="text-2xl">${sp.icon}</span>
+            <span class="font-title text-[9px] text-cyan-200 ml-1">SPELL CRAFTED: ${sp.name}</span>
+         </div>
+         <div class="text-[10px] text-yellow-300 mt-1">+50 MP (Intel Tokens) • Card added to Mind Deck</div>`;
+      fb.classList.remove("hidden");
+
+      document.getElementById("npc-modal-footer").innerHTML =
+        `<button class="pixel-btn font-title text-xs blink" onclick="Game.closeNPC()">▶ CONTINUE</button>`;
+    } else {
+      // System Debug Log — no lockout, player may retry
+      const btn = document.getElementById("npc-ans-" + i);
+      if (btn) { btn.classList.add("wrong"); btn.onclick = null; btn.disabled = true; }
+      fb.className = "mt-3 pixel-frame-dark p-3";
+      fb.style.borderColor = "#ff3b3b";
+      fb.innerHTML =
+        `<div class="font-title text-[10px] text-red-300 mb-1">✘ SYSTEM DEBUG LOG</div>
+         <div class="text-[11px] text-red-300">🐞 ${npc.debug}</div>
+         <div class="text-[10px] text-gray-400 mt-1">Try another diagnosis — you're not locked out.</div>`;
+      fb.classList.remove("hidden");
+    }
+  }
+
+  function closeNPC() {
+    closeModal("modal-npc");
+    currentNPC = null;
+    renderVillageHUD();
+    renderVillage();
+  }
+
+  function craftSpell(spellId) {
+    if (!S.craftedSpells.includes(spellId)) S.craftedSpells.push(spellId);
+  }
+
+  function tryElderGate() {
+    const id = currentVillageId;
+    if (!allNpcsSolved(id)) {
+      const v = getVillage(id);
+      const solved = v.npcs.filter(n => isNpcSolved(id, n.id)).length;
+      toast(`🔒 ${v.elder.name}: "The ${v.gateName} stays sealed. ${solved}/${v.npcs.length} villagers still need your help."`);
+      return;
+    }
+    pendingUnit = getUnit(id);
     openLoadout();
+  }
+
+  /* ---------- Mind Deck modal ---------- */
+  function openDeck() { renderDeck(); openModal("modal-deck"); }
+  function closeDeck() { closeModal("modal-deck"); }
+  function renderDeck() {
+    const grid = document.getElementById("deck-grid");
+    const owned = SPELLS.filter(sp => S.craftedSpells.includes(sp.id));
+    if (!owned.length) {
+      grid.innerHTML = `<div class="text-xs text-gray-400 sm:col-span-2">Your Mind Deck is empty. Solve village NPC quests to craft Spell Cards.</div>`;
+      return;
+    }
+    grid.innerHTML = owned.map(sp => `
+      <div class="pixel-frame-dark p-3">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-2xl">${sp.icon}</span>
+          <span class="font-title text-[9px] text-cyan-200">${sp.name}</span>
+        </div>
+        <div class="text-[11px] text-gray-300 mb-1">${sp.desc}</div>
+        <div class="text-[10px] text-yellow-300">💠 Cast cost: ${sp.cost} MP</div>
+      </div>`).join("");
   }
 
   /* =====================================================================
@@ -1418,7 +2078,12 @@ const Game = (function () {
 
   function renderSpellList() {
     const wrap = document.getElementById("spell-list");
-    wrap.innerHTML = SPELLS.map(sp => `
+    const owned = SPELLS.filter(sp => S.craftedSpells.includes(sp.id));
+    if (!owned.length) {
+      wrap.innerHTML = `<div class="text-xs text-gray-400 sm:col-span-2">No Spell Cards crafted yet — return to the village and solve NPC quests.</div>`;
+      return;
+    }
+    wrap.innerHTML = owned.map(sp => `
       <button id="spell-pick-${sp.id}" class="pixel-btn !text-left" onclick="Game.toggleSpell('${sp.id}')">
         <div class="flex items-center gap-2 mb-1">
           <span class="text-2xl">${sp.icon}</span>
@@ -2151,6 +2816,8 @@ const Game = (function () {
      ===================================================================== */
   return {
     goToWorldMap, chooseUnit,
+    openVillage, backToVillage, talkToNPC, answerNPC, closeNPC, tryElderGate,
+    openDeck, closeDeck,
     toggleSpell, startBattle, retryBattle,
     answer, nextQuestion, castSpell,
     closeChest,
