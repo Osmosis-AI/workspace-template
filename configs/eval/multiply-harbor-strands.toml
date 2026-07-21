@@ -7,6 +7,7 @@ entrypoint = "main.py"
 model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
 # Eval datasets are platform dataset names, not local data/*.jsonl paths.
 dataset = "multiply"
+# branch = "my-feature"
 # commit_sha =
 
 [evaluation]
