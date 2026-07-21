@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PSYCH QUEST 16-BIT — AP Psychology Battle Arena</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --pixel-blue: #1a1a4e;
+    --pixel-blue-2: #0d0d2b;
+    --hp-green: #38ff6a;
+    --hp-red: #ff3b3b;
+    --mp-cyan: #38d0ff;
+    --gold: #ffd23f;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #05050f;
+    color: #ffffff;
+    font-family: 'Silkscreen', monospace;
+    image-rendering: pixelated;
+    overflow-x: hidden;
+  }
+
+  .font-title { font-family: 'Press Start 2P', monospace; }
+  .font-body  { font-family: 'Silkscreen', monospace; }
+
+  /* ---------- CRT Scanline Overlay ---------- */
+  #crt-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.0) 0px,
+      rgba(0,0,0,0.0) 2px,
+      rgba(0,0,0,0.28) 3px,
+      rgba(0,0,0,0.28) 4px
+    );
+    mix-blend-mode: multiply;
+  }
+  #crt-overlay::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+    animation: flicker 5s infinite steps(60);
+  }
+  @keyframes flicker {
+    0%, 96%, 100% { opacity: 0.95; }
+    97% { opacity: 0.82; }
+    98% { opacity: 1; }
+    99% { opacity: 0.88; }
+  }
+
+  /* ---------- Pixel Frame ---------- */
+  .pixel-frame {
+    background: var(--pixel-blue);
+    border: 4px solid #ffffff;
+    box-shadow: inset 0 0 0 4px #000000, 0 0 0 2px #000000, 0 6px 0 0 rgba(0,0,0,0.6);
+    border-radius: 2px;
+  }
+  .pixel-frame-dark {
+    background: var(--pixel-blue-2);
+    border: 4px solid #ffffff;
+    box-shadow: inset 0 0 0 4px #000000, 0 0 0 2px #000000;
+    border-radius: 2px;
+  }
+
+  /* ---------- Pixel Buttons ---------- */
+  .pixel-btn {
+    font-family: 'Press Start 2P', monospace;
+    background: #2b2b7a;
+    color: #ffffff;
+    border: 3px solid #ffffff;
+    box-shadow: inset 0 0 0 3px #000000, 0 4px 0 0 #000000;
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+    transition: transform 0.06s, background 0.12s, box-shadow 0.06s;
+    text-align: left;
+    line-height: 1.5;
+    letter-spacing: 0.5px;
+  }
+  .pixel-btn:hover:not(:disabled) { background: #3d3da3; transform: translateY(-2px); }
+  .pixel-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: inset 0 0 0 3px #000000, 0 1px 0 0 #000000; }
+  .pixel-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .pixel-btn.correct { background: #128a34 !important; box-shadow: inset 0 0 0 3px #000000, 0 0 18px 4px var(--hp-green); }
+  .pixel-btn.wrong   { background: #9a1616 !important; box-shadow: inset 0 0 0 3px #000000, 0 0 18px 4px var(--hp-red); }
+  .pixel-btn.faded   { opacity: 0.18; pointer-events: none; }
+
+  .pixel-btn-sm {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    background: #2b2b7a;
+    color: #fff;
+    border: 3px solid #fff;
+    box-shadow: inset 0 0 0 2px #000, 0 3px 0 0 #000;
+    padding: 0.55rem 0.7rem;
+    cursor: pointer;
+  }
+  .pixel-btn-sm:hover:not(:disabled) { background: #3d3da3; }
+  .pixel-btn-sm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ---------- HP / MP Bars ---------- */
+  .bar-shell {
+    background: #000;
+    border: 3px solid #ffffff;
+    box-shadow: inset 0 0 0 2px #000;
+    height: 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    transition: width 0.55s cubic-bezier(.2,.9,.3,1);
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0 6px, rgba(255,255,255,0) 6px 12px);
+  }
+  .bar-fill.hp   { background-color: var(--hp-green); }
+  .bar-fill.hp.low { background-color: var(--hp-red); }
+  .bar-fill.mp   { background-color: var(--mp-cyan); }
+  .bar-fill.boss { background-color: var(--hp-red); }
+
+  /* ---------- Sprites ---------- */
+  .sprite {
+    font-size: 72px;
+    line-height: 1;
+    filter: drop-shadow(4px 4px 0 #000);
+    display: inline-block;
+    transition: transform 0.1s;
+  }
+  .sprite.boss-sprite { font-size: 96px; animation: bossIdle 2.2s infinite ease-in-out; }
+  .sprite.player-sprite { font-size: 78px; animation: playerIdle 2.6s infinite ease-in-out; }
+
+  @keyframes bossIdle { 0%,100%{transform:translateY(0) scale(1);} 50%{transform:translateY(-8px) scale(1.03);} }
+  @keyframes playerIdle { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+
+  /* Attack animations */
+  @keyframes playerLunge {
+    0%   { transform: translateY(0) scale(1); }
+    30%  { transform: translateY(-140px) scale(1.25) rotate(-8deg); }
+    45%  { transform: translateY(-160px) scale(1.15) rotate(4deg); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .player-attack { animation: playerLunge 0.7s ease-in-out !important; }
+
+  @keyframes bossHit {
+    0%,100% { transform: translateX(0); filter: drop-shadow(4px 4px 0 #000); }
+    10% { filter: brightness(4) drop-shadow(0 0 12px #fff); transform: translateX(-14px); }
+    20% { transform: translateX(14px); filter: brightness(0.2) sepia(1) saturate(8) hue-rotate(-30deg); }
+    30% { transform: translateX(-12px); filter: brightness(4); }
+    40% { transform: translateX(12px); filter: sepia(1) saturate(9) hue-rotate(-40deg) brightness(1.4); }
+    60% { transform: translateX(-8px); }
+    80% { transform: translateX(6px); }
+  }
+  .boss-hit { animation: bossHit 0.6s steps(8) !important; }
+
+  @keyframes bossLunge {
+    0%   { transform: translateY(0) scale(1); }
+    35%  { transform: translateY(130px) scale(1.3); }
+    100% { transform: translateY(0) scale(1); }
+  }
+  .boss-attack { animation: bossLunge 0.7s ease-in-out !important; }
+
+  @keyframes playerHit {
+    0%,100% { transform: translateX(0); }
+    15% { transform: translateX(-10px); filter: sepia(1) saturate(9) hue-rotate(-40deg) brightness(1.5) drop-shadow(4px 4px 0 #000); }
+    30% { transform: translateX(10px); filter: brightness(3); }
+    45% { transform: translateX(-8px); filter: sepia(1) saturate(9) hue-rotate(-40deg) brightness(1.5); }
+    60% { transform: translateX(8px); }
+    80% { transform: translateX(-4px); }
+  }
+  .player-hurt { animation: playerHit 0.6s steps(8) !important; }
+
+  /* Projectile */
+  .projectile {
+    position: absolute;
+    font-size: 44px;
+    left: 50%;
+    bottom: 120px;
+    transform: translateX(-50%);
+    z-index: 30;
+    pointer-events: none;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  @keyframes castUp {
+    0%   { bottom: 120px; opacity: 0; transform: translateX(-50%) scale(0.5); }
+    20%  { opacity: 1; }
+    100% { bottom: 62%; opacity: 0; transform: translateX(-50%) scale(1.6) rotate(360deg); }
+  }
+  .projectile.fire { animation: castUp 0.65s ease-in forwards; }
+
+  /* Aura effects (Dual Coding) */
+  .aura {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 25;
+    opacity: 0;
+  }
+  @keyframes auraPulse {
+    0%   { opacity: 0; width: 40px; height: 40px; }
+    40%  { opacity: 0.85; }
+    100% { opacity: 0; width: 320px; height: 320px; }
+  }
+  .aura.fire-aura { animation: auraPulse 0.8s ease-out; }
+
+  /* GABA shrinking ring (parasympathetic) */
+  .gaba-ring {
+    position: absolute;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    border: 6px solid var(--mp-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 18px var(--mp-cyan);
+    z-index: 26;
+    pointer-events: none;
+    opacity: 0;
+  }
+  @keyframes gabaShrink {
+    0%   { opacity: 0; width: 260px; height: 260px; }
+    25%  { opacity: 0.9; }
+    100% { opacity: 0; width: 30px; height: 30px; }
+  }
+  .gaba-ring.active { animation: gabaShrink 1.1s ease-in; }
+
+  /* Screen shake */
+  @keyframes screenShake {
+    0%,100%{transform:translate(0,0);}
+    20%{transform:translate(-6px,4px);}
+    40%{transform:translate(6px,-4px);}
+    60%{transform:translate(-4px,-4px);}
+    80%{transform:translate(4px,4px);}
+  }
+  .shake { animation: screenShake 0.4s; }
+
+  /* Floating damage numbers */
+  .dmg-float {
+    position: absolute;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
+    z-index: 40;
+    pointer-events: none;
+    text-shadow: 2px 2px 0 #000;
+  }
+  @keyframes floatUp {
+    0% { opacity: 0; transform: translateY(0) scale(0.6); }
+    20% { opacity: 1; transform: translateY(-10px) scale(1.2); }
+    100% { opacity: 0; transform: translateY(-90px) scale(1); }
+  }
+  .dmg-float.go { animation: floatUp 1s ease-out forwards; }
+
+  /* Enrage glow */
+  .enrage-glow { animation: enragePulse 0.8s infinite alternate; }
+  @keyframes enragePulse {
+    0% { filter: drop-shadow(0 0 6px #ff3b3b) drop-shadow(4px 4px 0 #000); }
+    100% { filter: drop-shadow(0 0 24px #ff0000) brightness(1.3) drop-shadow(4px 4px 0 #000); }
+  }
+
+  .blink { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 0%,50%{opacity:1;} 51%,100%{opacity:0.25;} }
+
+  .scanline-btn { position: relative; }
+
+  /* Typewriter caret */
+  .caret::after { content: "▋"; animation: blink 0.8s steps(2) infinite; }
+
+  /* Screen switching */
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.82);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .modal-backdrop.active { display: flex; animation: fadeIn 0.2s; }
+
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: #000; }
+  ::-webkit-scrollbar-thumb { background: #3d3da3; border: 2px solid #000; }
+
+  .glow-text { text-shadow: 0 0 6px currentColor, 2px 2px 0 #000; }
+
+  .chest-pop { animation: chestPop 0.5s ease-out; }
+  @keyframes chestPop { 0%{transform:scale(0) rotate(-20deg);} 70%{transform:scale(1.25);} 100%{transform:scale(1);} }
+
+  .arena-bg {
+    background:
+      linear-gradient(180deg, #1a0033 0%, #2a0a4e 40%, #120024 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .arena-bg::before {
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(2px 2px at 20% 20%, #fff 50%, transparent 50%),
+      radial-gradient(2px 2px at 60% 10%, #fff 50%, transparent 50%),
+      radial-gradient(1px 1px at 80% 30%, #9ff 50%, transparent 50%),
+      radial-gradient(2px 2px at 35% 40%, #fdf 50%, transparent 50%),
+      radial-gradient(1px 1px at 10% 60%, #fff 50%, transparent 50%),
+      radial-gradient(2px 2px at 90% 55%, #fff 50%, transparent 50%);
+    opacity: 0.55;
+    animation: twinkle 3s infinite steps(4);
+  }
+  @keyframes twinkle { 0%,100%{opacity:0.55;} 50%{opacity:0.25;} }
+
+  .ground {
+    position:absolute; bottom:0; left:0; right:0; height: 40%;
+    background: repeating-linear-gradient(90deg, #2b1a4e 0 40px, #23153f 40px 80px);
+    border-top: 4px solid #000;
+    box-shadow: inset 0 6px 0 rgba(255,255,255,0.08);
+  }
+
+  .badge {
+    font-family:'Press Start 2P', monospace;
+    font-size: 8px;
+    padding: 3px 6px;
+    border: 2px solid #000;
+    display:inline-block;
+  }
+</style>
+</head>
+<body class="font-body">
+
+<div id="crt-overlay"></div>
+
+<div id="game-root" class="min-h-screen w-full flex items-center justify-center p-2 sm:p-4">
+  <div class="w-full max-w-5xl">
+
+    <!-- ============ TITLE SCREEN ============ -->
+    <section id="screen-title" class="screen active">
+      <div class="pixel-frame p-6 sm:p-10 text-center">
+        <div class="text-5xl sm:text-7xl mb-4 select-none">🧠⚔️👾</div>
+        <h1 class="font-title text-lg sm:text-3xl leading-relaxed glow-text text-yellow-300 mb-3">PSYCH QUEST</h1>
+        <h2 class="font-title text-[10px] sm:text-sm text-cyan-300 mb-6">16-BIT AP PSYCHOLOGY BATTLE ARENA</h2>
+        <p class="text-sm sm:text-base text-gray-200 max-w-2xl mx-auto mb-8 leading-relaxed">
+          Defeat 5 Unit Bosses using the science of the mind. Answer AP-level questions to
+          <span class="text-green-300">deal critical damage</span>, equip a
+          <span class="text-cyan-300">2-spell loadout</span>, unlock retro skins, and clear
+          <span class="text-red-300">recall debuffs</span> summoned by the bosses.
+        </p>
+        <div class="grid sm:grid-cols-3 gap-3 mb-8 text-left">
+          <div class="pixel-frame-dark p-3">
+            <div class="font-title text-[9px] text-yellow-300 mb-2">📚 5 UNITS</div>
+            <div class="text-xs text-gray-300">Full College Board CED coverage, Units 1–5.</div>
+          </div>
+          <div class="pixel-frame-dark p-3">
+            <div class="font-title text-[9px] text-yellow-300 mb-2">🎮 GAME ANALOGIES</div>
+            <div class="text-xs text-gray-300">Concepts mapped to Dark Souls, Valorant, Fortnite &amp; more.</div>
+          </div>
+          <div class="pixel-frame-dark p-3">
+            <div class="font-title text-[9px] text-yellow-300 mb-2">🧪 LEARNING SCIENCE</div>
+            <div class="text-xs text-gray-300">Spaced recall, testing effect, dual coding, flow scaffolding.</div>
+          </div>
+        </div>
+        <button class="pixel-btn font-title text-sm sm:text-base w-full sm:w-auto px-10 blink" onclick="Game.goToWorldMap()">▶ PRESS START</button>
+        <div class="mt-6 text-[10px] text-gray-400">© 16-BIT LEARNING LABS — AP® is a College Board trademark; this fan project is unaffiliated.</div>
+      </div>
+    </section>
+
+    <!-- ============ WORLD MAP / UNIT SELECT ============ -->
+    <section id="screen-map" class="screen">
+      <div class="pixel-frame p-4 sm:p-6">
+        <!-- Persistent HUD -->
+        <div id="map-hud"></div>
+        <h2 class="font-title text-sm sm:text-lg text-yellow-300 mb-1 glow-text">🗺️ WORLD MAP</h2>
+        <p class="text-xs text-gray-300 mb-4">Select a Unit Dungeon. Bosses must be cleared to unlock skins &amp; deeper units.</p>
+        <div id="unit-list" class="grid sm:grid-cols-2 gap-3"></div>
+        <div class="flex flex-wrap gap-2 mt-5">
+          <button class="pixel-btn-sm" onclick="Game.openSkins()">🎽 ARMORY / SKINS</button>
+          <button class="pixel-btn-sm" onclick="Game.openCodex()">📖 GAME-ANALOGY CODEX</button>
+          <button class="pixel-btn-sm" onclick="Game.resetConfirm()">🗑 RESET SAVE</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LOADOUT SELECT ============ -->
+    <section id="screen-loadout" class="screen">
+      <div class="pixel-frame p-4 sm:p-6">
+        <div id="loadout-hud"></div>
+        <h2 class="font-title text-sm sm:text-lg text-yellow-300 mb-1 glow-text">⚙️ SPELL LOADOUT</h2>
+        <p class="text-xs text-gray-300 mb-1">Self-Determination Theory: <span class="text-cyan-300">choose your own</span> path into battle.</p>
+        <p class="text-xs text-yellow-200 mb-4">Equip EXACTLY 2 spells. Selected: <span id="loadout-count" class="text-green-300">0</span>/2</p>
+        <div id="spell-list" class="grid sm:grid-cols-2 gap-3 mb-5"></div>
+        <div class="flex flex-wrap gap-2">
+          <button id="enter-battle-btn" class="pixel-btn font-title text-xs" disabled onclick="Game.startBattle()">⚔️ ENTER BOSS ENCOUNTER</button>
+          <button class="pixel-btn-sm" onclick="Game.goToWorldMap()">◀ BACK TO MAP</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BATTLE ARENA ============ -->
+    <section id="screen-battle" class="screen">
+      <div id="battle-shell" class="pixel-frame p-0 overflow-hidden">
+        <!-- Top HUD -->
+        <div class="p-3 bg-black/40 border-b-4 border-black">
+          <div id="battle-hud"></div>
+        </div>
+
+        <!-- Arena -->
+        <div id="arena" class="arena-bg relative" style="height: 340px;">
+          <div class="ground"></div>
+
+          <!-- Boss -->
+          <div class="absolute top-4 left-0 right-0 flex flex-col items-center z-20">
+            <div id="boss-nameplate" class="pixel-frame-dark px-3 py-1 mb-1 text-center">
+              <span id="boss-name" class="font-title text-[9px] text-red-300">BOSS</span>
+            </div>
+            <div class="w-64 max-w-[80%]">
+              <div class="bar-shell">
+                <div id="boss-hp-bar" class="bar-fill boss" style="width:100%"></div>
+              </div>
+              <div class="flex justify-between text-[10px] mt-1 px-1">
+                <span class="text-red-300 font-title text-[8px]">HP</span>
+                <span id="boss-hp-text" class="font-title text-[8px]">100/100</span>
+              </div>
+            </div>
+            <div id="boss-sprite" class="sprite boss-sprite mt-2">👾</div>
+            <div id="enrage-banner" class="hidden font-title text-[9px] text-red-400 blink mt-1">‼ ENRAGE MODE ‼</div>
+          </div>
+
+          <!-- Combat FX zone -->
+          <div id="fx-zone" class="absolute inset-0 pointer-events-none z-30"></div>
+
+          <!-- Player -->
+          <div class="absolute bottom-6 left-0 right-0 flex flex-col items-center z-20">
+            <div id="player-sprite" class="sprite player-sprite">👨‍🌾</div>
+            <div id="player-title" class="font-title text-[8px] text-green-300 mt-1">PSYCH PEASANT</div>
+          </div>
+        </div>
+
+        <!-- Dialogue / Question box -->
+        <div class="p-3 sm:p-4 bg-[#0d0d2b] border-t-4 border-white" style="box-shadow: inset 0 4px 0 #000;">
+          <!-- Minion debuff banner -->
+          <div id="minion-banner" class="hidden pixel-frame-dark p-2 mb-3 border-red-500">
+            <div class="font-title text-[9px] text-red-300 mb-1">☠ MINION DEBUFF: RECALL CHAIN</div>
+            <div class="text-xs text-gray-200">Clear the debuff by recalling knowledge from an earlier unit!</div>
+          </div>
+
+          <div id="concept-tag" class="mb-2 hidden">
+            <span class="badge bg-cyan-600 text-white" id="concept-tag-text">[ CONCEPT ]</span>
+          </div>
+
+          <div id="question-text" class="text-sm sm:text-base leading-relaxed mb-3 min-h-[3rem]">...</div>
+
+          <div id="answer-grid" class="grid sm:grid-cols-2 gap-2"></div>
+
+          <!-- Feedback log -->
+          <div id="feedback-log" class="hidden mt-3 pixel-frame-dark p-3"></div>
+
+          <!-- Spell action bar -->
+          <div id="spell-bar" class="flex flex-wrap gap-2 mt-3 pt-3 border-t-2 border-white/20"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VICTORY ============ -->
+    <section id="screen-victory" class="screen">
+      <div class="pixel-frame p-6 sm:p-10 text-center">
+        <div class="text-6xl mb-4">🏆</div>
+        <h2 class="font-title text-lg sm:text-2xl text-yellow-300 glow-text mb-4 blink">VICTORY!</h2>
+        <div id="victory-body" class="text-sm text-gray-200 mb-6 leading-relaxed"></div>
+        <div id="victory-rewards" class="mb-6"></div>
+        <div class="flex flex-wrap gap-2 justify-center">
+          <button class="pixel-btn font-title text-xs" onclick="Game.goToWorldMap()">🗺️ WORLD MAP</button>
+          <button class="pixel-btn-sm" onclick="Game.openSkins()">🎽 ARMORY</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DEFEAT ============ -->
+    <section id="screen-defeat" class="screen">
+      <div class="pixel-frame p-6 sm:p-10 text-center">
+        <div class="text-6xl mb-4">💀</div>
+        <h2 class="font-title text-lg sm:text-2xl text-red-400 glow-text mb-4 blink">GAME OVER</h2>
+        <div id="defeat-body" class="text-sm text-gray-200 mb-6 leading-relaxed"></div>
+        <div class="flex flex-wrap gap-2 justify-center">
+          <button class="pixel-btn font-title text-xs" onclick="Game.retryBattle()">🔁 RETRY BOSS</button>
+          <button class="pixel-btn-sm" onclick="Game.goToWorldMap()">🗺️ WORLD MAP</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ============ SKINS MODAL ============ -->
+<div id="modal-skins" class="modal-backdrop">
+  <div class="pixel-frame p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-title text-sm sm:text-base text-yellow-300 glow-text">🎽 ARMORY / SKIN LOCKER</h2>
+      <button class="pixel-btn-sm" onclick="Game.closeSkins()">✕</button>
+    </div>
+    <p class="text-xs text-gray-300 mb-4">Spend nothing — skins unlock via <span class="text-cyan-300">MP thresholds</span> or by <span class="text-red-300">defeating Unit Bosses</span>. Equip to change your sprite, title &amp; attack VFX.</p>
+    <div id="skins-grid" class="grid sm:grid-cols-2 gap-3"></div>
+  </div>
+</div>
+
+<!-- ============ CODEX MODAL ============ -->
+<div id="modal-codex" class="modal-backdrop">
+  <div class="pixel-frame p-4 sm:p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-title text-sm sm:text-base text-yellow-300 glow-text">📖 GAME-ANALOGY CODEX</h2>
+      <button class="pixel-btn-sm" onclick="Game.closeCodex()">✕</button>
+    </div>
+    <div id="codex-body" class="space-y-2"></div>
+  </div>
+</div>
+
+<!-- ============ CHEST / SCAFFOLD MODAL ============ -->
+<div id="modal-chest" class="modal-backdrop">
+  <div class="pixel-frame p-5 sm:p-7 max-w-md w-full text-center">
+    <div id="chest-icon" class="text-6xl mb-3 chest-pop">🎁</div>
+    <h2 class="font-title text-sm text-yellow-300 mb-3 glow-text">SCAFFOLD CHEST!</h2>
+    <div id="chest-body" class="text-sm text-gray-100 mb-5 leading-relaxed"></div>
+    <button class="pixel-btn font-title text-xs w-full" onclick="Game.closeChest()">TAKE ITEM ▶</button>
+  </div>
+</div>
+
+<!-- ============ GENERIC CONFIRM MODAL ============ -->
+<div id="modal-confirm" class="modal-backdrop">
+  <div class="pixel-frame p-5 max-w-sm w-full text-center">
+    <div id="confirm-text" class="text-sm mb-5"></div>
+    <div class="flex gap-2 justify-center">
+      <button class="pixel-btn-sm" onclick="Game._confirmYes()">YES</button>
+      <button class="pixel-btn-sm" onclick="Game.closeConfirm()">NO</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   PSYCH QUEST 16-BIT — AP PSYCHOLOGY BATTLE ARENA
+   Pure Vanilla JS state machine + battle engine.
+   ========================================================================= */
+
+/* -------------------- SKIN DEFINITIONS -------------------- */
+const SKINS = [
+  {
+    id: "peasant", emoji: "👨‍🌾", title: "PSYCH PEASANT",
+    projectile: "📜", auraColor: "#8b5a2b",
+    unlock: { type: "start" },
+    desc: "The humble beginning. A student armed only with a flashcard scroll."
+  },
+  {
+    id: "knight", emoji: "🛡️", title: "COGNITIVE KNIGHT",
+    projectile: "⚔️", auraColor: "#c0c0ff",
+    unlock: { type: "either", boss: 1, mp: 100 },
+    desc: "Steel-clad schema-slayer. Unlocks after Unit 1 Boss OR 100 MP."
+  },
+  {
+    id: "wizard", emoji: "🧙‍♂️", title: "MIND WIZARD",
+    projectile: "🔮", auraColor: "#b06bff",
+    unlock: { type: "either", boss: 2, mp: 200 },
+    desc: "Wields working-memory magic. Unlocks after Unit 2 Boss OR 200 MP."
+  },
+  {
+    id: "ninja", emoji: "🥷", title: "CYBER NINJA",
+    projectile: "🌀", auraColor: "#38ff6a",
+    unlock: { type: "either", boss: 3, mp: 300 },
+    desc: "Procedural-memory reflexes, sharpened. Unlocks after Unit 3 Boss OR 300 MP."
+  },
+  {
+    id: "archsage", emoji: "👑", title: "ARCH-SAGE OF PSYCH",
+    projectile: "🌟", auraColor: "#ffd23f",
+    unlock: { type: "boss", boss: 5 },
+    desc: "Master of all five units. Unlocks ONLY by defeating the Unit 5 Master Boss."
+  }
+];
+
+/* -------------------- SPELL DEFINITIONS (Loadout, pick 2) -------------------- */
+const SPELLS = [
+  {
+    id: "action_potential", name: "ACTION POTENTIAL", icon: "⚡", cost: 25,
+    tag: "[ ALL-OR-NONE STRIKE ]", aura: "#ffd23f",
+    desc: "All-or-none surge: deal +18 bonus critical damage to the boss.",
+    type: "damage", value: 18
+  },
+  {
+    id: "para_breath", name: "PARASYMPATHETIC BREATHING", icon: "🌬️", cost: 20,
+    tag: "[ REST-AND-DIGEST ]", aura: "#38d0ff",
+    desc: "Activate rest-and-digest: a shrinking GABA ring restores +30 Player HP.",
+    type: "heal", value: 30
+  },
+  {
+    id: "decryptor", name: "50 / 50 DECRYPTOR", icon: "🔮", cost: 20,
+    tag: "[ SCAFFOLD ]", aura: "#b06bff",
+    desc: "Eliminate two incorrect answer options from the current question.",
+    type: "fiftyfifty"
+  },
+  {
+    id: "ltp_surge", name: "LTP SURGE", icon: "🧠", cost: 25,
+    tag: "[ LONG-TERM POTENTIATION ]", aura: "#ff6bd6",
+    desc: "Prime the synapse: your NEXT correct answer deals DOUBLE damage.",
+    type: "double"
+  },
+  {
+    id: "gaba_ward", name: "GABA WARD", icon: "🛡️", cost: 20,
+    tag: "[ INHIBITORY SHIELD ]", aura: "#38d0ff",
+    desc: "Inhibitory shield: fully block the boss's NEXT counter-attack.",
+    type: "shield"
+  },
+  {
+    id: "amygdala_focus", name: "AMYGDALA FOCUS", icon: "👁️", cost: 15,
+    tag: "[ HINT ]", aura: "#ff3b3b",
+    desc: "Channel arousal into focus: reveal a one-line hint for the current question.",
+    type: "hint"
+  }
+];
+
+/* -------------------- GAME-ANALOGY CODEX -------------------- */
+const CODEX = [
+  { concept: "Action Potential & Refractory Period", game: "Mechanical keyboard switch actuation (all-or-none press) + Dark Souls dodge-roll stamina recovery cooldown before you can roll again." },
+  { concept: "Amygdala & High Emotional Arousal", game: "Tilting / stream-sniping rage in Valorant or League of Legends — the amygdala hijacks logical play." },
+  { concept: "Cerebellum & Procedural Memory", game: "Valorant crosshair placement and muscle-memory flick shots you no longer consciously think about." },
+  { concept: "Variable-Ratio Schedule", game: "Fortnite loot drops, Genshin Impact gacha pulls, and Pokémon shiny hunting — unpredictable rewards = highest response rate." },
+  { concept: "Working Memory Limit (7 ± 2)", game: "An Apex Legends / Overwatch IGL shouting too many callouts mid-fight — the team can only hold a handful of chunks." },
+  { concept: "Assimilation vs. Accommodation", game: "Jumping from Super Mario controls into Elden Ring — first you assimilate, then you must accommodate a whole new schema." },
+  { concept: "Group Polarization", game: "A toxic gaming Discord or subreddit where discussion pushes everyone toward the extreme echo-chamber view." },
+  { concept: "Diathesis-Stress Model", game: "An unstable GPU overclock: fine in light gameplay (low stress), but crashes under 4K ray-traced boss fights (high stress trigger)." }
+];
+
+/* -------------------- QUESTION DATABASE (apPsychDatabase) --------------------
+   Each unit boss draws from `questions`. `recall` feeds interleaving debuffs
+   summoned by LATER bosses.
+   Question schema:
+     { q, options[4], correct, explain, misconception, analogy, concept, difficulty }
+---------------------------------------------------------------------------- */
+const apPsychDatabase = {
+  units: [
+    /* ==================== UNIT 1 ==================== */
+    {
+      id: 1, name: "UNIT 1: BIOLOGICAL BASES OF BEHAVIOR",
+      boss: "🧟", bossName: "THE NEURO-LICH", bossHP: 130, master: false,
+      hasMinion: false, recallFrom: [],
+      questions: [
+        {
+          q: "A neuron reaches its threshold. According to the All-or-None Law, what happens to the strength of the resulting action potential if the stimulus is made much stronger?",
+          options: [
+            "The action potential fires at the same intensity regardless of stimulus strength",
+            "The action potential becomes proportionally larger",
+            "The neuron fires two weaker action potentials",
+            "The refractory period is skipped entirely"
+          ],
+          correct: 0,
+          explain: "All-or-None Law: once threshold is crossed, the neuron fires at full, fixed intensity. A stronger stimulus increases the FREQUENCY of firing, not the size of each impulse.",
+          misconception: "You treated intensity like a dimmer switch. An action potential is all-or-none, like a mechanical keyboard switch — it fully actuates or not at all.",
+          analogy: "Like a mechanical keyboard switch: it either actuates fully or not at all — you can't press it 'harder' for a bigger keystroke.",
+          concept: "ALL-OR-NONE LAW",
+          difficulty: "easy"
+        },
+        {
+          q: "A hiker rounds a corner and sees a bear. Their heart pounds, pupils dilate, and digestion halts. Which division is driving this response?",
+          options: [
+            "Sympathetic nervous system",
+            "Parasympathetic nervous system",
+            "Somatic nervous system",
+            "Central nervous system only"
+          ],
+          correct: 0,
+          explain: "The SYMPATHETIC branch of the autonomic nervous system mobilizes fight-flight-freeze: it accelerates heart rate, dilates pupils, and suppresses digestion.",
+          misconception: "You picked the parasympathetic branch — but that's rest-and-digest, which CALMS the body after the threat passes.",
+          analogy: "It's your body pressing the 'sprint + combat stance' button the instant a boss aggros.",
+          concept: "SYMPATHETIC AROUSAL",
+          difficulty: "easy"
+        },
+        {
+          q: "After finishing a heated match, a gamer takes slow breaths and their heart rate gradually drops. This calming is primarily governed by which neurotransmitter's inhibitory effect and which nervous branch?",
+          options: [
+            "GABA; parasympathetic nervous system",
+            "Glutamate; sympathetic nervous system",
+            "Dopamine; somatic nervous system",
+            "Acetylcholine; central nervous system"
+          ],
+          correct: 0,
+          explain: "GABA is the brain's chief INHIBITORY neurotransmitter (it dampens neural firing), and the PARASYMPATHETIC branch restores the rest-and-digest state.",
+          misconception: "Glutamate is EXCITATORY — it would rev the system up, not calm it. Don't swap GABA and glutamate.",
+          analogy: "GABA is the game's 'lower the intensity' inhibitory dial after an adrenaline-soaked fight.",
+          concept: "GABA / INHIBITION",
+          difficulty: "medium"
+        },
+        {
+          q: "Immediately after firing, a neuron cannot fire again no matter how strong the incoming signal. This brief recovery window is the:",
+          options: [
+            "Refractory period",
+            "Resting potential",
+            "Depolarization phase",
+            "Reuptake threshold"
+          ],
+          correct: 0,
+          explain: "The REFRACTORY PERIOD is the recovery interval after an action potential during which the neuron must reset before it can fire again.",
+          misconception: "Resting potential is the neuron's charged, ready standby state — not the forced cooldown right after firing.",
+          analogy: "Exactly like Dark Souls stamina after a dodge-roll: you must wait for it to recover before you can roll again.",
+          concept: "REFRACTORY PERIOD",
+          difficulty: "medium"
+        },
+        {
+          q: "An esports player lands rapid, precise flick shots without consciously thinking about each movement. Which brain structure is MOST responsible for this smooth, well-practiced motor skill?",
+          options: [
+            "Cerebellum",
+            "Amygdala",
+            "Hippocampus",
+            "Broca's area"
+          ],
+          correct: 0,
+          explain: "The CEREBELLUM coordinates fine motor movement and stores procedural ('how-to') memory built through practice.",
+          misconception: "The hippocampus forms new EXPLICIT memories — not the automatic muscle-memory of a trained motor skill.",
+          analogy: "Valorant crosshair placement and flick shots become cerebellar muscle memory — your hands 'just know'.",
+          concept: "CEREBELLUM / PROCEDURAL",
+          difficulty: "medium"
+        },
+        {
+          q: "A player rage-tilts and makes reckless plays the moment they get stream-sniped. This emotional hijacking of behavior is most associated with the:",
+          options: [
+            "Amygdala",
+            "Cerebellum",
+            "Occipital lobe",
+            "Medulla"
+          ],
+          correct: 0,
+          explain: "The AMYGDALA processes emotion — especially fear and anger — and can override rational, prefrontal decision-making under high arousal.",
+          misconception: "The occipital lobe handles VISION, not the emotional flood that fuels a rage tilt.",
+          analogy: "Tilting in Valorant/League is the amygdala hijacking the prefrontal cortex's calm decision-making.",
+          concept: "AMYGDALA / EMOTION",
+          difficulty: "easy"
+        },
+        {
+          q: "A split-brain patient (severed corpus callosum) has an image flashed to their LEFT visual field only. What happens when asked to verbally name the object?",
+          options: [
+            "They cannot verbally name it, because the info went to the right hemisphere, which lacks dominant speech control",
+            "They name it instantly using Broca's area in the right hemisphere",
+            "They name it only if it is a living thing",
+            "They name it with both hands raised"
+          ],
+          correct: 0,
+          explain: "The left visual field projects to the RIGHT hemisphere. With the corpus callosum cut, that info can't cross to the language-dominant LEFT hemisphere, so the patient can't verbally name it (though the left hand can point to it).",
+          misconception: "Broca's area (speech) is in the LEFT hemisphere for most people — the right hemisphere can't verbally produce the name.",
+          analogy: "It's like two co-op players sharing a screen but with the voice-chat cable unplugged — one sees, the other must speak, and they can't sync.",
+          concept: "SPLIT-BRAIN / CONTRALATERAL",
+          difficulty: "hard"
+        },
+        {
+          q: "A drug binds to a receptor and MIMICS a neurotransmitter, activating the receptor as if the natural transmitter were present. This drug is best classified as a(n):",
+          options: [
+            "Agonist",
+            "Antagonist",
+            "Reuptake inhibitor",
+            "Endogenous depressant"
+          ],
+          correct: 0,
+          explain: "An AGONIST mimics or enhances a neurotransmitter's action at the receptor. An ANTAGONIST blocks it; a REUPTAKE INHIBITOR leaves more transmitter in the synapse by blocking reabsorption.",
+          misconception: "A reuptake inhibitor doesn't bind the receptor to mimic the transmitter — it just prevents the transmitter from being cleared from the synapse.",
+          analogy: "An agonist is a modded controller input that fakes the exact button press the game expects.",
+          concept: "AGONIST vs ANTAGONIST",
+          difficulty: "hard"
+        }
+      ],
+      recall: [
+        { q: "RECALL: Which neurotransmitter is the brain's main EXCITATORY messenger?", options:["Glutamate","GABA","Melatonin","Leptin"], correct:0 },
+        { q: "RECALL: The 'fight-flight-freeze' branch of the autonomic system is the ___.", options:["Sympathetic","Parasympathetic","Somatic","Reflex arc"], correct:0 },
+        { q: "RECALL: Which brain structure is the body's life-support center (heartbeat, breathing)?", options:["Medulla","Amygdala","Hippocampus","Cerebellum"], correct:0 }
+      ]
+    },
+
+    /* ==================== UNIT 2 ==================== */
+    {
+      id: 2, name: "UNIT 2: COGNITION",
+      boss: "🧠", bossName: "THE MEMORY WRAITH", bossHP: 150, master: false,
+      hasMinion: true, recallFrom: [1],
+      questions: [
+        {
+          q: "An in-game leader (IGL) shouts eight separate callouts in the middle of a firefight, and teammates only act on a couple. This best illustrates the limit of:",
+          options: [
+            "Working memory (about 7 ± 2 items)",
+            "Sensory iconic memory",
+            "Long-term semantic storage",
+            "The self-reference effect"
+          ],
+          correct: 0,
+          explain: "Working memory holds roughly 7 ± 2 chunks at once (Miller's magic number). Overload it and items get dropped.",
+          misconception: "Long-term memory has effectively unlimited capacity — the bottleneck here is the tiny, temporary WORKING memory store.",
+          analogy: "An Apex/Overwatch IGL flooding comms mid-fight overloads the team's 7 ± 2 working-memory slots.",
+          concept: "WORKING MEMORY 7±2",
+          difficulty: "easy"
+        },
+        {
+          q: "After seeing dramatic news coverage of shark attacks, someone drastically overestimates how likely a shark attack is. This error reflects the:",
+          options: [
+            "Availability heuristic",
+            "Representativeness heuristic",
+            "Confirmation bias",
+            "Framing effect"
+          ],
+          correct: 0,
+          explain: "The AVAILABILITY heuristic judges probability by how easily vivid examples come to mind. Dramatic, memorable events feel more common than they are.",
+          misconception: "Representativeness judges by how well something matches a prototype — availability is about how EASILY examples are recalled.",
+          analogy: "Like assuming legendary loot is common because that one epic drop is the clip you remember and rewatch.",
+          concept: "AVAILABILITY HEURISTIC",
+          difficulty: "medium"
+        },
+        {
+          q: "A lifelong Super Mario player picks up Elden Ring and, after failing, completely overhauls their mental model of how the controls and combat work. Fundamentally changing an existing schema is called:",
+          options: [
+            "Accommodation",
+            "Assimilation",
+            "Priming",
+            "Chunking"
+          ],
+          correct: 0,
+          explain: "ACCOMMODATION alters or creates a schema to fit new information. ASSIMILATION would force the new game into the old Mario schema.",
+          misconception: "Assimilation is fitting new info INTO an existing schema; when the old schema breaks and must be rebuilt, that's accommodation.",
+          analogy: "Assimilating = 'jump button is still jump.' Accommodating = 'wait, stamina, rolls, and poise are a whole new system.'",
+          concept: "ACCOMMODATION",
+          difficulty: "medium"
+        },
+        {
+          q: "Studying a 20-word list, you best remember the first few and the last few words, but forget those in the middle. This is the:",
+          options: [
+            "Serial position effect (primacy and recency)",
+            "Spacing effect",
+            "Misinformation effect",
+            "Mood-congruent retrieval"
+          ],
+          correct: 0,
+          explain: "The SERIAL POSITION effect: primacy (early items rehearsed into long-term memory) plus recency (last items still in working memory) beats the middle.",
+          misconception: "The spacing effect is about DISTRIBUTED practice over time — not about position within a single list.",
+          analogy: "Like remembering the first and last bosses of a game vividly, but blanking on the mid-game mini-bosses.",
+          concept: "SERIAL POSITION",
+          difficulty: "medium"
+        },
+        {
+          q: "You just learned a new Wi-Fi password, and now you keep typing your OLD password by mistake. Old information disrupting new is:",
+          options: [
+            "Proactive interference",
+            "Retroactive interference",
+            "Encoding failure",
+            "Source amnesia"
+          ],
+          correct: 0,
+          explain: "PROACTIVE interference: OLD learning proactively (forward) blocks NEW learning. RETROACTIVE is the reverse — new disrupts old.",
+          misconception: "Retroactive interference is when NEW info disrupts OLD memories; here the OLD password intrudes, so it's proactive.",
+          analogy: "Like muscle memory from an old game's keybinds sabotaging your inputs in the new game.",
+          concept: "PROACTIVE INTERFERENCE",
+          difficulty: "hard"
+        },
+        {
+          q: "After witnessing a car crash, subjects who were asked how fast cars were going when they 'smashed' later 'remembered' broken glass that wasn't there. This demonstrates the:",
+          options: [
+            "Misinformation effect",
+            "Testing effect",
+            "Serial position effect",
+            "Spacing effect"
+          ],
+          correct: 0,
+          explain: "The MISINFORMATION effect (Loftus): misleading post-event information reshapes the reconstructed memory. Memory is constructive, not a recording.",
+          misconception: "The testing effect is that retrieval PRACTICE improves retention — it's not about memory distortion.",
+          analogy: "Like a game patch quietly rewriting your save file — the 'memory' now includes content that was never originally there.",
+          concept: "MISINFORMATION EFFECT",
+          difficulty: "medium"
+        },
+        {
+          q: "Someone needs a paperweight but can't see that the heavy stapler on their desk would work, because they only think of it as 'a stapler.' This mental block is:",
+          options: [
+            "Functional fixedness",
+            "A mental set",
+            "The representativeness heuristic",
+            "Divergent thinking"
+          ],
+          correct: 0,
+          explain: "FUNCTIONAL FIXEDNESS is the tendency to see objects only in their usual function, blocking creative reuse.",
+          misconception: "A mental set is repeating a PREVIOUS problem-solving APPROACH; functional fixedness is specifically about an object's USE.",
+          analogy: "Like never realizing a game item has a hidden secondary use because the tutorial only showed one.",
+          concept: "FUNCTIONAL FIXEDNESS",
+          difficulty: "hard"
+        }
+      ],
+      recall: [
+        { q: "RECALL: Explicit memory of personal events (your last birthday) is ___ memory.", options:["Episodic","Procedural","Iconic","Prospective"], correct:0 },
+        { q: "RECALL: The tendency to remember the LAST items in a list is the ___ effect.", options:["Recency","Primacy","Spacing","Testing"], correct:0 },
+        { q: "RECALL: Studying spread over days beats cramming — this is the ___ effect.", options:["Spacing","Serial position","Misinformation","Framing"], correct:0 }
+      ]
+    },
+
+    /* ==================== UNIT 3 ==================== */
+    {
+      id: 3, name: "UNIT 3: DEVELOPMENT AND LEARNING",
+      boss: "🐉", bossName: "THE CONDITIONING DRAKE", bossHP: 170, master: false,
+      hasMinion: true, recallFrom: [1, 2],
+      questions: [
+        {
+          q: "A player keeps opening Fortnite loot chests because rewards appear after an unpredictable number of opens. This schedule — famous for producing high, steady response rates that resist extinction — is:",
+          options: [
+            "Variable-ratio",
+            "Fixed-ratio",
+            "Variable-interval",
+            "Fixed-interval"
+          ],
+          correct: 0,
+          explain: "VARIABLE-RATIO reinforces after an unpredictable NUMBER of responses. It yields the highest, most persistent response rate — the engine behind gambling and gacha.",
+          misconception: "Fixed-ratio pays after a SET number of responses; the unpredictability here (varying number) makes it variable-ratio.",
+          analogy: "Genshin gacha pulls, Fortnite loot, and Pokémon shiny hunting — you never know which attempt pays off, so you keep going.",
+          concept: "VARIABLE-RATIO",
+          difficulty: "medium"
+        },
+        {
+          q: "A student buckles their seatbelt to STOP the car's annoying beeping. Removing an aversive stimulus to INCREASE a behavior is:",
+          options: [
+            "Negative reinforcement",
+            "Positive punishment",
+            "Negative punishment",
+            "Positive reinforcement"
+          ],
+          correct: 0,
+          explain: "NEGATIVE REINFORCEMENT removes an unpleasant stimulus (the beep) to INCREASE a behavior (buckling). 'Negative' = subtract; 'reinforcement' = behavior goes up.",
+          misconception: "CRITICAL FAIL: You confused Negative Reinforcement with Punishment. Reinforcement always INCREASES behavior; punishment decreases it. Removing the beep rewards buckling.",
+          analogy: "Like crouching to stop taking chip damage from a hazard zone — you repeat the action because it removes something unpleasant.",
+          concept: "NEGATIVE REINFORCEMENT",
+          difficulty: "medium"
+        },
+        {
+          q: "In Pavlov's work, a tone is repeatedly paired with food until the tone alone triggers salivation. At that point, the TONE is the:",
+          options: [
+            "Conditioned stimulus (CS)",
+            "Unconditioned stimulus (UCS)",
+            "Unconditioned response (UCR)",
+            "Neutral stimulus (still neutral)"
+          ],
+          correct: 0,
+          explain: "After pairing, the once-neutral tone becomes the CONDITIONED STIMULUS (CS) that elicits the conditioned response. Food is the UCS; salivation to food is the UCR.",
+          misconception: "The UCS is the food (naturally triggers salivation). The tone only gains power through learning, making it the CS.",
+          analogy: "Like a game's chest-opening jingle: neutral at first, but after enough loot pairings the sound alone gets you hyped.",
+          concept: "CLASSICAL: CS",
+          difficulty: "medium"
+        },
+        {
+          q: "A 4-year-old watches water poured from a short, wide glass into a tall, thin glass and insists the tall glass now has MORE water. This child lacks:",
+          options: [
+            "Conservation (Piaget's preoperational stage)",
+            "Object permanence",
+            "Formal operational reasoning",
+            "Theory of mind only"
+          ],
+          correct: 0,
+          explain: "CONSERVATION — understanding that quantity stays the same despite changes in shape — is not yet mastered in Piaget's PREOPERATIONAL stage.",
+          misconception: "Object permanence (objects exist when unseen) develops earlier, in the sensorimotor stage — this error is specifically about conservation.",
+          analogy: "Like thinking a resized inventory icon means you now hold more of the item — the amount didn't actually change.",
+          concept: "CONSERVATION / PIAGET",
+          difficulty: "medium"
+        },
+        {
+          q: "A tutor gives a struggling student just enough hints to solve a problem slightly beyond their current ability, then removes support as the student improves. This reflects Vygotsky's:",
+          options: [
+            "Zone of proximal development and scaffolding",
+            "Object permanence",
+            "Assimilation",
+            "Conservation"
+          ],
+          correct: 0,
+          explain: "The ZONE OF PROXIMAL DEVELOPMENT is the gap between what a learner can do alone vs. with guidance; SCAFFOLDING is the temporary support that bridges it.",
+          misconception: "Assimilation is a Piagetian schema process — Vygotsky's framework centers on social scaffolding within the ZPD.",
+          analogy: "Like a co-op partner carrying you through a boss just above your skill, then backing off as you learn the mechanics.",
+          concept: "ZPD / SCAFFOLDING",
+          difficulty: "medium"
+        },
+        {
+          q: "Rats allowed to freely explore a maze with NO reward later run it quickly once food appears — revealing learning that was hidden until there was a reason to show it. This is:",
+          options: [
+            "Latent learning (with a cognitive map)",
+            "Classical conditioning",
+            "Shaping",
+            "Instinctive drift"
+          ],
+          correct: 0,
+          explain: "LATENT LEARNING (Tolman) occurs without reinforcement and stays hidden until there's an incentive to demonstrate it, guided by an internal COGNITIVE MAP.",
+          misconception: "Shaping reinforces successive approximations step-by-step — latent learning happens with NO reinforcement at all until later.",
+          analogy: "Like wandering an open-world map for fun, then instantly knowing the fastest route once a quest finally sends you there.",
+          concept: "LATENT LEARNING",
+          difficulty: "hard"
+        },
+        {
+          q: "A worker checks the clock and works harder only as their fixed weekly payday approaches, producing a 'scalloped' effort graph. This pattern comes from a:",
+          options: [
+            "Fixed-interval schedule",
+            "Variable-ratio schedule",
+            "Fixed-ratio schedule",
+            "Variable-interval schedule"
+          ],
+          correct: 0,
+          explain: "FIXED-INTERVAL reinforces the first response after a set TIME, producing a scalloped curve: slow right after reward, faster as the deadline nears.",
+          misconception: "Variable schedules produce steady responding — the tell-tale scalloped, deadline-driven curve is fixed-INTERVAL.",
+          analogy: "Like only grinding a game's weekly reset quest right before the timer resets, then relaxing again.",
+          concept: "FIXED-INTERVAL",
+          difficulty: "hard"
+        }
+      ],
+      recall: [
+        { q: "RECALL: In classical conditioning, salivating to FOOD (before any learning) is the ___.", options:["Unconditioned response (UCR)","Conditioned response","Conditioned stimulus","Neutral stimulus"], correct:0 },
+        { q: "RECALL: Reinforcing closer-and-closer approximations of a target behavior is ___.", options:["Shaping","Extinction","Generalization","Punishment"], correct:0 },
+        { q: "RECALL: Learning by watching and imitating a model is ___ learning.", options:["Observational","Latent","Insight","Taste-aversion"], correct:0 }
+      ]
+    },
+
+    /* ==================== UNIT 4 ==================== */
+    {
+      id: 4, name: "UNIT 4: SOCIAL PSYCHOLOGY & PERSONALITY",
+      boss: "😈", bossName: "THE BIAS OVERLORD", bossHP: 185, master: false,
+      hasMinion: true, recallFrom: [1, 2, 3],
+      questions: [
+        {
+          q: "You see a driver cut you off and conclude 'what a jerk,' ignoring that they might be rushing to an emergency. Overattributing others' behavior to disposition while underweighting the situation is the:",
+          options: [
+            "Fundamental attribution error",
+            "Self-serving bias",
+            "Just-world phenomenon",
+            "Actor's mere exposure effect"
+          ],
+          correct: 0,
+          explain: "The FUNDAMENTAL ATTRIBUTION ERROR is overestimating personality/disposition and underestimating situational factors when explaining OTHERS' behavior.",
+          misconception: "Self-serving bias is about crediting YOUR OWN successes to skill and blaming failures on the situation — not judging others.",
+          analogy: "Like flaming a random teammate as 'trash' instead of considering their internet lagged out.",
+          concept: "FUNDAMENTAL ATTRIBUTION ERROR",
+          difficulty: "medium"
+        },
+        {
+          q: "Members of a Discord server who already lean one way discuss only among themselves and leave holding even MORE extreme views. This strengthening of pre-existing attitudes within a like-minded group is:",
+          options: [
+            "Group polarization",
+            "Groupthink",
+            "Social facilitation",
+            "Deindividuation"
+          ],
+          correct: 0,
+          explain: "GROUP POLARIZATION: discussion among like-minded people amplifies their shared leaning toward a more extreme position.",
+          misconception: "Groupthink is about suppressing dissent to preserve harmony in a DECISION; polarization is the shift of the group's average attitude toward the extreme.",
+          analogy: "A toxic gaming subreddit or Discord echo chamber where everyone eggs each other into the most extreme take.",
+          concept: "GROUP POLARIZATION",
+          difficulty: "medium"
+        },
+        {
+          q: "After choosing to buy an expensive game they'd previously criticized, a person suddenly starts praising it to reduce inner tension between their action and attitude. This is:",
+          options: [
+            "Cognitive dissonance reduction",
+            "The mere exposure effect",
+            "Informational social influence",
+            "The foot-in-the-door phenomenon"
+          ],
+          correct: 0,
+          explain: "COGNITIVE DISSONANCE is the discomfort of holding conflicting cognitions; people reduce it by changing an attitude to match their behavior.",
+          misconception: "Mere exposure is liking something MORE just from repeated contact — dissonance reduction here is about resolving a belief–action clash.",
+          analogy: "Like defending a full-price purchase you regret so your 'I hate microtransactions' stance stops nagging you.",
+          concept: "COGNITIVE DISSONANCE",
+          difficulty: "medium"
+        },
+        {
+          q: "A personality inventory scores someone high on Openness, Conscientiousness, and Agreeableness, and low on Neuroticism. These come from which trait framework?",
+          options: [
+            "The Big Five (Five-Factor Model)",
+            "Freud's psychosexual stages",
+            "Maslow's hierarchy of needs",
+            "Bandura's reciprocal determinism"
+          ],
+          correct: 0,
+          explain: "The BIG FIVE (OCEAN): Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism (emotional stability) — derived via factor analysis.",
+          misconception: "Reciprocal determinism is a social-cognitive concept (behavior⇄environment⇄person), not a set of measured traits.",
+          analogy: "Like an RPG character sheet with five core stat sliders instead of hit points and mana.",
+          concept: "BIG FIVE / OCEAN",
+          difficulty: "easy"
+        },
+        {
+          q: "A hostile person constantly accuses everyone ELSE of being hostile and aggressive. According to psychodynamic theory, this defense mechanism — attributing one's own unacceptable impulses to others — is:",
+          options: [
+            "Projection",
+            "Displacement",
+            "Sublimation",
+            "Reaction formation"
+          ],
+          correct: 0,
+          explain: "PROJECTION disguises threatening impulses by attributing them to OTHER people. Displacement redirects an impulse onto a safer target; reaction formation flips it into its opposite.",
+          misconception: "Displacement redirects the feeling onto a substitute target (yell at the dog); projection puts your OWN trait onto others.",
+          analogy: "Like a rage-quitter insisting everyone ELSE in the lobby is toxic.",
+          concept: "PROJECTION",
+          difficulty: "hard"
+        },
+        {
+          q: "A person collapses on a crowded street and, because dozens of onlookers each assume someone else will help, no one does. This is the bystander effect, driven mainly by:",
+          options: [
+            "Diffusion of responsibility",
+            "Social facilitation",
+            "The just-world phenomenon",
+            "Normative reciprocity"
+          ],
+          correct: 0,
+          explain: "The BYSTANDER EFFECT grows with group size largely due to DIFFUSION OF RESPONSIBILITY — each person feels less personal obligation to act.",
+          misconception: "Social facilitation is about performance improving with an audience — the bystander effect is failure to help due to shared/diffused responsibility.",
+          analogy: "Like a raid where everyone assumes another player will res the downed teammate, so nobody does.",
+          concept: "DIFFUSION OF RESPONSIBILITY",
+          difficulty: "medium"
+        },
+        {
+          q: "Unsure how to behave in an unfamiliar setting, you copy what everyone else is doing because you assume they know something you don't. This reflects:",
+          options: [
+            "Informational social influence",
+            "Normative social influence",
+            "The foot-in-the-door effect",
+            "Deindividuation"
+          ],
+          correct: 0,
+          explain: "INFORMATIONAL social influence: conforming because you believe others have accurate INFORMATION. NORMATIVE conformity is about fitting in / avoiding rejection.",
+          misconception: "Normative influence is conforming to be LIKED or accepted; here you conform because you think others KNOW better — that's informational.",
+          analogy: "Like copying veteran players' loadouts in a new game because you assume they've figured out the meta.",
+          concept: "INFORMATIONAL INFLUENCE",
+          difficulty: "hard"
+        }
+      ],
+      recall: [
+        { q: "RECALL: The neurotransmitter tied to reward, movement, and (in excess) schizophrenia is ___.", options:["Dopamine","GABA","Melatonin","Leptin"], correct:0 },
+        { q: "RECALL: Judging probability by how easily examples come to mind is the ___ heuristic.", options:["Availability","Representativeness","Anchoring","Framing"], correct:0 },
+        { q: "RECALL: The unpredictable-number reinforcement schedule behind gambling is ___.", options:["Variable-ratio","Fixed-interval","Fixed-ratio","Variable-interval"], correct:0 }
+      ]
+    },
+
+    /* ==================== UNIT 5 (MASTER BOSS) ==================== */
+    {
+      id: 5, name: "UNIT 5: MENTAL AND PHYSICAL HEALTH",
+      boss: "👹", bossName: "THE MASTER: DISORDER TITAN", bossHP: 220, master: true,
+      hasMinion: true, recallFrom: [1, 2, 3, 4],
+      questions: [
+        {
+          q: "A person carries a genetic PREDISPOSITION for a disorder but only develops symptoms after a major life stressor triggers it. This interaction is captured by the:",
+          options: [
+            "Diathesis-stress model",
+            "General adaptation syndrome",
+            "Biomedical model only",
+            "Tend-and-befriend theory"
+          ],
+          correct: 0,
+          explain: "The DIATHESIS-STRESS model: a predisposition (diathesis) plus environmental STRESS jointly produce a disorder — neither alone is sufficient.",
+          misconception: "General adaptation syndrome describes the body's STRESS RESPONSE stages, not how vulnerability + stress cause a disorder.",
+          analogy: "Like an unstable GPU overclock: fine in light gameplay, but crashes under a 4K ray-traced boss fight (the stress trigger).",
+          concept: "DIATHESIS-STRESS",
+          difficulty: "medium"
+        },
+        {
+          q: "Selye's General Adaptation Syndrome describes the body's response to prolonged stress in which correct order?",
+          options: [
+            "Alarm → Resistance → Exhaustion",
+            "Resistance → Alarm → Exhaustion",
+            "Exhaustion → Alarm → Resistance",
+            "Alarm → Exhaustion → Resistance"
+          ],
+          correct: 0,
+          explain: "GAS runs ALARM (initial fight-flight shock) → RESISTANCE (sustained coping) → EXHAUSTION (resources depleted, vulnerability rises).",
+          misconception: "The body must first sound the ALARM before it can mount resistance — resistance never comes first.",
+          analogy: "Like a raid: initial panic (alarm), grinding through the fight (resistance), then running out of potions/stamina (exhaustion).",
+          concept: "GAS STAGES",
+          difficulty: "medium"
+        },
+        {
+          q: "A patient with schizophrenia shows flat affect, social withdrawal, and reduced speech — a REDUCTION of normal functioning. These are called:",
+          options: [
+            "Negative symptoms",
+            "Positive symptoms",
+            "Delusions of grandeur",
+            "Catatonic excitement"
+          ],
+          correct: 0,
+          explain: "NEGATIVE symptoms are the ABSENCE/reduction of normal behavior (flat affect, avolition, alogia). POSITIVE symptoms ADD abnormal experiences (hallucinations, delusions).",
+          misconception: "Positive symptoms ADD something abnormal (hallucinations, delusions); flat affect and withdrawal are REMOVALS — negative symptoms.",
+          analogy: "Think 'negative' = features subtracted from the character; 'positive' = extra glitchy features added.",
+          concept: "NEGATIVE SYMPTOMS",
+          difficulty: "hard"
+        },
+        {
+          q: "A therapist teaches a client relaxation, then guides them up a fear hierarchy while staying calm, gradually pairing relaxation with feared stimuli. This behavioral technique is:",
+          options: [
+            "Systematic desensitization",
+            "Aversion therapy",
+            "Cognitive restructuring",
+            "Free association"
+          ],
+          correct: 0,
+          explain: "SYSTEMATIC DESENSITIZATION is a counterconditioning exposure therapy: pair a relaxed state with an ascending fear hierarchy to extinguish anxiety.",
+          misconception: "Aversion therapy pairs an unwanted behavior with an UNPLEASANT stimulus — the opposite goal from calming a fear via relaxation.",
+          analogy: "Like practicing a scary boss on easy mechanics first, calmly ramping difficulty until the fear response fades.",
+          concept: "SYSTEMATIC DESENSITIZATION",
+          difficulty: "medium"
+        },
+        {
+          q: "A client shows a pervasive pattern of disregard for others' rights, deceit, and lack of remorse. This best fits which personality-disorder cluster?",
+          options: [
+            "Cluster B (dramatic/emotional/erratic) — antisocial personality disorder",
+            "Cluster A (odd/eccentric) — schizoid",
+            "Cluster C (anxious/fearful) — avoidant",
+            "None; this describes schizophrenia"
+          ],
+          correct: 0,
+          explain: "CLUSTER B is the dramatic/emotional/erratic group (antisocial, borderline, histrionic, narcissistic). Antisocial PD features disregard for and violation of others' rights.",
+          misconception: "Cluster A is odd/eccentric (paranoid, schizoid, schizotypal); the callous rule-breaking here is classic Cluster B antisocial.",
+          analogy: "Like a griefer who violates every server rule and feels zero remorse for wrecking others' experience.",
+          concept: "CLUSTER B PERSONALITY",
+          difficulty: "hard"
+        },
+        {
+          q: "Facing a stressful exam, one student makes a detailed study schedule to tackle the problem directly, while another vents to friends to manage their feelings. The FIRST student is using:",
+          options: [
+            "Problem-focused coping",
+            "Emotion-focused coping",
+            "Defense mechanism of denial",
+            "Learned helplessness"
+          ],
+          correct: 0,
+          explain: "PROBLEM-FOCUSED coping directly targets the stressor itself (making a plan). EMOTION-FOCUSED coping manages the emotional reaction (venting, reappraising).",
+          misconception: "Venting to manage feelings is EMOTION-focused; tackling the stressor's cause with a plan is PROBLEM-focused.",
+          analogy: "Problem-focused = grinding to actually beat the boss; emotion-focused = taking a breather to calm your nerves first.",
+          concept: "PROBLEM-FOCUSED COPING",
+          difficulty: "medium"
+        },
+        {
+          q: "After long-term use of a traditional antipsychotic, a patient develops involuntary lip-smacking and facial tics. This side effect is:",
+          options: [
+            "Tardive dyskinesia",
+            "Tolerance",
+            "Anterograde amnesia",
+            "A manic episode"
+          ],
+          correct: 0,
+          explain: "TARDIVE DYSKINESIA is a movement disorder (involuntary facial/tongue movements) that can result from long-term use of traditional (typical) antipsychotics.",
+          misconception: "Tolerance is needing MORE of a drug for the same effect — tardive dyskinesia is a specific motor side effect of antipsychotics.",
+          analogy: "Like a long-run game leaving a persistent input-glitch artifact that lingers even after you stop playing.",
+          concept: "TARDIVE DYSKINESIA",
+          difficulty: "hard"
+        }
+      ],
+      recall: [
+        { q: "RECALL: The brain's inhibitory neurotransmitter that calms neural firing is ___.", options:["GABA","Glutamate","Dopamine","Norepinephrine"], correct:0 },
+        { q: "RECALL: Misleading post-event info distorting memory is the ___ effect.", options:["Misinformation","Testing","Spacing","Recency"], correct:0 },
+        { q: "RECALL: Removing an aversive stimulus to INCREASE a behavior is ___ reinforcement.", options:["Negative","Positive","Primary","Partial"], correct:0 },
+        { q: "RECALL: Overattributing others' behavior to their disposition is the ___.", options:["Fundamental attribution error","Self-serving bias","Halo effect","Just-world phenomenon"], correct:0 }
+      ]
+    }
+  ]
+};
+
+/* =========================================================================
+   GAME STATE
+   ========================================================================= */
+const Game = (function () {
+
+  const SAVE_KEY = "psychQuestSave_v1";
+
+  const defaultState = () => ({
+    mp: 0,
+    equippedSkin: "peasant",
+    unlockedSkins: ["peasant"],
+    bossesDefeated: [],          // unit ids cleared
+    highestUnitUnlocked: 1
+  });
+
+  let S = loadState();
+
+  // volatile battle state
+  let B = null;
+  let selectedSpells = [];       // loadout picks (ids)
+  let pendingUnit = null;        // unit chosen from map
+  let confirmCallback = null;
+
+  /* ---------- persistence ---------- */
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) return Object.assign(defaultState(), JSON.parse(raw));
+    } catch (e) {}
+    return defaultState();
+  }
+  function saveState() {
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {}
+  }
+
+  /* ---------- screen manager ---------- */
+  function show(screenId) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(screenId).classList.add("active");
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- helpers ---------- */
+  function getSkin(id) { return SKINS.find(s => s.id === id); }
+  function getUnit(id) { return apPsychDatabase.units.find(u => u.id === id); }
+
+  function isSkinUnlocked(skin) {
+    if (S.unlockedSkins.includes(skin.id)) return true;
+    const u = skin.unlock;
+    if (u.type === "start") return true;
+    if (u.type === "boss") return S.bossesDefeated.includes(u.boss);
+    if (u.type === "either")
+      return S.bossesDefeated.includes(u.boss) || S.mp >= u.mp;
+    return false;
+  }
+
+  function refreshSkinUnlocks() {
+    let changed = false;
+    SKINS.forEach(sk => {
+      if (!S.unlockedSkins.includes(sk.id) && isSkinUnlocked(sk)) {
+        S.unlockedSkins.push(sk.id);
+        changed = true;
+      }
+    });
+    if (changed) saveState();
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  /* =====================================================================
+     HUD RENDERING
+     ===================================================================== */
+  function hudHTML() {
+    const skin = getSkin(S.equippedSkin);
+    const bosses = S.bossesDefeated.length;
+    return `
+      <div class="pixel-frame-dark p-2 mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 justify-between">
+        <div class="flex items-center gap-2">
+          <span class="sprite" style="font-size:26px;">${skin.emoji}</span>
+          <div>
+            <div class="font-title text-[8px] text-green-300">${skin.title}</div>
+            <div class="text-[10px] text-gray-400">Class: Lv.${bosses + 1}</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-title text-[8px] text-cyan-300">💠 MP</span>
+          <div class="bar-shell w-28"><div class="bar-fill mp" style="width:${Math.min(100, S.mp % 100)}%"></div></div>
+          <span class="font-title text-[9px] text-cyan-200">${S.mp}</span>
+        </div>
+        <div class="font-title text-[8px] text-yellow-300">🏆 ${bosses}/5 BOSSES</div>
+      </div>`;
+  }
+  function renderHUDs() {
+    document.getElementById("map-hud").innerHTML = hudHTML();
+    document.getElementById("loadout-hud").innerHTML = hudHTML();
+  }
+
+  /* =====================================================================
+     WORLD MAP
+     ===================================================================== */
+  function goToWorldMap() {
+    refreshSkinUnlocks();
+    renderHUDs();
+    renderUnitList();
+    show("screen-map");
+  }
+
+  function renderUnitList() {
+    const wrap = document.getElementById("unit-list");
+    wrap.innerHTML = apPsychDatabase.units.map(u => {
+      const cleared = S.bossesDefeated.includes(u.id);
+      const unlocked = u.id <= S.highestUnitUnlocked;
+      const status = cleared
+        ? `<span class="badge bg-green-600 text-white">✔ CLEARED</span>`
+        : unlocked
+          ? `<span class="badge bg-yellow-500 text-black">● OPEN</span>`
+          : `<span class="badge bg-gray-600 text-white">🔒 LOCKED</span>`;
+      const masterTag = u.master ? `<span class="badge bg-red-700 text-white ml-1">MASTER</span>` : "";
+      return `
+        <button class="pixel-btn ${unlocked ? "" : "opacity-50 cursor-not-allowed"} !text-left"
+                ${unlocked ? `onclick="Game.chooseUnit(${u.id})"` : "disabled"}>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-3xl">${u.boss}</span>
+            <span>${status}${masterTag}</span>
+          </div>
+          <div class="font-title text-[9px] leading-relaxed text-yellow-200 mb-1">${u.name}</div>
+          <div class="text-[11px] text-red-300">BOSS: ${u.bossName} • ${u.bossHP} HP</div>
+          ${u.hasMinion ? `<div class="text-[10px] text-purple-300 mt-1">☠ Summons recall debuffs</div>` : ""}
+        </button>`;
+    }).join("");
+  }
+
+  function chooseUnit(id) {
+    if (id > S.highestUnitUnlocked) return;
+    pendingUnit = getUnit(id);
+    openLoadout();
+  }
+
+  /* =====================================================================
+     LOADOUT
+     ===================================================================== */
+  function openLoadout() {
+    selectedSpells = [];
+    renderHUDs();
+    renderSpellList();
+    updateLoadoutCount();
+    show("screen-loadout");
+  }
+
+  function renderSpellList() {
+    const wrap = document.getElementById("spell-list");
+    wrap.innerHTML = SPELLS.map(sp => `
+      <button id="spell-pick-${sp.id}" class="pixel-btn !text-left" onclick="Game.toggleSpell('${sp.id}')">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-2xl">${sp.icon}</span>
+          <span class="font-title text-[9px] text-cyan-200">${sp.name}</span>
+        </div>
+        <div class="text-[11px] text-gray-300 mb-1">${sp.desc}</div>
+        <div class="text-[10px] text-yellow-300">💠 Cost: ${sp.cost} MP</div>
+      </button>`).join("");
+  }
+
+  function toggleSpell(id) {
+    const idx = selectedSpells.indexOf(id);
+    const btn = document.getElementById("spell-pick-" + id);
+    if (idx >= 0) {
+      selectedSpells.splice(idx, 1);
+      btn.style.boxShadow = "";
+      btn.classList.remove("correct");
+    } else {
+      if (selectedSpells.length >= 2) return; // enforce limit of 2
+      selectedSpells.push(id);
+      btn.classList.add("correct");
+    }
+    updateLoadoutCount();
+  }
+
+  function updateLoadoutCount() {
+    document.getElementById("loadout-count").textContent = selectedSpells.length;
+    document.getElementById("enter-battle-btn").disabled = selectedSpells.length !== 2;
+    // grey out remaining when full
+    SPELLS.forEach(sp => {
+      const btn = document.getElementById("spell-pick-" + sp.id);
+      if (!btn) return;
+      const picked = selectedSpells.includes(sp.id);
+      btn.disabled = (!picked && selectedSpells.length >= 2);
+    });
+  }
+
+  /* =====================================================================
+     BATTLE ENGINE
+     ===================================================================== */
+  function startBattle() {
+    if (selectedSpells.length !== 2) return;
+    const unit = pendingUnit;
+    B = {
+      unit: unit,
+      bossMaxHP: unit.bossHP,
+      bossHP: unit.bossHP,
+      playerMaxHP: 100,
+      playerHP: 100,
+      mpAtStart: S.mp,          // for restore on defeat
+      questions: shuffle(unit.questions),
+      qIndex: 0,
+      consecutiveCorrect: 0,
+      enrage: false,
+      spells: selectedSpells.slice(),
+      spellUsed: {},            // one-charge-per-battle usage tracking (not limited, but track)
+      // one-shot modifiers
+      doubleNext: false,
+      shieldNext: false,
+      // question interaction lock
+      locked: false,
+      // interleaving debuff
+      minionPending: false,
+      minionQueue: buildMinionQueue(unit),
+      answeredMain: 0
+    };
+    renderBattleHUD();
+    renderSpellBar();
+    equipSkinToArena();
+    document.getElementById("enrage-banner").classList.add("hidden");
+    document.getElementById("boss-sprite").classList.remove("enrage-glow");
+    show("screen-battle");
+    nextQuestion();
+  }
+
+  function retryBattle() {
+    // restore MP spent during the failed run
+    S.mp = B ? B.mpAtStart : S.mp;
+    saveState();
+    startBattle();
+  }
+
+  // Determine which main-question indices will be preceded by a recall debuff
+  function buildMinionQueue(unit) {
+    if (!unit.hasMinion) return [];
+    // fire a recall debuff before questions #2 and #5 (0-indexed 1 and 4)
+    return [1, 4];
+  }
+
+  function equipSkinToArena() {
+    const skin = getSkin(S.equippedSkin);
+    document.getElementById("player-sprite").textContent = skin.emoji;
+    document.getElementById("player-title").textContent = skin.title;
+  }
+
+  function renderBattleHUD() {
+    const bossPct = Math.max(0, (B.bossHP / B.bossMaxHP) * 100);
+    const playerPct = Math.max(0, (B.playerHP / B.playerMaxHP) * 100);
+    const lowClass = playerPct <= 30 ? "low" : "";
+    document.getElementById("battle-hud").innerHTML = `
+      <div class="flex flex-wrap items-center gap-3 justify-between">
+        <div class="flex items-center gap-2">
+          <span class="font-title text-[8px] text-green-300">${getSkin(S.equippedSkin).title}</span>
+          <div class="bar-shell w-32"><div id="live-player-hp" class="bar-fill hp ${lowClass}" style="width:${playerPct}%"></div></div>
+          <span id="live-player-hp-text" class="font-title text-[8px]">${Math.max(0,B.playerHP)}/${B.playerMaxHP}</span>
+        </div>
+        <div class="font-title text-[8px] text-yellow-300">💠 ${S.mp} MP</div>
+        <div class="font-title text-[8px] text-purple-300">📖 ${B.unit.name.split(":")[0]}</div>
+      </div>`;
+    // boss bar (top of arena)
+    document.getElementById("boss-hp-bar").style.width = bossPct + "%";
+    document.getElementById("boss-hp-text").textContent = `${Math.max(0,B.bossHP)}/${B.bossMaxHP}`;
+    document.getElementById("boss-name").textContent = B.unit.bossName;
+    document.getElementById("boss-sprite").textContent = B.unit.boss;
+  }
+
+  function renderSpellBar() {
+    const bar = document.getElementById("spell-bar");
+    bar.innerHTML = `<span class="font-title text-[8px] text-cyan-300 self-center mr-1">SPELLS:</span>` +
+      B.spells.map(id => {
+        const sp = SPELLS.find(s => s.id === id);
+        const affordable = S.mp >= sp.cost;
+        return `<button class="pixel-btn-sm ${affordable ? "" : "opacity-40"}"
+                  id="cast-${sp.id}"
+                  ${affordable ? "" : "disabled"}
+                  onclick="Game.castSpell('${sp.id}')">
+                  ${sp.icon} ${sp.name} <span class="text-yellow-300">(${sp.cost})</span>
+                </button>`;
+      }).join("");
+  }
+
+  function updateSpellBarAfford() {
+    B.spells.forEach(id => {
+      const sp = SPELLS.find(s => s.id === id);
+      const btn = document.getElementById("cast-" + sp.id);
+      if (!btn) return;
+      const affordable = S.mp >= sp.cost && !B.locked;
+      btn.disabled = !affordable;
+      btn.classList.toggle("opacity-40", !affordable);
+    });
+  }
+
+  /* ---------- Question flow ---------- */
+  function nextQuestion() {
+    if (B.bossHP <= 0) { winBattle(); return; }
+    if (B.playerHP <= 0) { loseBattle(); return; }
+
+    // Should a minion recall debuff fire before this main question?
+    if (B.unit.hasMinion && B.minionQueue.includes(B.answeredMain) && !B.minionPending) {
+      B.minionPending = true;
+      renderRecallDebuff();
+      return;
+    }
+
+    if (B.qIndex >= B.questions.length) {
+      // ran out of questions but boss alive: reshuffle and continue
+      B.questions = shuffle(B.unit.questions);
+      B.qIndex = 0;
+    }
+    renderMainQuestion(B.questions[B.qIndex]);
+  }
+
+  function renderMainQuestion(qObj) {
+    B.locked = false;
+    B.current = qObj;
+    B.isRecall = false;
+    document.getElementById("minion-banner").classList.add("hidden");
+    document.getElementById("feedback-log").classList.add("hidden");
+
+    const tag = document.getElementById("concept-tag");
+    tag.classList.remove("hidden");
+    document.getElementById("concept-tag-text").textContent = "[ " + qObj.concept + " ]";
+
+    // enrage prefix
+    const enragePrefix = B.enrage
+      ? `<span class="text-red-400 font-title text-[9px]">‼ENRAGED‼</span> ` : "";
+    document.getElementById("question-text").innerHTML = enragePrefix + qObj.q;
+
+    renderAnswers(qObj.options, qObj.correct, false);
+    updateSpellBarAfford();
+  }
+
+  function renderRecallDebuff() {
+    B.locked = false;
+    // choose a recall question from an earlier unit
+    const fromUnits = B.unit.recallFrom;
+    const srcUnitId = fromUnits[Math.floor(Math.random() * fromUnits.length)];
+    const srcUnit = getUnit(srcUnitId);
+    const pool = srcUnit.recall;
+    const rq = pool[Math.floor(Math.random() * pool.length)];
+    B.current = rq;
+    B.isRecall = true;
+
+    document.getElementById("minion-banner").classList.remove("hidden");
+    document.getElementById("feedback-log").classList.add("hidden");
+    const tag = document.getElementById("concept-tag");
+    tag.classList.remove("hidden");
+    document.getElementById("concept-tag-text").textContent = "☠ [ UNIT " + srcUnitId + " RECALL DEBUFF ]";
+    document.getElementById("question-text").innerHTML =
+      `<span class="text-purple-300 font-title text-[9px]">The boss cast a minion debuff!</span><br>` + rq.q;
+
+    renderAnswers(rq.options, rq.correct, true);
+    updateSpellBarAfford();
+  }
+
+  function renderAnswers(options, correctIdx, isRecall) {
+    const grid = document.getElementById("answer-grid");
+    const letters = ["A", "B", "C", "D"];
+    grid.innerHTML = options.map((opt, i) => `
+      <button class="pixel-btn text-xs sm:text-sm" id="ans-${i}" onclick="Game.answer(${i})">
+        <span class="text-yellow-300 font-title text-[10px] mr-1">${letters[i]}</span> ${opt}
+      </button>`).join("");
+  }
+
+  function answer(i) {
+    if (B.locked) return;
+    B.locked = true;
+    const q = B.current;
+    const correct = (i === q.correct);
+    // reveal correctness styling
+    document.querySelectorAll("#answer-grid .pixel-btn").forEach((btn, idx) => {
+      btn.onclick = null;
+      if (idx === q.correct) btn.classList.add("correct");
+      else if (idx === i) btn.classList.add("wrong");
+      else btn.classList.add("faded");
+    });
+    updateSpellBarAfford();
+
+    if (B.isRecall) {
+      handleRecallResult(correct, q);
+    } else {
+      handleMainResult(correct, q, i);
+    }
+  }
+
+  /* ---------- Main question result ---------- */
+  function handleMainResult(correct, q, chosenIdx) {
+    if (correct) {
+      // damage calc
+      let dmg = 18 + Math.floor(Math.random() * 8); // 18-25 base
+      if (B.enrage) dmg += 4;
+      if (B.doubleNext) { dmg *= 2; B.doubleNext = false; refreshDoubleTag(); }
+      const isCrit = B.consecutiveCorrect >= 1;
+      playerAttack(getSkin(S.equippedSkin), q.concept);
+      dealBossDamage(dmg, isCrit);
+
+      // MP reward (Intel Tokens)
+      const gained = 15 + (B.enrage ? 10 : 0);
+      S.mp += gained; saveState();
+
+      B.consecutiveCorrect++;
+      // Flow state: 2 consecutive -> enrage
+      if (B.consecutiveCorrect >= 2 && !B.enrage) engageEnrage();
+
+      showFeedback(true,
+        `<div class="font-title text-[10px] text-green-300 mb-1">✔ CRITICAL HIT! −${dmg} Boss HP</div>
+         <div class="text-xs text-gray-200 mb-2">${q.explain}</div>
+         <div class="text-[11px] text-cyan-300">🎮 ${q.analogy}</div>
+         <div class="text-[10px] text-yellow-300 mt-1">+${gained} MP (Intel Tokens)</div>`);
+    } else {
+      // boss counter
+      let dmg = 22 + (B.enrage ? 10 : 0);
+      if (B.shieldNext) {
+        B.shieldNext = false; refreshShieldTag();
+        showFeedback(false,
+          `<div class="font-title text-[10px] text-cyan-300 mb-1">🛡️ GABA WARD ABSORBED THE HIT!</div>
+           <div class="text-xs text-gray-200 mb-2">Correct answer: <span class="text-green-300">${q.options[q.correct]}</span></div>
+           <div class="text-[11px] text-red-300">🐞 DEBUG: ${q.misconception}</div>`);
+      } else {
+        bossAttack();
+        dealPlayerDamage(dmg);
+        showFeedback(false,
+          `<div class="font-title text-[10px] text-red-300 mb-1">✘ SYSTEM DEBUG LOG — −${dmg} Player HP</div>
+           <div class="text-[11px] text-red-300 mb-2">🐞 ${q.misconception}</div>
+           <div class="text-xs text-gray-200">Correct: <span class="text-green-300">${q.options[q.correct]}</span> — ${q.explain}</div>`);
+      }
+      B.consecutiveCorrect = 0;
+      if (B.enrage) disengageEnrage();
+      // Scaffolding chest drop on wrong answer
+      B.pendingChest = true;
+    }
+
+    B.qIndex++;
+    B.answeredMain++;
+    renderBattleHUD();
+    updateSpellBarAfford();
+
+    setTimeout(() => {
+      if (B.bossHP <= 0) { winBattle(); return; }
+      if (B.playerHP <= 0) { loseBattle(); return; }
+      if (B.pendingChest) {
+        B.pendingChest = false;
+        dropScaffoldChest();
+      } else {
+        advanceContinueButton();
+      }
+    }, 900);
+  }
+
+  /* ---------- Recall (minion) result ---------- */
+  function handleRecallResult(correct, q) {
+    if (correct) {
+      showFeedback(true,
+        `<div class="font-title text-[10px] text-green-300 mb-1">✔ DEBUFF CLEARED!</div>
+         <div class="text-xs text-gray-200">Interleaved recall reinforces long-term retention (Bjork). The minion shatters — proceed to the boss.</div>`);
+    } else {
+      let dmg = 15;
+      bossAttack();
+      dealPlayerDamage(dmg);
+      showFeedback(false,
+        `<div class="font-title text-[10px] text-red-300 mb-1">✘ DEBUFF STINGS — −${dmg} Player HP</div>
+         <div class="text-xs text-gray-200">Correct recall: <span class="text-green-300">${q.options[q.correct]}</span>. The debuff still clears, but stay sharp!</div>`);
+    }
+    B.minionPending = false;
+    // mark this minion slot consumed so it doesn't refire
+    B.minionQueue = B.minionQueue.filter(x => x !== B.answeredMain);
+    renderBattleHUD();
+    setTimeout(() => {
+      if (B.playerHP <= 0) { loseBattle(); return; }
+      advanceContinueButton();
+    }, 900);
+  }
+
+  function advanceContinueButton() {
+    const grid = document.getElementById("answer-grid");
+    grid.innerHTML = `<button class="pixel-btn font-title text-xs sm:col-span-2 blink" onclick="Game.nextQuestion()">▶ CONTINUE</button>`;
+  }
+
+  /* ---------- Feedback box ---------- */
+  function showFeedback(good, html) {
+    const box = document.getElementById("feedback-log");
+    box.className = "mt-3 pixel-frame-dark p-3 " + (good ? "border-green-400" : "border-red-500");
+    box.style.borderColor = good ? "#38ff6a" : "#ff3b3b";
+    box.innerHTML = html;
+    box.classList.remove("hidden");
+  }
+
+  /* =====================================================================
+     COMBAT VISUALS
+     ===================================================================== */
+  function playerAttack(skin, conceptLabel) {
+    const p = document.getElementById("player-sprite");
+    p.classList.remove("player-attack"); void p.offsetWidth;
+    p.classList.add("player-attack");
+
+    // projectile
+    const fx = document.getElementById("fx-zone");
+    const proj = document.createElement("div");
+    proj.className = "projectile fire";
+    proj.style.color = skin.auraColor;
+    proj.textContent = skin.projectile;
+    fx.appendChild(proj);
+
+    // dual-coding concept aura near boss
+    const aura = document.createElement("div");
+    aura.className = "aura fire-aura";
+    aura.style.background = `radial-gradient(circle, ${skin.auraColor} 0%, transparent 70%)`;
+    aura.style.top = "28%";
+    fx.appendChild(aura);
+
+    // floating concept label (dual coding text)
+    const label = document.createElement("div");
+    label.className = "dmg-float go";
+    label.style.left = "50%";
+    label.style.top = "30%";
+    label.style.transform = "translateX(-50%)";
+    label.style.color = "#ffd23f";
+    label.style.fontSize = "10px";
+    label.textContent = "[" + conceptLabel + "]";
+    fx.appendChild(label);
+
+    setTimeout(() => { proj.remove(); aura.remove(); label.remove(); p.classList.remove("player-attack"); }, 900);
+  }
+
+  function bossAttack() {
+    const b = document.getElementById("boss-sprite");
+    b.classList.remove("boss-attack"); void b.offsetWidth;
+    b.classList.add("boss-attack");
+    setTimeout(() => b.classList.remove("boss-attack"), 800);
+  }
+
+  function dealBossDamage(dmg, isCrit) {
+    B.bossHP = Math.max(0, B.bossHP - dmg);
+    const b = document.getElementById("boss-sprite");
+    b.classList.remove("boss-hit"); void b.offsetWidth;
+    b.classList.add("boss-hit");
+    document.getElementById("arena").classList.add("shake");
+    floatDamage(dmg, "boss", isCrit ? "#ffd23f" : "#ffffff", isCrit);
+    setTimeout(() => {
+      b.classList.remove("boss-hit");
+      document.getElementById("arena").classList.remove("shake");
+    }, 650);
+  }
+
+  function dealPlayerDamage(dmg) {
+    B.playerHP = Math.max(0, B.playerHP - dmg);
+    const p = document.getElementById("player-sprite");
+    p.classList.remove("player-hurt"); void p.offsetWidth;
+    p.classList.add("player-hurt");
+    document.getElementById("arena").classList.add("shake");
+    floatDamage(dmg, "player", "#ff3b3b", false);
+    setTimeout(() => {
+      p.classList.remove("player-hurt");
+      document.getElementById("arena").classList.remove("shake");
+    }, 650);
+  }
+
+  function floatDamage(dmg, who, color, crit) {
+    const fx = document.getElementById("fx-zone");
+    const el = document.createElement("div");
+    el.className = "dmg-float go";
+    el.style.color = color;
+    el.style.left = "50%";
+    el.style.transform = "translateX(-50%)";
+    el.style.top = who === "boss" ? "22%" : "72%";
+    el.textContent = (crit ? "CRIT −" : "−") + dmg;
+    fx.appendChild(el);
+    setTimeout(() => el.remove(), 1000);
+  }
+
+  /* ---------- Enrage (Flow scaffolding) ---------- */
+  function engageEnrage() {
+    B.enrage = true;
+    document.getElementById("enrage-banner").classList.remove("hidden");
+    document.getElementById("boss-sprite").classList.add("enrage-glow");
+  }
+  function disengageEnrage() {
+    B.enrage = false;
+    document.getElementById("enrage-banner").classList.add("hidden");
+    document.getElementById("boss-sprite").classList.remove("enrage-glow");
+  }
+
+  /* =====================================================================
+     SPELLS (in-battle)
+     ===================================================================== */
+  function castSpell(id) {
+    if (B.locked) { /* only usable while a question is live */ }
+    const sp = SPELLS.find(s => s.id === id);
+    if (S.mp < sp.cost) return;
+
+    // Some spells only make sense on a live question
+    const needsLiveQuestion = ["decryptor", "hint", "double"].includes(sp.type);
+    if (needsLiveQuestion && B.locked) return;
+
+    S.mp -= sp.cost; saveState();
+
+    // cast aura
+    castAura(sp.aura);
+
+    switch (sp.type) {
+      case "damage": {
+        // ALL-OR-NONE strike
+        playerAttack(getSkin(S.equippedSkin), "ACTION POTENTIAL");
+        dealBossDamage(sp.value, true);
+        toast(`⚡ ACTION POTENTIAL surged! −${sp.value} Boss HP (all-or-none crit).`);
+        if (B.bossHP <= 0) { setTimeout(winBattle, 700); }
+        break;
+      }
+      case "heal": {
+        // Parasympathetic breathing + GABA ring (dual coding: HR deceleration)
+        gabaRing();
+        B.playerHP = Math.min(B.playerMaxHP, B.playerHP + sp.value);
+        floatDamage(sp.value, "player", "#38ff6a", false);
+        toast(`🌬️ Rest-and-digest engaged: +${sp.value} Player HP. Heart rate decelerates (blue GABA ring).`);
+        break;
+      }
+      case "fiftyfifty": {
+        do5050();
+        toast("🔮 50/50 Decryptor: two wrong options eliminated.");
+        break;
+      }
+      case "double": {
+        B.doubleNext = true; refreshDoubleTag();
+        toast("🧠 LTP Surge primed: your next correct answer deals DOUBLE damage.");
+        break;
+      }
+      case "shield": {
+        B.shieldNext = true; refreshShieldTag();
+        toast("🛡️ GABA Ward raised: the boss's next attack will be blocked.");
+        break;
+      }
+      case "hint": {
+        giveHint();
+        break;
+      }
+    }
+    renderBattleHUD();
+    renderSpellBar();
+    updateSpellBarAfford();
+  }
+
+  function castAura(color) {
+    const fx = document.getElementById("fx-zone");
+    const aura = document.createElement("div");
+    aura.className = "aura fire-aura";
+    aura.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
+    aura.style.top = "62%";
+    fx.appendChild(aura);
+    setTimeout(() => aura.remove(), 850);
+  }
+
+  function gabaRing() {
+    const fx = document.getElementById("fx-zone");
+    const ring = document.createElement("div");
+    ring.className = "gaba-ring active";
+    fx.appendChild(ring);
+    setTimeout(() => ring.remove(), 1200);
+  }
+
+  function do5050() {
+    if (!B.current || B.locked) return;
+    const correct = B.current.correct;
+    const wrongIdx = [];
+    document.querySelectorAll("#answer-grid .pixel-btn").forEach((btn, i) => {
+      if (i !== correct) wrongIdx.push(i);
+    });
+    // fade two wrong ones
+    shuffle(wrongIdx).slice(0, 2).forEach(i => {
+      const btn = document.getElementById("ans-" + i);
+      if (btn) { btn.classList.add("faded"); btn.onclick = null; }
+    });
+  }
+
+  function giveHint() {
+    if (!B.current) return;
+    const q = B.current;
+    let hint;
+    if (B.isRecall) {
+      hint = "The correct recall starts with: “" + q.options[q.correct].slice(0, 4) + "…”";
+    } else {
+      hint = "Focus on the concept tag: " + (q.concept || "") + ". " +
+             "Eliminate the option that describes the OPPOSITE process.";
+    }
+    toast("👁️ AMYGDALA FOCUS — " + hint);
+  }
+
+  function refreshDoubleTag() { pulseBanner(B.doubleNext ? "🧠 LTP SURGE ACTIVE — next correct = DOUBLE dmg" : null); }
+  function refreshShieldTag() { pulseBanner(B.shieldNext ? "🛡️ GABA WARD ACTIVE — next hit blocked" : null); }
+
+  function pulseBanner(msg) {
+    // reuse enrage banner area? Use toast instead for status
+    if (msg) toast(msg);
+  }
+
+  /* ---------- Toast ---------- */
+  let toastTimer = null;
+  function toast(msg) {
+    let t = document.getElementById("battle-toast");
+    if (!t) {
+      t = document.createElement("div");
+      t.id = "battle-toast";
+      t.style.cssText = "position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:800;max-width:90%;";
+      document.body.appendChild(t);
+    }
+    t.innerHTML = `<div class="pixel-frame-dark px-3 py-2 text-xs text-yellow-200 text-center">${msg}</div>`;
+    t.style.display = "block";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.display = "none"; }, 3200);
+  }
+
+  /* =====================================================================
+     SCAFFOLD CHEST (dynamic scaffolding on wrong answer)
+     ===================================================================== */
+  function dropScaffoldChest() {
+    const roll = Math.random();
+    const icon = document.getElementById("chest-icon");
+    const body = document.getElementById("chest-body");
+    icon.classList.remove("chest-pop"); void icon.offsetWidth; icon.classList.add("chest-pop");
+
+    if (roll < 0.5) {
+      // free 50/50 decryptor for next question
+      B.grantFreeDecryptor = true;
+      icon.textContent = "🔮";
+      body.innerHTML = `You found a <span class="text-purple-300">[ 50/50 DECRYPTOR ]</span>!<br>
+        It will auto-remove two wrong options on your NEXT question — a scaffold to keep you in the flow channel.`;
+    } else {
+      // hint chest
+      icon.textContent = "📜";
+      const conceptNext = "an earlier or related concept";
+      body.innerHTML = `A <span class="text-cyan-300">Scaffold Scroll</span> whispers a strategy:<br>
+        <span class="text-yellow-200">“Read every option first. The wrong answer usually describes the OPPOSITE mechanism — eliminate it before choosing.”</span>`;
+    }
+    openModal("modal-chest");
+  }
+  function closeChest() {
+    closeModal("modal-chest");
+    // if boss/player already dead, resolve
+    if (B.bossHP <= 0) { winBattle(); return; }
+    if (B.playerHP <= 0) { loseBattle(); return; }
+    advanceContinueButton();
+  }
+
+  /* =====================================================================
+     WIN / LOSE
+     ===================================================================== */
+  function winBattle() {
+    const unit = B.unit;
+    const firstClear = !S.bossesDefeated.includes(unit.id);
+    if (firstClear) {
+      S.bossesDefeated.push(unit.id);
+      S.highestUnitUnlocked = Math.min(5, Math.max(S.highestUnitUnlocked, unit.id + 1));
+      S.mp += 50; // clear bonus
+    }
+    saveState();
+
+    // detect newly unlocked skins
+    const before = S.unlockedSkins.slice();
+    refreshSkinUnlocks();
+    const newSkins = S.unlockedSkins.filter(id => !before.includes(id));
+
+    document.getElementById("victory-body").innerHTML =
+      `You defeated <span class="text-red-300 font-title text-[11px]">${unit.bossName}</span>!<br>
+       ${firstClear ? `<span class="text-yellow-300">+50 MP clear bonus.</span>` : `<span class="text-gray-400">(Already cleared — no new bonus.)</span>`}
+       <div class="mt-2 text-cyan-200">Total MP: ${S.mp} • Bosses cleared: ${S.bossesDefeated.length}/5</div>`;
+
+    let rewardHTML = "";
+    if (newSkins.length) {
+      rewardHTML += newSkins.map(id => {
+        const sk = getSkin(id);
+        return `<div class="pixel-frame-dark p-3 mb-2 inline-block">
+          <span class="text-3xl">${sk.emoji}</span>
+          <div class="font-title text-[9px] text-yellow-300 mt-1">NEW SKIN: ${sk.title}</div>
+          <div class="text-[11px] text-gray-300">${sk.desc}</div>
+        </div>`;
+      }).join("");
+    }
+    if (unit.master && S.bossesDefeated.length >= 5) {
+      rewardHTML += `<div class="pixel-frame-dark p-3 mt-2 border-yellow-400">
+        <div class="font-title text-[10px] text-yellow-300 blink">👑 ALL 5 UNITS MASTERED — ARCH-SAGE OF PSYCH UNLOCKED!</div>
+        <div class="text-[11px] text-gray-200 mt-1">You have conquered the full AP Psychology CED. GG.</div>
+      </div>`;
+    }
+    document.getElementById("victory-rewards").innerHTML = rewardHTML;
+    show("screen-victory");
+  }
+
+  function loseBattle() {
+    document.getElementById("defeat-body").innerHTML =
+      `<span class="text-red-300 font-title text-[11px]">${B.unit.bossName}</span> overwhelmed you.<br>
+       Your MP has been restored to its pre-battle amount (${B.mpAtStart}).<br>
+       <span class="text-cyan-200 mt-2 inline-block">Tip: equip <b>PARASYMPATHETIC BREATHING</b> for healing, and use the <b>Testing Effect</b> — the debug logs teach the exact misconception. Try again!</span>`;
+    // restore MP so a loss isn't punishing on tokens
+    S.mp = B.mpAtStart;
+    saveState();
+    show("screen-defeat");
+  }
+
+  /* =====================================================================
+     SKINS MODAL
+     ===================================================================== */
+  function openSkins() {
+    refreshSkinUnlocks();
+    renderSkins();
+    openModal("modal-skins");
+  }
+  function closeSkins() { closeModal("modal-skins"); renderHUDs(); }
+
+  function renderSkins() {
+    const grid = document.getElementById("skins-grid");
+    grid.innerHTML = SKINS.map(sk => {
+      const unlocked = S.unlockedSkins.includes(sk.id) || isSkinUnlocked(sk);
+      const equipped = S.equippedSkin === sk.id;
+      let req = "";
+      if (sk.unlock.type === "start") req = "Available at start";
+      else if (sk.unlock.type === "boss") req = `Defeat Unit ${sk.unlock.boss} Master Boss`;
+      else if (sk.unlock.type === "either") req = `Unit ${sk.unlock.boss} Boss OR ${sk.unlock.mp} MP`;
+      return `
+        <div class="pixel-frame-dark p-3 ${equipped ? "border-yellow-400" : ""}" style="${equipped ? "box-shadow: inset 0 0 0 4px #000, 0 0 14px 2px #ffd23f;" : ""}">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-4xl ${unlocked ? "" : "grayscale opacity-40"}">${sk.emoji}</span>
+            <div>
+              <div class="font-title text-[9px] text-green-300">${sk.title}</div>
+              <div class="text-[10px] ${unlocked ? "text-cyan-300" : "text-red-300"}">${unlocked ? "UNLOCKED" : "🔒 " + req}</div>
+            </div>
+          </div>
+          <div class="text-[11px] text-gray-300 mb-2">${sk.desc}</div>
+          <div class="text-[10px] text-yellow-200 mb-2">Attack VFX: ${sk.projectile}</div>
+          ${unlocked
+            ? (equipped
+                ? `<span class="badge bg-yellow-500 text-black">✔ EQUIPPED</span>`
+                : `<button class="pixel-btn-sm" onclick="Game.equipSkin('${sk.id}')">EQUIP</button>`)
+            : `<button class="pixel-btn-sm opacity-40" disabled>LOCKED</button>`}
+        </div>`;
+    }).join("");
+  }
+
+  function equipSkin(id) {
+    if (!S.unlockedSkins.includes(id)) return;
+    S.equippedSkin = id;
+    saveState();
+    renderSkins();
+    renderHUDs();
+  }
+
+  /* =====================================================================
+     CODEX MODAL
+     ===================================================================== */
+  function openCodex() {
+    document.getElementById("codex-body").innerHTML = CODEX.map(c => `
+      <div class="pixel-frame-dark p-3">
+        <div class="font-title text-[9px] text-yellow-300 mb-1">${c.concept}</div>
+        <div class="text-xs text-gray-200">🎮 ${c.game}</div>
+      </div>`).join("");
+    openModal("modal-codex");
+  }
+  function closeCodex() { closeModal("modal-codex"); }
+
+  /* =====================================================================
+     MODAL / CONFIRM UTILITIES
+     ===================================================================== */
+  function openModal(id) { document.getElementById(id).classList.add("active"); }
+  function closeModal(id) { document.getElementById(id).classList.remove("active"); }
+
+  function resetConfirm() {
+    confirmCallback = () => {
+      S = defaultState();
+      saveState();
+      closeConfirm();
+      goToWorldMap();
+    };
+    document.getElementById("confirm-text").innerHTML =
+      "⚠️ Reset ALL progress?<br>MP, skins, and boss clears will be wiped.";
+    openModal("modal-confirm");
+  }
+  function _confirmYes() { if (confirmCallback) confirmCallback(); }
+  function closeConfirm() { closeModal("modal-confirm"); confirmCallback = null; }
+
+  /* =====================================================================
+     PUBLIC API
+     ===================================================================== */
+  return {
+    goToWorldMap, chooseUnit,
+    toggleSpell, startBattle, retryBattle,
+    answer, nextQuestion, castSpell,
+    closeChest,
+    openSkins, closeSkins, equipSkin,
+    openCodex, closeCodex,
+    resetConfirm, _confirmYes, closeConfirm
+  };
+})();
+
+/* boot */
+window.addEventListener("DOMContentLoaded", () => {
+  // ensure title screen active
+});
+</script>
+</body>
+</html>
