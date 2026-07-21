@@ -12,7 +12,7 @@ rollout = "my-rollout"       # directory under rollouts/
 entrypoint = "main.py"       # example server file, relative to rollout directory
 model_path = "Qwen/..."      # supported base model
 dataset = "my-dataset"       # platform dataset name, not dataset_id or data/*.jsonl
-# branch = "my-feature"      # optional pushed branch
+# branch = "my-feature"      # pin to a branch (default branch if omitted)
 # commit_sha = "..."         # optional, must be pushed
 ```
 

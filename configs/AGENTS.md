@@ -27,7 +27,7 @@ Required `[experiment]` fields:
 - `entrypoint` must be a Python file relative to that rollout. SDK-generated configs usually use `main.py`, but any in-rollout Python entrypoint is valid when the config names it.
 - `model_path` must be a supported base model.
 - `dataset` must be a platform dataset name from `osmosis dataset list`.
-- `branch` is optional and pins training code to a pushed branch.
+- `branch` is optional and pins training code to a branch.
 - `commit_sha` is optional and pins training code to a specific pushed commit.
 - `branch` and `commit_sha` are mutually exclusive; omit both to use the connected repository's default branch.
 

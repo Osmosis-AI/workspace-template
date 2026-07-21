@@ -46,7 +46,7 @@ For first uploads, run `osmosis --json dataset upload data/<name>.jsonl --yes`. 
 
 `osmosis --json train submit` reads the config from disk but fetches rollout code from the connected Git repository. Local edits that are not pushed are ignored.
 
-Commit and push the intended revision. Set `branch` to a pushed branch or `commit_sha` to a specific pushed commit; the two fields are mutually exclusive. Omit both to use the connected repository's default branch. Treat dirty/ahead/no-upstream warnings as blockers until the user explicitly accepts them.
+Commit and push the intended revision. Set `branch` to pin to a branch or `commit_sha` to pin to a specific commit; the two fields are mutually exclusive. Omit both to use the connected repository's default branch. Treat dirty/ahead/no-upstream warnings as blockers until the user explicitly accepts them.
 
 ### D. Training config completeness
 
