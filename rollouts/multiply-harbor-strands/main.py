@@ -1,7 +1,6 @@
 """Harbor-backed Strands multiply rollout server.
 
-Each Harbor trial runs in a SkyPilot Sandbox. Sandbox placement and credentials
-come from the run environment, so this file names no infrastructure.
+Sandbox placement and credentials come from the run environment.
 """
 
 from __future__ import annotations
