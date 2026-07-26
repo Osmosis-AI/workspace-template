@@ -1,7 +1,4 @@
-"""Harbor-backed Strands multiply rollout server.
-
-Sandbox placement and credentials come from the run environment.
-"""
+"""Harbor-backed Strands multiply rollout server."""
 
 from __future__ import annotations
 
