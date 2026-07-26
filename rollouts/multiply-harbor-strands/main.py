@@ -1,4 +1,8 @@
-"""Harbor-backed Strands multiply rollout server."""
+"""Harbor-backed Strands multiply rollout server.
+
+Each Harbor trial runs in a SkyPilot Sandbox. Sandbox placement and credentials
+come from the run environment, so this file names no infrastructure.
+"""
 
 from __future__ import annotations
 
@@ -20,7 +24,7 @@ from osmosis_ai.rollout.server import create_rollout_server
 
 logger = logging.getLogger(__name__)
 ROLLOUT_DIR = Path(__file__).resolve().parent
-ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+ENVIRONMENT_TYPE = EnvironmentType.SKYPILOT
 CONCURRENT_TRIALS = 8
 
 
