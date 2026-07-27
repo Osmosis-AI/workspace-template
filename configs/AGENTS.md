@@ -1,4 +1,4 @@
-# Training and Eval Configs
+# Training, Eval, and Benchmark Configs
 
 Configs are workspace-scoped and must stay in their canonical directories.
 
@@ -6,6 +6,7 @@ Configs are workspace-scoped and must stay in their canonical directories.
 
 - Training: `configs/training/<name>.toml`
 - Eval: `configs/eval/<name>.toml`
+- Benchmark: `configs/benchmark/<name>.toml`
 
 Do not place these configs elsewhere. The CLI validates these locations.
 
@@ -73,6 +74,30 @@ Rules:
 
 Inside the rollout container both sets of vars are available via `os.environ`.
 
+## Benchmark Configs
+
+Start from the default template:
+
+```bash
+cp configs/benchmark/default.toml configs/benchmark/<run-name>.toml
+```
+
+Required fields:
+
+- `[experiment].benchmark` is the user-facing name of a benchmark already added to the current workspace.
+- One or more `[[agents]]` entries, each with an `[agents.model]` table.
+- `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
+- Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
+
+Optional sections:
+
+- `[tasks]` selects `task_names`, `categories`, or the benchmark-defined `task_set = "parity"`; omit it to run all tasks.
+- `[execution]` controls attempts, concurrency, timeout, retries, pass threshold, and optional judge settings.
+- `[env]` provides literal environment variables to every agent.
+- `[agents.env]` provides literal environment variables to one agent and overrides the same global key.
+
+Use Osmosis field names such as `attempts_per_task` and `max_concurrent_attempts`. Harbor configuration fields are not part of this config contract.
+
 ## Eval Configs
 
 Start from the default template:
@@ -121,6 +146,7 @@ osmosis doctor
 osmosis dataset upload data/train.jsonl
 git push
 osmosis eval submit configs/eval/<name>.toml
+osmosis benchmark submit configs/benchmark/<name>.toml
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>
 ```

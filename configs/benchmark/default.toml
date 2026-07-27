@@ -1,0 +1,28 @@
+[experiment]
+benchmark = "Terminal-Bench 2.1"
+
+# Omit [tasks] to run every task in the benchmark.
+# [tasks]
+# task_set = "parity"
+# task_names = ["git-multibranch"]
+# categories = ["software-engineering"]
+
+[[agents]]
+harness = "codex"
+
+[agents.model]
+type = "provider"
+model = "openai/gpt-5.2"
+api_key_secret = "OPENAI_API_KEY"
+
+# [agents.env]
+# AGENT_MODE = "strict"
+
+[execution]
+attempts_per_task = 1
+max_concurrent_attempts = 4
+timeout_multiplier = 1.0
+max_retries = 0
+
+# [env]
+# LOG_LEVEL = "info"

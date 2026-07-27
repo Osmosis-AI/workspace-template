@@ -28,6 +28,7 @@ For AI agents or automation, prefer `osmosis --json ...` for structured output o
 repository/
 ├── rollouts/            # AgentWorkflow + Grader code
 ├── configs/
+│   ├── benchmark/       # Managed benchmark run configs
 │   ├── eval/            # Evaluation run configs
 │   └── training/        # Training run configs
 ├── data/                # Local dataset files for upload
@@ -36,7 +37,7 @@ repository/
 └── pyproject.toml       # Workspace Python package
 ```
 
-The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Keep rollout code and configs in those canonical paths so evaluation run and training run submissions can discover them.
+The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Benchmark configs submitted through the CLI must live under `configs/benchmark/`. Keep code and configs in their canonical paths so submissions can discover them.
 
 ## Run the Starter Example
 
@@ -91,6 +92,13 @@ git push
 osmosis eval submit configs/eval/<name>.toml
 ```
 
+Managed benchmark configs live in `configs/benchmark/*.toml`. Start from the included default, set the workspace benchmark name and agent model, then submit it:
+
+```bash
+cp configs/benchmark/default.toml configs/benchmark/<name>.toml
+osmosis benchmark submit configs/benchmark/<name>.toml
+```
+
 Upload local JSONL, CSV, or Parquet datasets when you are ready to train:
 
 ```bash
@@ -132,6 +140,7 @@ This workspace includes project-local Agent Skills in `.agents/skills/`:
 - `plan-training`
 - `create-rollouts`
 - `evaluate-rollouts`
+- `run-benchmarks`
 - `debug-rollouts`
 - `submit-training`
 - `deploy-models`

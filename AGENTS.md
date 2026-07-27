@@ -17,6 +17,7 @@ Conventions:
 - Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the evaluation or training config is authoritative.
 - Evaluation configs live in `configs/eval/<name>.toml`.
 - Training configs live in `configs/training/<name>.toml`.
+- Benchmark configs live in `configs/benchmark/<name>.toml`.
 - Evaluation and training configs reference platform dataset names from `osmosis dataset list`.
 - Local training guidance lives in `.osmosis/research/program.md`.
 - Local cache and metrics state lives in `.osmosis/` and should not be treated as source.
@@ -79,6 +80,7 @@ osmosis --json template apply multiply-local-strands
 
 - Config-specific rules live in `configs/AGENTS.md`.
 - Never put secret values in TOML. The `[secrets]` section must contain a `required` list of platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
+- Benchmark model and judge credentials use secret record names in `api_key_secret` fields. Never place credential values in `[env]` or `[agents.env]`.
 - Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## Models
@@ -95,6 +97,7 @@ Detailed workflow guidance lives in project-local Agent Skills under `.agents/sk
 | `plan-training` | Turn a vague task into a concrete local training plan. |
 | `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial evaluation configs. |
 | `evaluate-rollouts` | Run evaluation runs, compare results, and iterate with data. |
+| `run-benchmarks` | Configure and submit managed benchmark runs. |
 | `debug-rollouts` | Diagnose rollout, grader, config, dataset, or preflight failures. |
 | `submit-training` | Prepare a training run config and submit it safely. |
 | `deploy-models` | Deploy or undeploy LoRA models and query their inference endpoints. |
@@ -122,6 +125,7 @@ osmosis --json secret list
 osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval logs <eval-name>
 osmosis --json eval stop <eval-name> --yes
+osmosis --json benchmark submit configs/benchmark/<name>.toml --yes
 osmosis --json dataset logs <dataset-name>
 osmosis --json train submit configs/training/<name>.toml --yes
 osmosis --json train list
