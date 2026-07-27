@@ -10,8 +10,7 @@ RUN pip install --no-cache-dir \
     httpx \
     fastapi \
     uvicorn \
-    strands-agents \
-    strands-agents-tools
+    strands-agents
 
 COPY workspace /workspace
 
