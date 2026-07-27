@@ -14,4 +14,4 @@ osmosis --json train submit configs/training/multiply-harbor-strands.toml
 
 `multiply_harbor_task/environment/Dockerfile` defines the trial environment. Osmosis builds it and runs the sandbox from it — you do not build or push the image, configure registry credentials, or choose a cluster.
 
-Do not add `harbor` to `pyproject.toml`. The `osmosis-ai` dependency pins the version the rollout server runs, and a second declaration can only disagree with it. In particular, never install the `harbor[skypilot]` extra: it pulls `skypilot-nightly`, which claims the same `sky` namespace as the SkyPilot SDK the rollout server already provides.
+`harbor` is declared with no version and no extra. `osmosis-ai` already requires harbor 0.20.0 or newer, the minimum for `EnvironmentType.SKYPILOT`, so a bound of your own can only conflict with it. Never install the `harbor[skypilot]` extra: it pulls `skypilot-nightly`, which claims the same `sky` namespace as the SkyPilot SDK the rollout server already provides.
