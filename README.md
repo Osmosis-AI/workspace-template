@@ -74,7 +74,7 @@ git push
 osmosis eval submit configs/eval/multiply-local-strands.toml
 ```
 
-Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Route policy model calls through Osmosis-supported integrations such as `OsmosisStrandsAgent` or `OsmosisAgent` so evaluation runs and training runs can collect samples and attach rewards.
+Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Route policy model calls through exactly one Osmosis-supported integration such as `OsmosisStrandsAgent` or `OsmosisAgent` so each evaluation or training rollout produces one sample with one reward.
 
 ## Configs and Data
 

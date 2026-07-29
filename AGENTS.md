@@ -55,9 +55,9 @@ osmosis --json doctor --fix
 - Evaluation runs and managed training require a concrete `Grader` in the rollout server.
 - The configured entrypoint must start a rollout server using the SDK backend and `create_rollout_server`, and bind `uvicorn` to `_OSMOSIS_ROLLOUT_PORT` defaulting to `8000`.
 - `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`.
-- Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context, usually via `OsmosisStrandsAgent` or `OsmosisAgent` with `OsmosisMemorySession`. Do not call provider SDKs directly with a fixed policy model from the workflow.
+- Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context and register exactly one sample source, usually via one `OsmosisStrandsAgent` or one `OsmosisAgent` with `OsmosisMemorySession()`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
-- `Grader.grade` must be async and assign rewards in `[0.0, 1.0]`.
+- `Grader.grade` must be async, read the rollout's single sample from `ctx.sample`, and assign its reward in `[0.0, 1.0]` with `ctx.set_reward(...)`.
 - Before `osmosis train submit`, submit an evaluation run and push code to the connected workspace repository.
 
 Create a blank rollout scaffold with:

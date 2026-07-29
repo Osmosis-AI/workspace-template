@@ -16,7 +16,7 @@ from osmosis_ai.rollout.types import AgentWorkflowConfig
 
 class MultiplyAgentWorkflowConfig(AgentWorkflowConfig):
     name: str = "MultiplyAgentWorkflow"
-    description: str = "Multiply two numbers using Strands"
+    description: str | None = "Multiply two numbers using Strands"
     model: Model
     tools: Any
 
@@ -49,6 +49,9 @@ class MultiplyWorkflow(AgentWorkflow):
 
     async def run(self, ctx: AgentWorkflowContext) -> None:
         config = ctx.config
+        if config is None:
+            raise ValueError("MultiplyWorkflow requires a workflow config")
+
         agent = StrandsAgent(
             name="multiply",
             model=config.model,

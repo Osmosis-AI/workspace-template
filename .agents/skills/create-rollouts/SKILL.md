@@ -32,9 +32,9 @@ Read `references/entrypoint-patterns.md` only when hand-writing or substantially
 - Expose exactly one concrete `AgentWorkflow`.
 - Expose exactly one concrete `Grader`; evaluation configs no longer carry a separate `[grader]` section.
 - The workflow's `run` receives `ctx.prompt`, a list of system/user messages converted from the dataset's `system_prompt` + `user_prompt` columns.
-- The workflow must register at least one sample source, either through an SDK integration (`OsmosisStrandsAgent`, `OsmosisAgent` + `OsmosisMemorySession`) or by calling `get_rollout_context().register_sample_source(...)`.
+- The workflow must register exactly one sample source, either through an SDK integration (`OsmosisStrandsAgent`, `OsmosisAgent` + `OsmosisMemorySession`) or by calling `get_rollout_context().set_sample_source(...)`.
 - Policy model calls inside `AgentWorkflow.run` must route through the active rollout context. Do not call `litellm`, the OpenAI SDK, or another provider SDK directly with a fixed policy model from the workflow.
-- The grader implements async `grade(ctx)`, reads `ctx.label` as the dataset `ground_truth`, and assigns every sample a reward with `ctx.set_sample_reward(sample_id, reward)`.
+- The grader implements async `grade(ctx)`, reads `ctx.label` as the dataset `ground_truth`, reads the rollout's single sample from `ctx.sample`, and assigns its reward with `ctx.set_reward(reward)`.
 - Keep tools as async Python functions with type hints and docstrings.
 - Keep the grader explicit, partial-credit friendly, and easy to inspect.
 

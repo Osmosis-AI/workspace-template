@@ -28,8 +28,7 @@ class MyWorkflow(AgentWorkflow):
 
 class MyGrader(Grader):
     async def grade(self, ctx: GraderContext) -> None:
-        for sample_id in ctx.get_samples():
-            ctx.set_sample_reward(sample_id, 0.0)
+        ctx.set_reward(0.0)
 
 
 def main() -> None:
@@ -45,13 +44,13 @@ if __name__ == "__main__":
 ## Integration Rules
 
 - Strands: construct `OsmosisStrandsAgent` inside `AgentWorkflow.run`, pass `messages=ctx.prompt`, use `OsmosisRolloutModel(params={...})`, and call `await agent.invoke_async()`.
-- OpenAI Agents: construct `OsmosisAgent` inside `run`, use `OsmosisRolloutModel()`, create an `OsmosisMemorySession` inside `run`, and pass `session=session` to `Runner.run`.
-- Custom integrations: register a sample source with `get_rollout_context().register_sample_source(...)` before the workflow finishes.
+- OpenAI Agents: construct `OsmosisAgent` inside `run`, use `OsmosisRolloutModel()`, create exactly one `OsmosisMemorySession()` inside `run`, and pass `session=session` to `Runner.run`.
+- Custom integrations: register exactly one sample source with `get_rollout_context().set_sample_source(...)` before the workflow finishes.
 - Do not call a fixed policy model directly from `run`; provider SDK calls bypass the active rollout context and break sample/reward linkage.
 
 ## Grader Rules
 
-- Iterate real sample IDs from `ctx.get_samples()` or `ctx.samples.items()`.
+- Read the rollout's single sample from `ctx.sample`.
 - Parse `ctx.label` according to the dataset's actual `ground_truth` format.
-- Call `ctx.set_sample_reward(sample_id, reward)` for every sample.
+- Call `ctx.set_reward(reward)` to assign the sample's scalar reward.
 - Keep rewards numeric and task-scaled, normally `[0.0, 1.0]`.
