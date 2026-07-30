@@ -20,7 +20,7 @@ from osmosis_ai.rollout.server import create_rollout_server
 
 logger = logging.getLogger(__name__)
 ROLLOUT_DIR = Path(__file__).resolve().parent
-ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+ENVIRONMENT_TYPE = EnvironmentType.SKYPILOT
 CONCURRENT_TRIALS = 8
 
 
