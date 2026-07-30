@@ -1,6 +1,6 @@
 ---
 name: run-benchmarks
-description: Use when configuring or submitting an Osmosis managed benchmark run, selecting benchmark tasks, choosing one or more agent harnesses and models, or diagnosing benchmark submit validation errors.
+description: Use when configuring, submitting, monitoring, stopping, or downloading an Osmosis managed benchmark run; selecting benchmark tasks; choosing agent harnesses and models; or diagnosing benchmark failures.
 ---
 
 # Run Benchmarks
@@ -11,12 +11,12 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 1. Read `AGENTS.md` and `configs/AGENTS.md`.
 2. Run `osmosis --json doctor`.
-3. Run `osmosis --json benchmark list` to confirm the benchmark is present in the current workspace and copy its exact, case-sensitive name.
-4. Run `osmosis --json benchmark info "<benchmark-name>"` and inspect its task sets, categories, complete task manifest, harness and judge requirements, and pass threshold.
+3. Run `osmosis --json benchmark catalog list` to confirm the benchmark is present in the current workspace and copy its exact, case-sensitive name.
+4. Run `osmosis --json benchmark catalog info "<benchmark-name>"` and inspect its task sets, categories, complete task manifest, harness and judge requirements, pass threshold, and `required_secret_names`. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
 5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
-6. Set `[experiment].benchmark` to the exact name returned by `benchmark list`.
+6. Set `[experiment].benchmark` to the exact name returned by `benchmark catalog list`.
 7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
-8. For HLE, create the implicit Platform secret record with `osmosis secret set HF_TOKEN`; never define `HF_TOKEN` in literal env.
+8. Read `required_secret_names` and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains record names only. HLE is one example and lists `HF_TOKEN`; never define `HF_TOKEN` in literal env.
 9. HLE and GDPVal require `[execution].judge_api_key_secret`; create that Platform record with `osmosis secret set <NAME>`. `judge_model` may be omitted to use the benchmark default. Omit both judge fields for non-judge benchmarks.
 10. Configure at least one `[[agents]]` entry and its `[agents.model]` table. If its harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
 11. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
@@ -25,7 +25,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 - Omit `[tasks]` to run the full benchmark.
 - Prefer exactly one of `task_set`, `task_names`, or `categories`; multiple selectors can obscure or expand paid task scope.
-- Use the named task sets, category names, and exact task IDs returned by `benchmark info`; do not invent selectors.
+- Use the named task sets, category names, and exact task IDs returned by `benchmark catalog info`; do not invent selectors.
 - `task_set = "parity"` takes precedence over `task_names` and `categories` when combined, so remove the ignored selectors. For HLE, recommend parity for comparability with published scores.
 - Use `task_names` for exact benchmark task IDs, such as `terminal-bench/git-multibranch`, and prefer it for bounded or smoke runs.
 - Use `categories` cautiously: a category can resolve to many tasks. Verify its task scope separately before approval; the pre-submit confirmation shows only the category count, not the resolved task count.
@@ -42,7 +42,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 ## Credentials and environment
 
-- Create each model, harness, or judge secret record with `osmosis secret set <NAME>` before submission.
+- Create each model, harness, or judge secret record with `osmosis secret set <NAME>` before submission, along with every implicit record listed in `required_secret_names`.
 - For each provider or endpoint agent, its model `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
 - Model `api_key_secret` cannot reference runner-reserved `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. The Daytona and SkyPilot names are Platform-managed sandbox plumbing; choose another Platform record name for model credentials.
 - A `judge_api_key_secret` name cannot also appear in top-level `[env]` or any `[agents.env]`.
@@ -57,7 +57,52 @@ Review the benchmark, task scope, agent count, attempts, concurrency, and refere
 osmosis --json benchmark submit configs/benchmark/<name>.toml --yes
 ```
 
-The structured result includes the generated run name, task count, status, and `platform_url`. Use `platform_url` to open the Platform page, monitor the run, and inspect results.
+The structured result includes the generated run name, task count, status, and `platform_url`.
+
+## Monitor and inspect
+
+Use the generated run name or ID for all run-level commands:
+
+```bash
+osmosis --json benchmark list
+osmosis --json benchmark info <run-name-or-id>
+osmosis --json benchmark logs <run-name-or-id>
+```
+
+- Use `benchmark list` to find recent runs and their status.
+- Use `benchmark info` to inspect configuration, agents, progress, result totals, metrics, and `platform_url`.
+- Use `benchmark logs` to diagnose a pending, running, or failed run. If JSON output returns `next_cursor`, pass it with `--cursor` to retrieve older entries.
+- Do not confuse run-level `benchmark list` and `benchmark info` with catalog discovery under `benchmark catalog`.
+
+## Stop
+
+Stopping a run is a user-initiated mutation. Confirm the exact run and obtain approval before passing `--yes`:
+
+```bash
+osmosis --json benchmark stop <run-name-or-id> --yes
+```
+
+Only pending, queued, or running runs can be stopped.
+
+## Download
+
+The default download includes `summary.csv` and `results.csv`. Select `summary`, `results`, `artifacts`, or `logs` with a comma-separated `--type` value, or use `all`:
+
+```bash
+osmosis --json benchmark download <run-name-or-id> --yes
+osmosis --json benchmark download <run-name-or-id> --type all --yes
+```
+
+Downloads use this fixed layout under `.osmosis/benchmarks/<run-name>/` by default:
+
+```text
+summary.csv
+results.csv
+logs.txt
+artifacts/<result-id>/<path>
+```
+
+Pending and queued runs do not have downloadable outputs. A running run downloads a current snapshot. Re-running the command skips complete files unless `--overwrite` is set, so use the same command to resume a partial download and add `--overwrite` when refreshing a running snapshot.
 
 ## Guardrails
 

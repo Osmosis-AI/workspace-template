@@ -79,23 +79,24 @@ Inside the rollout container both sets of vars are available via `os.environ`.
 Start from the default template:
 
 ```bash
-osmosis --json benchmark list
-osmosis --json benchmark info "<benchmark-name>"
+osmosis --json benchmark catalog list
+osmosis --json benchmark catalog info "<benchmark-name>"
 cp configs/benchmark/default.toml configs/benchmark/<run-name>.toml
 ```
 
 Required fields:
 
 - `[experiment].benchmark` is the user-facing name of a benchmark already added to the current workspace.
-- Use `benchmark info` before editing selectors to verify task sets, categories, harness and judge requirements, and the full task manifest. Names are exact and case-sensitive.
+- Use `benchmark catalog info` before editing selectors to verify task sets, categories, harness and judge requirements, the full task manifest, and `required_secret_names`. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Names are exact and case-sensitive.
 - One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
 - `cursor-cli` and `mini-swe-agent` require a per-agent `harness_api_key_secret` that names any valid Platform secret record. The Platform injects the resolved value as `CURSOR_API_KEY` or `MSWEA_API_KEY`, respectively. Omit `harness_api_key_secret` for harnesses that do not require separate authentication.
 - HLE and GDPVal require `[execution].judge_api_key_secret`. `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Benchmarks that do not use a judge must omit both judge fields.
-- HLE also requires an implicit Platform secret record named exactly `HF_TOKEN`; it is not repeated in the TOML.
+- Read `required_secret_names` from the JSON response and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains names only, and these implicit requirements are not repeated in the TOML.
+- HLE is one example: its `required_secret_names` includes the implicit Platform secret record named exactly `HF_TOKEN`.
 
-Create every referenced record with `osmosis secret set <NAME>`. For HLE, also run `osmosis secret set HF_TOKEN` before submission.
+Create every record referenced by the config or listed in `required_secret_names` with `osmosis secret set <NAME>`. For HLE, this includes `osmosis secret set HF_TOKEN`.
 
 Credential and environment rules:
 
@@ -165,9 +166,18 @@ osmosis doctor
 osmosis dataset upload data/train.jsonl
 git push
 osmosis eval submit configs/eval/<name>.toml
-osmosis benchmark list
-osmosis benchmark info "<benchmark-name>"
+osmosis benchmark catalog list
+osmosis benchmark catalog info "<benchmark-name>"
 osmosis benchmark submit configs/benchmark/<name>.toml
+osmosis benchmark list
+osmosis benchmark info <run-name-or-id>
+osmosis benchmark logs <run-name-or-id>
+osmosis benchmark stop <run-name-or-id>
+osmosis benchmark download <run-name-or-id>
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>
 ```
+
+`benchmark stop` applies only to pending, queued, or running runs.
+
+`benchmark download` is unavailable for pending or queued runs. A running run downloads a current snapshot; use `--overwrite` when refreshing it.

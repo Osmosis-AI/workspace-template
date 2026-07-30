@@ -95,12 +95,12 @@ osmosis eval submit configs/eval/<name>.toml
 Managed benchmark configs live in `configs/benchmark/*.toml`. Start from the included default, then set the workspace benchmark name and agent model:
 
 ```bash
-osmosis benchmark list
-osmosis benchmark info "<benchmark-name>"
+osmosis benchmark catalog list
+osmosis benchmark catalog info "<benchmark-name>"
 cp configs/benchmark/default.toml configs/benchmark/<name>.toml
 ```
 
-`benchmark info` shows the exact workspace name, available task sets, categories, harness and judge requirements, and pass threshold. Use `osmosis --json benchmark info "<benchmark-name>"` to inspect the complete task manifest before selecting `task_names` or `categories`. Omit `[tasks]` to run the full benchmark.
+`benchmark catalog info` shows the exact workspace name, available task sets, categories, harness and judge requirements, pass threshold, and implicit required secret record names. Use `osmosis --json benchmark catalog info "<benchmark-name>"` to inspect the complete task manifest and `required_secret_names` before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Create every listed secret record with `osmosis secret set NAME`; `required_secret_names` contains names only. Omit `[tasks]` to run the full benchmark.
 
 Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity task set so your result is comparable with published HLE scores:
 
@@ -111,7 +111,7 @@ task_set = "parity"
 
 `task_set = "parity"` takes precedence over `task_names` and `categories`, so do not combine these selectors. Full HLE runs and custom task selections remain supported.
 
-HLE and GDPVal also require `[execution].judge_api_key_secret`; create the referenced Platform secret record before submission. `judge_model` is optional and uses the benchmark default when omitted. Non-judge benchmarks must omit both judge fields. HLE additionally requires the implicit `HF_TOKEN` Platform record:
+HLE and GDPVal also require `[execution].judge_api_key_secret`; create the referenced Platform secret record before submission. `judge_model` is optional and uses the benchmark default when omitted. Non-judge benchmarks must omit both judge fields. As one example of `required_secret_names`, HLE requires the implicit `HF_TOKEN` Platform record:
 
 ```bash
 osmosis secret set <judge-secret-name>
@@ -131,6 +131,29 @@ Submit the reviewed config with:
 ```bash
 osmosis benchmark submit configs/benchmark/<name>.toml
 ```
+
+Manage the resulting run by name or ID:
+
+```bash
+osmosis benchmark list
+osmosis benchmark info <run-name-or-id>
+osmosis benchmark logs <run-name-or-id>
+osmosis benchmark stop <run-name-or-id>
+osmosis benchmark download <run-name-or-id>
+```
+
+`benchmark stop` applies only to pending, queued, or running runs.
+
+`benchmark download` accepts `summary`, `results`, `artifacts`, `logs`, or `all`; the default is `summary,results`. Downloads use this fixed layout under `.osmosis/benchmarks/<run-name>/`:
+
+```text
+summary.csv
+results.csv
+logs.txt
+artifacts/<result-id>/<path>
+```
+
+Pending and queued runs do not have downloadable outputs. Downloads from a running run are snapshots; use `--overwrite` to refresh existing files.
 
 Upload local JSONL, CSV, or Parquet datasets when you are ready to train:
 
