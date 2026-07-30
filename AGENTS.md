@@ -80,7 +80,12 @@ osmosis --json template apply multiply-local-strands
 
 - Config-specific rules live in `configs/AGENTS.md`.
 - Never put secret values in TOML. The `[secrets]` section must contain a `required` list of platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
-- Benchmark model and judge credentials use secret record names in `api_key_secret` fields. Never place credential values in `[env]` or `[agents.env]`.
+- Benchmark credential fields contain Platform secret record names. A provider or endpoint model's `[agents.model].api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`, and cannot be `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`; the Daytona and SkyPilot names are Platform-managed sandbox plumbing.
+- `cursor-cli` and `mini-swe-agent` require per-agent `harness_api_key_secret`, which may name any valid Platform record. The resolved values are injected as fixed `CURSOR_API_KEY` and `MSWEA_API_KEY`; those destination names cannot also appear in top-level `[env]` or the corresponding agent's `[agents.env]`. Other harnesses must omit `harness_api_key_secret`.
+- HLE and GDPVal require `[execution].judge_api_key_secret`; create the named record with `osmosis secret set <NAME>`. `judge_model` is optional and defaults to the benchmark's judge. Non-judge benchmarks must omit both fields, and a judge secret name cannot appear in top-level `[env]` or any `[agents.env]`.
+- Prefer one benchmark task selector. `task_set = "parity"` takes precedence over `task_names` and `categories`; remove ignored selectors, prefer explicit `task_names` for bounded runs, and verify category scope separately before approval.
+- Before submitting Humanity's Last Exam (HLE), recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
+- HLE also requires the implicit Platform record `HF_TOKEN`; create it with `osmosis secret set HF_TOKEN`. `HF_TOKEN` is reserved in literal env for every benchmark and cannot appear in top-level `[env]` or any `[agents.env]`.
 - Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## Models
@@ -110,7 +115,7 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 
 - Command examples in this guide use `osmosis --json ...` because this file is written for AI agents and automation, where structured output is the default expectation (use `osmosis --plain ...` for low-noise text).
 - Humans running these commands interactively can drop `--json` to get the default rich output.
-- Commands that ask for confirmation (`dataset upload`, `eval submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`train submit`), pass `--yes` only after the user has explicitly confirmed.
+- Commands that ask for confirmation (`dataset upload`, `eval submit`, `benchmark submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`benchmark submit`, `train submit`), pass `--yes` only after the user has explicitly confirmed.
 
 ## Common Commands
 

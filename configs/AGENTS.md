@@ -88,10 +88,26 @@ Required fields:
 - One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
+- `cursor-cli` and `mini-swe-agent` require a per-agent `harness_api_key_secret` that names any valid Platform secret record. The Platform injects the resolved value as `CURSOR_API_KEY` or `MSWEA_API_KEY`, respectively. Omit `harness_api_key_secret` for harnesses that do not require separate authentication.
+- HLE and GDPVal require `[execution].judge_api_key_secret`. `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Benchmarks that do not use a judge must omit both judge fields.
+- HLE also requires an implicit Platform secret record named exactly `HF_TOKEN`; it is not repeated in the TOML.
+
+Create every referenced record with `osmosis secret set <NAME>`. For HLE, also run `osmosis secret set HF_TOKEN` before submission.
+
+Credential and environment rules:
+
+- A provider or endpoint model's `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
+- Model `api_key_secret` cannot reference the runner-reserved names `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. The Daytona and SkyPilot names are Platform-managed sandbox plumbing; store model credentials under a different Platform secret record name.
+- A `judge_api_key_secret` name cannot also appear in top-level `[env]` or any `[agents.env]`.
+- `CURSOR_API_KEY` and `MSWEA_API_KEY` are fixed harness destination env names. They cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`, regardless of the Platform record name used by `harness_api_key_secret`.
+- `HF_TOKEN` is reserved in literal env for every benchmark. Never define it in top-level `[env]` or any `[agents.env]`; HLE resolves it only from the implicit `HF_TOKEN` Platform secret record.
 
 Optional sections:
 
-- `[tasks]` selects `task_names`, `categories`, or the benchmark-defined `task_set = "parity"`; omit it to run all tasks.
+- `[tasks]` narrows task scope; omit it to run all tasks. Prefer exactly one of `task_set`, `task_names`, or `categories` so the paid scope is unambiguous.
+- `task_set = "parity"` takes precedence over `task_names` and `categories` when combined; the other selectors are ignored. Do not leave ignored selectors in the config.
+- `task_names` uses exact benchmark task IDs, such as `terminal-bench/git-multibranch`; prefer it for bounded or smoke runs. A category can resolve to many tasks, so verify its scope separately before approval. The pre-submit confirmation shows only the category count, not the resolved task count.
+- Before submitting HLE, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
 - `[execution]` controls attempts, concurrency, timeout, retries, pass threshold, and optional judge settings.
 - `[env]` provides literal environment variables to every agent.
 - `[agents.env]` provides literal environment variables to one agent and overrides the same global key.

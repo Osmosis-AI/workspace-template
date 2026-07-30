@@ -1,10 +1,14 @@
 [experiment]
 benchmark = "Terminal-Bench 2.1"
 
-# Omit [tasks] to run every task in the benchmark.
+# Omit [tasks] to run every task. Choose one selector when narrowing scope;
+# task_set = "parity" takes precedence over task_names and categories.
 # [tasks]
+# For HLE configs, parity is recommended for comparable published scores:
 # task_set = "parity"
-# task_names = ["git-multibranch"]
+# Or select exact tasks:
+# task_names = ["terminal-bench/git-multibranch"]
+# Or select a category (verify its scope separately before approval):
 # categories = ["software-engineering"]
 
 [[agents]]

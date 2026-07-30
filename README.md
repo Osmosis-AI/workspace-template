@@ -92,10 +92,39 @@ git push
 osmosis eval submit configs/eval/<name>.toml
 ```
 
-Managed benchmark configs live in `configs/benchmark/*.toml`. Start from the included default, set the workspace benchmark name and agent model, then submit it:
+Managed benchmark configs live in `configs/benchmark/*.toml`. Start from the included default, then set the workspace benchmark name and agent model:
 
 ```bash
 cp configs/benchmark/default.toml configs/benchmark/<name>.toml
+```
+
+Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity task set so your result is comparable with published HLE scores:
+
+```toml
+[tasks]
+task_set = "parity"
+```
+
+`task_set = "parity"` takes precedence over `task_names` and `categories`, so do not combine these selectors. Full HLE runs and custom task selections remain supported.
+
+HLE and GDPVal also require `[execution].judge_api_key_secret`; create the referenced Platform secret record before submission. `judge_model` is optional and uses the benchmark default when omitted. Non-judge benchmarks must omit both judge fields. HLE additionally requires the implicit `HF_TOKEN` Platform record:
+
+```bash
+osmosis secret set <judge-secret-name>
+osmosis secret set HF_TOKEN # HLE only
+```
+
+`HF_TOKEN` is reserved in literal `[env]` and `[agents.env]` for every benchmark; HLE resolves it from the Platform secret record only.
+
+```toml
+[execution]
+judge_api_key_secret = "<judge-secret-name>"
+# judge_model = "<provider/model>" # Optional; omit for the benchmark default.
+```
+
+Submit the reviewed config with:
+
+```bash
 osmosis benchmark submit configs/benchmark/<name>.toml
 ```
 
