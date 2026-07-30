@@ -95,8 +95,12 @@ osmosis eval submit configs/eval/<name>.toml
 Managed benchmark configs live in `configs/benchmark/*.toml`. Start from the included default, then set the workspace benchmark name and agent model:
 
 ```bash
+osmosis benchmark list
+osmosis benchmark info "<benchmark-name>"
 cp configs/benchmark/default.toml configs/benchmark/<name>.toml
 ```
+
+`benchmark info` shows the exact workspace name, available task sets, categories, harness and judge requirements, and pass threshold. Use `osmosis --json benchmark info "<benchmark-name>"` to inspect the complete task manifest before selecting `task_names` or `categories`. Omit `[tasks]` to run the full benchmark.
 
 Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity task set so your result is comparable with published HLE scores:
 

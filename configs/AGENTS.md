@@ -79,12 +79,15 @@ Inside the rollout container both sets of vars are available via `os.environ`.
 Start from the default template:
 
 ```bash
+osmosis --json benchmark list
+osmosis --json benchmark info "<benchmark-name>"
 cp configs/benchmark/default.toml configs/benchmark/<run-name>.toml
 ```
 
 Required fields:
 
 - `[experiment].benchmark` is the user-facing name of a benchmark already added to the current workspace.
+- Use `benchmark info` before editing selectors to verify task sets, categories, harness and judge requirements, and the full task manifest. Names are exact and case-sensitive.
 - One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
@@ -162,6 +165,8 @@ osmosis doctor
 osmosis dataset upload data/train.jsonl
 git push
 osmosis eval submit configs/eval/<name>.toml
+osmosis benchmark list
+osmosis benchmark info "<benchmark-name>"
 osmosis benchmark submit configs/benchmark/<name>.toml
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>

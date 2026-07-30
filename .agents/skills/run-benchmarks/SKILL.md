@@ -11,19 +11,21 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 1. Read `AGENTS.md` and `configs/AGENTS.md`.
 2. Run `osmosis --json doctor`.
-3. Confirm the benchmark is already present in the current workspace in the Platform UI.
-4. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
-5. Set `[experiment].benchmark` to the benchmark's user-facing workspace name (exact, case-sensitive).
-6. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
-7. For HLE, create the implicit Platform secret record with `osmosis secret set HF_TOKEN`; never define `HF_TOKEN` in literal env.
-8. HLE and GDPVal require `[execution].judge_api_key_secret`; create that Platform record with `osmosis secret set <NAME>`. `judge_model` may be omitted to use the benchmark default. Omit both judge fields for non-judge benchmarks.
-9. Configure at least one `[[agents]]` entry and its `[agents.model]` table. If its harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
-10. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
+3. Run `osmosis --json benchmark list` to confirm the benchmark is present in the current workspace and copy its exact, case-sensitive name.
+4. Run `osmosis --json benchmark info "<benchmark-name>"` and inspect its task sets, categories, complete task manifest, harness and judge requirements, and pass threshold.
+5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
+6. Set `[experiment].benchmark` to the exact name returned by `benchmark list`.
+7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
+8. For HLE, create the implicit Platform secret record with `osmosis secret set HF_TOKEN`; never define `HF_TOKEN` in literal env.
+9. HLE and GDPVal require `[execution].judge_api_key_secret`; create that Platform record with `osmosis secret set <NAME>`. `judge_model` may be omitted to use the benchmark default. Omit both judge fields for non-judge benchmarks.
+10. Configure at least one `[[agents]]` entry and its `[agents.model]` table. If its harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
+11. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
 
 ## Task selection
 
 - Omit `[tasks]` to run the full benchmark.
 - Prefer exactly one of `task_set`, `task_names`, or `categories`; multiple selectors can obscure or expand paid task scope.
+- Use the named task sets, category names, and exact task IDs returned by `benchmark info`; do not invent selectors.
 - `task_set = "parity"` takes precedence over `task_names` and `categories` when combined, so remove the ignored selectors. For HLE, recommend parity for comparability with published scores.
 - Use `task_names` for exact benchmark task IDs, such as `terminal-bench/git-multibranch`, and prefer it for bounded or smoke runs.
 - Use `categories` cautiously: a category can resolve to many tasks. Verify its task scope separately before approval; the pre-submit confirmation shows only the category count, not the resolved task count.
