@@ -1,6 +1,6 @@
 ---
 name: plan-training
-description: Use when an Osmosis task idea, dataset, or training goal is not settled; the user asks what to train or evaluate next; or a rollout/evaluation/training path needs planning before code changes.
+description: Use when an Osmosis task idea, dataset, or training goal is not settled; the user asks what to train next; or a rollout/training path needs planning before code changes.
 ---
 
 # Plan Training

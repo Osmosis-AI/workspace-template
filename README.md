@@ -130,10 +130,12 @@ Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/
 This workspace includes project-local Agent Skills in `.agents/skills/`:
 
 - `plan-training`
+- `plan-eval`
 - `create-rollouts`
 - `evaluate-rollouts`
 - `debug-rollouts`
 - `submit-training`
+- `submit-eval`
 - `deploy-models`
 
 `AGENTS.md` contains the always-loaded workspace contract. `CLAUDE.md` imports that contract for Claude Code, and `.claude/skills/<skill-name>` symlinks expose the same skills while pointing back to the canonical `.agents` directories.
