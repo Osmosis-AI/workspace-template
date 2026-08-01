@@ -11,10 +11,10 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 1. Read `AGENTS.md` and `configs/AGENTS.md`.
 2. Run `osmosis --json doctor`.
-3. Run `osmosis --json benchmark catalog list` to confirm the benchmark is present in the current workspace and copy its exact, case-sensitive name.
-4. Run `osmosis --json benchmark catalog info "<benchmark-name>"` and inspect its task sets, categories, complete task manifest, harness and judge requirements, pass threshold, and `required_secret_names`. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
+3. Run `osmosis --json benchmark catalog list` to confirm the benchmark is present in the current workspace and copy its key. Check its `sync_status`: only `ready` can be submitted, and a `failed` row reports a `sync_error` plus a `platform_url` to retry its sync from.
+4. Run `osmosis --json benchmark catalog info <key>` and inspect its task sets, categories, complete task manifest, harness and judge requirements, `default_harness`, pass threshold, and `required_secret_names`. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
 5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
-6. Set `[experiment].benchmark` to the exact name returned by `benchmark catalog list`.
+6. Set `[experiment].benchmark` to the key for an Osmosis-managed benchmark, or the name for a Harbor registry one — its key pins a revision that changes when the publisher ships a new one. Both are exact and case-sensitive.
 7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
 8. Read `required_secret_names` and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains record names only. HLE is one example and lists `HF_TOKEN`; never define `HF_TOKEN` in literal env.
 9. HLE and GDPVal require `[execution].judge_api_key_secret`; create that Platform record with `osmosis secret set <NAME>`. `judge_model` may be omitted to use the benchmark default. Omit both judge fields for non-judge benchmarks.
@@ -37,7 +37,8 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 - `type = "endpoint"` also requires `base_url`; optional `extra_headers` contain literal header values, not secrets.
 - `type = "hosted"` identifies a deployed Osmosis model with `base_model` and `checkpoint_name`.
 - Supported harnesses include `codex`, `claude-code`, `terminus-2`, `openhands`, `cursor-cli`, `mini-swe-agent`, `gemini-cli`, and `opencode`; some benchmarks require the official scaffold and therefore omit `harness`.
-- `cursor-cli` and `mini-swe-agent` require `harness_api_key_secret`; it may name any valid Platform secret record (for example, `MY_CURSOR_TOKEN` or `MY_MSWEA_TOKEN`). The Platform injects the resolved values under fixed destination names `CURSOR_API_KEY` and `MSWEA_API_KEY`. Omit the field for harnesses that do not require separate authentication.
+- `cursor-cli` and `mini-swe-agent` require `harness_api_key_secret`. Set it to `CURSOR_API_KEY` for `cursor-cli` or `MSWEA_API_KEY` for `mini-swe-agent` — those are the variables the harnesses read, and any other value is rejected. Omit the field for harnesses that do not require separate authentication.
+- When `catalog info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it, and call out the loss of comparability before proposing another.
 - `[env]` applies literal variables to every agent. `[agents.env]` applies them only to that agent.
 
 ## Credentials and environment
@@ -46,7 +47,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 - For each provider or endpoint agent, its model `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
 - Model `api_key_secret` cannot reference runner-reserved `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. The Daytona and SkyPilot names are Platform-managed sandbox plumbing; choose another Platform record name for model credentials.
 - A `judge_api_key_secret` name cannot also appear in top-level `[env]` or any `[agents.env]`.
-- Do not define the fixed harness destinations `CURSOR_API_KEY` or `MSWEA_API_KEY` in top-level `[env]` or the corresponding agent's `[agents.env]`.
+- Do not define `CURSOR_API_KEY` or `MSWEA_API_KEY` in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved harness secret record owns that variable.
 - `HF_TOKEN` is reserved in literal env for every benchmark. HLE obtains it only from the implicit Platform secret record named `HF_TOKEN`; never put it in top-level `[env]` or any `[agents.env]`.
 
 ## Submit
