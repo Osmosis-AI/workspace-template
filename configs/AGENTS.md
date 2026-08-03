@@ -86,12 +86,13 @@ cp configs/benchmark/default.toml configs/benchmark/<run-name>.toml
 
 Required fields:
 
-- `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. Use the key for Osmosis-managed benchmarks and the name for Harbor registry ones, whose key pins a revision that changes when the publisher ships a new one.
+- `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. `benchmark catalog list` prints the key and the name.
 - Use `benchmark catalog info` before editing selectors to verify task sets, categories, harness and judge requirements, the full task manifest, and `required_secret_names`. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. All three identifiers are exact and case-sensitive.
 - A Harbor registry benchmark's task list pages in after it is added. Submit only when `catalog list` reports `sync_status = "ready"`; a `failed` row carries a `sync_error` and a `platform_url` to retry its sync from.
 - One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
+- `hosted` runs one of the workspace's own LoRA models and takes `base_model` plus `checkpoint_name`, both from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `checkpoint_name` is the LoRA model name. Deploy it with `osmosis model deploy` first; an undeployed LoRA model, or a `base_model` that disagrees with what it was trained on, is rejected. `hosted` takes no `api_key_secret`.
 - `cursor-cli` and `mini-swe-agent` require a per-agent `harness_api_key_secret`. Set it to `CURSOR_API_KEY` or `MSWEA_API_KEY` respectively — the variable each harness reads — and create that record with `osmosis secret set <NAME>`. Any other value is rejected. Omit `harness_api_key_secret` for harnesses that do not require separate authentication.
 - HLE and GDPVal require `[execution].judge_api_key_secret`. `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Benchmarks that do not use a judge must omit both judge fields.
 - Read `required_secret_names` from the JSON response and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains names only, and these implicit requirements are not repeated in the TOML.
@@ -171,10 +172,10 @@ osmosis benchmark catalog list
 osmosis benchmark catalog info <benchmark-key>
 osmosis benchmark submit configs/benchmark/<name>.toml
 osmosis benchmark list
-osmosis benchmark info <run-name-or-id>
-osmosis benchmark logs <run-name-or-id>
-osmosis benchmark stop <run-name-or-id>
-osmosis benchmark download <run-name-or-id>
+osmosis benchmark info <run-name>
+osmosis benchmark logs <run-name>
+osmosis benchmark stop <run-name>
+osmosis benchmark download <run-name>
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>
 ```

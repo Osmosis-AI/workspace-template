@@ -14,7 +14,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 3. Run `osmosis --json benchmark catalog list` to confirm the benchmark is present in the current workspace and copy its key. Check its `sync_status`: only `ready` can be submitted, and a `failed` row reports a `sync_error` plus a `platform_url` to retry its sync from.
 4. Run `osmosis --json benchmark catalog info <key>` and inspect its task sets, categories, complete task manifest, harness and judge requirements, `default_harness`, pass threshold, and `required_secret_names`. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
 5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
-6. Set `[experiment].benchmark` to the key for an Osmosis-managed benchmark, or the name for a Harbor registry one — its key pins a revision that changes when the publisher ships a new one. Both are exact and case-sensitive.
+6. Set `[experiment].benchmark` to the benchmark's key, name, or ID. All three are exact and case-sensitive.
 7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
 8. Read `required_secret_names` and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains record names only. HLE is one example and lists `HF_TOKEN`; never define `HF_TOKEN` in literal env.
 9. HLE and GDPVal require `[execution].judge_api_key_secret`; create that Platform record with `osmosis secret set <NAME>`. `judge_model` may be omitted to use the benchmark default. Omit both judge fields for non-judge benchmarks.
@@ -35,8 +35,8 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 - `type = "provider"` uses a provider model name and `api_key_secret`.
 - `type = "endpoint"` also requires `base_url`; optional `extra_headers` contain literal header values, not secrets.
-- `type = "hosted"` identifies a deployed Osmosis model with `base_model` and `checkpoint_name`.
-- Supported harnesses include `codex`, `claude-code`, `terminus-2`, `openhands`, `cursor-cli`, `mini-swe-agent`, `gemini-cli`, and `opencode`; some benchmarks require the official scaffold and therefore omit `harness`.
+- `type = "hosted"` runs one of the workspace's own LoRA models. Take both values from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `checkpoint_name` is the LoRA model name. It must already be deployed with `osmosis model deploy`, and a `base_model` that disagrees with what the LoRA model was trained on is rejected. No `api_key_secret` applies.
+- Supported harnesses include `codex`, `claude-code`, `terminus-2`, `openhands`, `cursor-cli`, `mini-swe-agent`, `gemini-cli`, and `opencode`. Every agent still needs its own `[[agents]]` entry: a benchmark that runs only its official scaffold rejects every harness, and one that merely allows a harness runs its official scaffold when `harness` is omitted. `benchmark catalog info` reports which applies and names the default.
 - `cursor-cli` and `mini-swe-agent` require `harness_api_key_secret`. Set it to `CURSOR_API_KEY` for `cursor-cli` or `MSWEA_API_KEY` for `mini-swe-agent` — those are the variables the harnesses read, and any other value is rejected. Omit the field for harnesses that do not require separate authentication.
 - When `catalog info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it, and call out the loss of comparability before proposing another.
 - `[env]` applies literal variables to every agent. `[agents.env]` applies them only to that agent.
@@ -62,12 +62,12 @@ The structured result includes the generated run name, task count, status, and `
 
 ## Monitor and inspect
 
-Use the generated run name or ID for all run-level commands:
+Use the generated run name for all run-level commands:
 
 ```bash
 osmosis --json benchmark list
-osmosis --json benchmark info <run-name-or-id>
-osmosis --json benchmark logs <run-name-or-id>
+osmosis --json benchmark info <run-name>
+osmosis --json benchmark logs <run-name>
 ```
 
 - Use `benchmark list` to find recent runs and their status.
@@ -80,7 +80,7 @@ osmosis --json benchmark logs <run-name-or-id>
 Stopping a run is a user-initiated mutation. Confirm the exact run and obtain approval before passing `--yes`:
 
 ```bash
-osmosis --json benchmark stop <run-name-or-id> --yes
+osmosis --json benchmark stop <run-name> --yes
 ```
 
 Only pending, queued, or running runs can be stopped.
@@ -90,8 +90,8 @@ Only pending, queued, or running runs can be stopped.
 The default download includes `summary.csv` and `results.csv`. Select `summary`, `results`, `artifacts`, or `logs` with a comma-separated `--type` value, or use `all`:
 
 ```bash
-osmosis --json benchmark download <run-name-or-id> --yes
-osmosis --json benchmark download <run-name-or-id> --type all --yes
+osmosis --json benchmark download <run-name> --yes
+osmosis --json benchmark download <run-name> --type all --yes
 ```
 
 Downloads use this fixed layout under `.osmosis/benchmarks/<run-name>/` by default:

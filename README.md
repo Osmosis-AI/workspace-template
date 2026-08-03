@@ -100,7 +100,7 @@ osmosis benchmark catalog info <benchmark-key>
 cp configs/benchmark/default.toml configs/benchmark/<name>.toml
 ```
 
-`benchmark catalog info` shows the benchmark's key and workspace name, available task sets, categories, harness and judge requirements, the default harness its published scores were measured on, pass threshold, and implicit required secret record names. Set `[experiment].benchmark` to the key for an Osmosis-managed benchmark, or the name for a Harbor registry one, whose key pins a revision that changes when the publisher ships a new one. Use `osmosis --json benchmark catalog info <benchmark-key>` to inspect the complete task manifest and `required_secret_names` before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Create every listed secret record with `osmosis secret set NAME`; `required_secret_names` contains names only. Omit `[tasks]` to run the full benchmark.
+`benchmark catalog info` shows the benchmark's key and workspace name, available task sets, categories, harness and judge requirements, the default harness its published scores were measured on, pass threshold, and implicit required secret record names. Set `[experiment].benchmark` to the benchmark's key, name, or ID. Use `osmosis --json benchmark catalog info <benchmark-key>` to inspect the complete task manifest and `required_secret_names` before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Create every listed secret record with `osmosis secret set NAME`; `required_secret_names` contains names only. Omit `[tasks]` to run the full benchmark.
 
 Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity task set so your result is comparable with published HLE scores:
 
@@ -132,14 +132,14 @@ Submit the reviewed config with:
 osmosis benchmark submit configs/benchmark/<name>.toml
 ```
 
-Manage the resulting run by name or ID:
+Manage the resulting run by name:
 
 ```bash
 osmosis benchmark list
-osmosis benchmark info <run-name-or-id>
-osmosis benchmark logs <run-name-or-id>
-osmosis benchmark stop <run-name-or-id>
-osmosis benchmark download <run-name-or-id>
+osmosis benchmark info <run-name>
+osmosis benchmark logs <run-name>
+osmosis benchmark stop <run-name>
+osmosis benchmark download <run-name>
 ```
 
 A Harbor registry benchmark's task list pages in from the registry after it is added. `benchmark catalog list` reports its `sync_status`; submitting before it is `ready` fails. A `failed` row reports a `sync_error` and a `platform_url` to retry its sync from.

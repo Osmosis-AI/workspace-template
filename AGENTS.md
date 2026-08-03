@@ -82,7 +82,7 @@ osmosis --json template apply multiply-local-strands
 - Never put secret values in TOML. The `[secrets]` section must contain a `required` list of platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
 - Benchmark credential fields contain Platform secret record names. A provider or endpoint model's `[agents.model].api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`, and cannot be `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`; the Daytona and SkyPilot names are Platform-managed sandbox plumbing.
 - Before editing a benchmark config, use `osmosis --json benchmark catalog list` and `osmosis --json benchmark catalog info <key>` to verify the benchmark's key and name, task sets, categories, harness and judge requirements, full task manifest, and `required_secret_names`. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, and agents must never infer one. `required_secret_names` contains implicit required secret record names only; ensure every listed record exists with `osmosis secret set NAME`.
-- `[experiment].benchmark` accepts a benchmark's key, name, or ID. Use the key for Osmosis-managed benchmarks and the name for Harbor registry ones, whose key pins a revision that changes when the publisher ships a new one.
+- `[experiment].benchmark` accepts a benchmark's key, name, or ID, all exact and case-sensitive. `benchmark catalog list` prints the key and the name.
 - A Harbor registry benchmark's task list pages in after it is added. `catalog list` reports `sync_status`; submitting against anything other than `ready` fails. A `failed` row carries a `sync_error` and a `platform_url` to retry its sync from.
 - When `catalog info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it for comparable results, and say so before proposing another.
 - `cursor-cli` and `mini-swe-agent` require per-agent `harness_api_key_secret`. Set it to `CURSOR_API_KEY` or `MSWEA_API_KEY` respectively; any other value is rejected. Those names cannot also appear in top-level `[env]` or the corresponding agent's `[agents.env]`. Other harnesses must omit `harness_api_key_secret`.
@@ -138,10 +138,10 @@ osmosis --json benchmark catalog list
 osmosis --json benchmark catalog info <benchmark-key>
 osmosis --json benchmark submit configs/benchmark/<name>.toml --yes
 osmosis --json benchmark list
-osmosis --json benchmark info <run-name-or-id>
-osmosis --json benchmark logs <run-name-or-id>
-osmosis --json benchmark stop <run-name-or-id> --yes
-osmosis --json benchmark download <run-name-or-id> --type all --yes
+osmosis --json benchmark info <run-name>
+osmosis --json benchmark logs <run-name>
+osmosis --json benchmark stop <run-name> --yes
+osmosis --json benchmark download <run-name> --type all --yes
 osmosis --json dataset logs <dataset-name>
 osmosis --json train submit configs/training/<name>.toml --yes
 osmosis --json train list
