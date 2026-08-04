@@ -11,7 +11,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 1. Read `AGENTS.md` and `configs/AGENTS.md`.
 2. Run `osmosis --json doctor`.
-3. Run `osmosis --json benchmark list` to confirm the benchmark is present in the current workspace and copy its key. Check its `sync_status`: only `ready` can be submitted. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from the benchmark catalog page in the Platform.
+3. Run `osmosis --json benchmark list` to confirm the benchmark is present in the current workspace and copy its key. Check its `sync_status`: only `ready` can be submitted. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from that page in the Platform.
 4. Run `osmosis --json benchmark info <key>` and inspect its task sets, categories, complete task manifest, harness and judge requirements, `default_harness`, pass threshold, and `required_secret_names`. The response also carries the benchmark's leaderboard and the workspace's runs on it. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
 5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
 6. Set `[experiment].benchmark` to the benchmark's key, name, or ID. All three are exact and case-sensitive.
@@ -73,7 +73,7 @@ osmosis --json benchmark runs logs <run-name>
 - Use `benchmark runs list` to find recent runs and their status.
 - Use `benchmark runs info` to inspect configuration, agents, progress, result totals, metrics, and `platform_url`.
 - Use `benchmark runs logs` to diagnose a pending, running, or failed run. If JSON output returns `next_cursor`, pass it with `--cursor` to retrieve older entries.
-- Bare `benchmark list` and `benchmark info` act on benchmarks themselves — the workspace catalog and one benchmark's summary, leaderboard, and runs — while everything that manages an individual run lives under `benchmark runs`.
+- Bare `benchmark list` and `benchmark info` act on benchmarks themselves — the workspace list and one benchmark's summary, leaderboard, and runs — while everything that manages an individual run lives under `benchmark runs`.
 
 ## Stop
 

@@ -88,7 +88,7 @@ Required fields:
 
 - `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. `benchmark list` prints the key and the name.
 - Use `benchmark info` before editing selectors to verify task sets, categories, harness and judge requirements, the full task manifest, and `required_secret_names`. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. All three identifiers are exact and case-sensitive.
-- A Harbor registry benchmark's task list pages in after it is added. Submit only when `benchmark list` reports `sync_status = "ready"`; a `failed` row carries a `sync_error`, and its `platform_url` opens the benchmark's page — retry the sync from the benchmark catalog in the Platform.
+- A Harbor registry benchmark's task list pages in after it is added. Submit only when `benchmark list` reports `sync_status = "ready"`; a `failed` row carries a `sync_error`, and its `platform_url` opens the benchmark's page — retry the sync from that page in the Platform.
 - One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.

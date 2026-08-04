@@ -92,7 +92,7 @@ git push
 osmosis eval submit configs/eval/<name>.toml
 ```
 
-Managed benchmark configs live in `configs/benchmark/*.toml`. Start from the included default, then set the workspace benchmark name and agent model:
+Managed benchmark configs live in `configs/benchmark/*.toml`. Benchmarks are added to a workspace from the Platform's Benchmarks page; `benchmark list` shows what the current workspace can run. Start from the included default, then set the workspace benchmark name and agent model:
 
 ```bash
 osmosis benchmark list
@@ -142,7 +142,7 @@ osmosis benchmark runs stop <run-name>
 osmosis benchmark runs download <run-name>
 ```
 
-A Harbor registry benchmark's task list pages in from the registry after it is added. `benchmark list` reports its `sync_status`; submitting before it is `ready` fails. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from the benchmark catalog in the Platform.
+A Harbor registry benchmark's task list pages in from the registry after it is added. `benchmark list` reports its `sync_status`; submitting before it is `ready` fails. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from that page in the Platform.
 
 `benchmark runs stop` applies only to pending, queued, or running runs.
 
