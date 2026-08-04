@@ -79,16 +79,16 @@ Inside the rollout container both sets of vars are available via `os.environ`.
 Start from the default template:
 
 ```bash
-osmosis --json benchmark catalog list
-osmosis --json benchmark catalog info <benchmark-key>
+osmosis --json benchmark list
+osmosis --json benchmark info <benchmark-key>
 cp configs/benchmark/default.toml configs/benchmark/<run-name>.toml
 ```
 
 Required fields:
 
-- `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. `benchmark catalog list` prints the key and the name.
-- Use `benchmark catalog info` before editing selectors to verify task sets, categories, harness and judge requirements, the full task manifest, and `required_secret_names`. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. All three identifiers are exact and case-sensitive.
-- A Harbor registry benchmark's task list pages in after it is added. Submit only when `catalog list` reports `sync_status = "ready"`; a `failed` row carries a `sync_error` and a `platform_url` to retry its sync from.
+- `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. `benchmark list` prints the key and the name.
+- Use `benchmark info` before editing selectors to verify task sets, categories, harness and judge requirements, the full task manifest, and `required_secret_names`. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. All three identifiers are exact and case-sensitive.
+- A Harbor registry benchmark's task list pages in after it is added. Submit only when `benchmark list` reports `sync_status = "ready"`; a `failed` row carries a `sync_error`, and its `platform_url` opens the benchmark's page — retry the sync from the benchmark catalog in the Platform.
 - One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
@@ -168,18 +168,18 @@ osmosis doctor
 osmosis dataset upload data/train.jsonl
 git push
 osmosis eval submit configs/eval/<name>.toml
-osmosis benchmark catalog list
-osmosis benchmark catalog info <benchmark-key>
-osmosis benchmark submit configs/benchmark/<name>.toml
 osmosis benchmark list
-osmosis benchmark info <run-name>
-osmosis benchmark logs <run-name>
-osmosis benchmark stop <run-name>
-osmosis benchmark download <run-name>
+osmosis benchmark info <benchmark-key>
+osmosis benchmark submit configs/benchmark/<name>.toml
+osmosis benchmark runs list
+osmosis benchmark runs info <run-name>
+osmosis benchmark runs logs <run-name>
+osmosis benchmark runs stop <run-name>
+osmosis benchmark runs download <run-name>
 osmosis train submit configs/training/<name>.toml
 osmosis train info <run-name>
 ```
 
-`benchmark stop` applies only to pending, queued, or running runs.
+`benchmark runs stop` applies only to pending, queued, or running runs.
 
-`benchmark download` is unavailable for pending or queued runs. A running run downloads a current snapshot; use `--overwrite` when refreshing it.
+`benchmark runs download` is unavailable for pending or queued runs. A running run downloads a current snapshot; use `--overwrite` when refreshing it.

@@ -95,12 +95,12 @@ osmosis eval submit configs/eval/<name>.toml
 Managed benchmark configs live in `configs/benchmark/*.toml`. Start from the included default, then set the workspace benchmark name and agent model:
 
 ```bash
-osmosis benchmark catalog list
-osmosis benchmark catalog info <benchmark-key>
+osmosis benchmark list
+osmosis benchmark info <benchmark-key>
 cp configs/benchmark/default.toml configs/benchmark/<name>.toml
 ```
 
-`benchmark catalog info` shows the benchmark's key and workspace name, available task sets, categories, harness and judge requirements, the default harness its published scores were measured on, pass threshold, and implicit required secret record names. Set `[experiment].benchmark` to the benchmark's key, name, or ID. Use `osmosis --json benchmark catalog info <benchmark-key>` to inspect the complete task manifest and `required_secret_names` before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Create every listed secret record with `osmosis secret set NAME`; `required_secret_names` contains names only. Omit `[tasks]` to run the full benchmark.
+`benchmark info` shows the benchmark's key and workspace name, available task sets, categories, harness and judge requirements, the default harness its published scores were measured on, pass threshold, and implicit required secret record names, followed by the benchmark's leaderboard and the workspace's runs on it. Set `[experiment].benchmark` to the benchmark's key, name, or ID. Use `osmosis --json benchmark info <benchmark-key>` to inspect the complete task manifest and `required_secret_names` before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Create every listed secret record with `osmosis secret set NAME`; `required_secret_names` contains names only. Omit `[tasks]` to run the full benchmark.
 
 Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity task set so your result is comparable with published HLE scores:
 
@@ -132,21 +132,21 @@ Submit the reviewed config with:
 osmosis benchmark submit configs/benchmark/<name>.toml
 ```
 
-Manage the resulting run by name:
+Manage the resulting run by name with the `benchmark runs` commands:
 
 ```bash
-osmosis benchmark list
-osmosis benchmark info <run-name>
-osmosis benchmark logs <run-name>
-osmosis benchmark stop <run-name>
-osmosis benchmark download <run-name>
+osmosis benchmark runs list
+osmosis benchmark runs info <run-name>
+osmosis benchmark runs logs <run-name>
+osmosis benchmark runs stop <run-name>
+osmosis benchmark runs download <run-name>
 ```
 
-A Harbor registry benchmark's task list pages in from the registry after it is added. `benchmark catalog list` reports its `sync_status`; submitting before it is `ready` fails. A `failed` row reports a `sync_error` and a `platform_url` to retry its sync from.
+A Harbor registry benchmark's task list pages in from the registry after it is added. `benchmark list` reports its `sync_status`; submitting before it is `ready` fails. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from the benchmark catalog in the Platform.
 
-`benchmark stop` applies only to pending, queued, or running runs.
+`benchmark runs stop` applies only to pending, queued, or running runs.
 
-`benchmark download` accepts `summary`, `results`, `artifacts`, `logs`, or `all`; the default is `summary,results`. Downloads use this fixed layout under `.osmosis/benchmarks/<run-name>/`:
+`benchmark runs download` accepts `summary`, `results`, `artifacts`, `logs`, or `all`; the default is `summary,results`. Downloads use this fixed layout under `.osmosis/benchmarks/<run-name>/`:
 
 ```text
 summary.csv

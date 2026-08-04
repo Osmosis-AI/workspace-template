@@ -11,8 +11,8 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 1. Read `AGENTS.md` and `configs/AGENTS.md`.
 2. Run `osmosis --json doctor`.
-3. Run `osmosis --json benchmark catalog list` to confirm the benchmark is present in the current workspace and copy its key. Check its `sync_status`: only `ready` can be submitted, and a `failed` row reports a `sync_error` plus a `platform_url` to retry its sync from.
-4. Run `osmosis --json benchmark catalog info <key>` and inspect its task sets, categories, complete task manifest, harness and judge requirements, `default_harness`, pass threshold, and `required_secret_names`. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
+3. Run `osmosis --json benchmark list` to confirm the benchmark is present in the current workspace and copy its key. Check its `sync_status`: only `ready` can be submitted. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from the benchmark catalog page in the Platform.
+4. Run `osmosis --json benchmark info <key>` and inspect its task sets, categories, complete task manifest, harness and judge requirements, `default_harness`, pass threshold, and `required_secret_names`. The response also carries the benchmark's leaderboard and the workspace's runs on it. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
 5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
 6. Set `[experiment].benchmark` to the benchmark's key, name, or ID. All three are exact and case-sensitive.
 7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
@@ -25,7 +25,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 
 - Omit `[tasks]` to run the full benchmark.
 - Prefer exactly one of `task_set`, `task_names`, or `categories`; multiple selectors can obscure or expand paid task scope.
-- Use the named task sets, category names, and exact task IDs returned by `benchmark catalog info`; do not invent selectors.
+- Use the named task sets, category names, and exact task IDs returned by `benchmark info`; do not invent selectors.
 - `task_set = "parity"` takes precedence over `task_names` and `categories` when combined, so remove the ignored selectors. For HLE, recommend parity for comparability with published scores.
 - Use `task_names` for exact benchmark task IDs, such as `terminal-bench/git-multibranch`, and prefer it for bounded or smoke runs.
 - Use `categories` cautiously: a category can resolve to many tasks. Verify its task scope separately before approval; the pre-submit confirmation shows only the category count, not the resolved task count.
@@ -36,9 +36,9 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 - `type = "provider"` uses a provider model name and `api_key_secret`.
 - `type = "endpoint"` also requires `base_url`; optional `extra_headers` contain literal header values, not secrets.
 - `type = "hosted"` runs one of the workspace's own LoRA models. Take both values from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `lora_model_name` is the LoRA model name. It must already be deployed with `osmosis model deploy`, and a `base_model` that disagrees with what the LoRA model was trained on is rejected. No `api_key_secret` applies.
-- Supported harnesses include `codex`, `claude-code`, `terminus-2`, `openhands`, `cursor-cli`, `mini-swe-agent`, `gemini-cli`, and `opencode`. Every agent still needs its own `[[agents]]` entry: a benchmark that runs only its official scaffold rejects every harness, and one that merely allows a harness runs its official scaffold when `harness` is omitted. `benchmark catalog info` reports which applies and names the default.
+- Supported harnesses include `codex`, `claude-code`, `terminus-2`, `openhands`, `cursor-cli`, `mini-swe-agent`, `gemini-cli`, and `opencode`. Every agent still needs its own `[[agents]]` entry: a benchmark that runs only its official scaffold rejects every harness, and one that merely allows a harness runs its official scaffold when `harness` is omitted. `benchmark info` reports which applies and names the default.
 - `cursor-cli` and `mini-swe-agent` require `harness_api_key_secret`. Set it to `CURSOR_API_KEY` for `cursor-cli` or `MSWEA_API_KEY` for `mini-swe-agent` — those are the variables the harnesses read, and any other value is rejected. Omit the field for harnesses that do not require separate authentication.
-- When `catalog info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it, and call out the loss of comparability before proposing another.
+- When `benchmark info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it, and call out the loss of comparability before proposing another.
 - `[env]` applies literal variables to every agent. `[agents.env]` applies them only to that agent.
 
 ## Credentials and environment
@@ -62,25 +62,25 @@ The structured result includes the generated run name, task count, status, and `
 
 ## Monitor and inspect
 
-Use the generated run name for all run-level commands:
+Run-lifecycle commands live under `benchmark runs` and take the generated run name:
 
 ```bash
-osmosis --json benchmark list
-osmosis --json benchmark info <run-name>
-osmosis --json benchmark logs <run-name>
+osmosis --json benchmark runs list
+osmosis --json benchmark runs info <run-name>
+osmosis --json benchmark runs logs <run-name>
 ```
 
-- Use `benchmark list` to find recent runs and their status.
-- Use `benchmark info` to inspect configuration, agents, progress, result totals, metrics, and `platform_url`.
-- Use `benchmark logs` to diagnose a pending, running, or failed run. If JSON output returns `next_cursor`, pass it with `--cursor` to retrieve older entries.
-- Do not confuse run-level `benchmark list` and `benchmark info` with catalog discovery under `benchmark catalog`.
+- Use `benchmark runs list` to find recent runs and their status.
+- Use `benchmark runs info` to inspect configuration, agents, progress, result totals, metrics, and `platform_url`.
+- Use `benchmark runs logs` to diagnose a pending, running, or failed run. If JSON output returns `next_cursor`, pass it with `--cursor` to retrieve older entries.
+- Bare `benchmark list` and `benchmark info` act on benchmarks themselves — the workspace catalog and one benchmark's summary, leaderboard, and runs — while everything that manages an individual run lives under `benchmark runs`.
 
 ## Stop
 
 Stopping a run is a user-initiated mutation. Confirm the exact run and obtain approval before passing `--yes`:
 
 ```bash
-osmosis --json benchmark stop <run-name> --yes
+osmosis --json benchmark runs stop <run-name> --yes
 ```
 
 Only pending, queued, or running runs can be stopped.
@@ -90,8 +90,8 @@ Only pending, queued, or running runs can be stopped.
 The default download includes `summary.csv` and `results.csv`. Select `summary`, `results`, `artifacts`, or `logs` with a comma-separated `--type` value, or use `all`:
 
 ```bash
-osmosis --json benchmark download <run-name> --yes
-osmosis --json benchmark download <run-name> --type all --yes
+osmosis --json benchmark runs download <run-name> --yes
+osmosis --json benchmark runs download <run-name> --type all --yes
 ```
 
 Downloads use this fixed layout under `.osmosis/benchmarks/<run-name>/` by default:

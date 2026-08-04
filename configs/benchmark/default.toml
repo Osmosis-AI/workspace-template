@@ -1,5 +1,5 @@
 [experiment]
-# Key from `osmosis benchmark catalog list`; its Name column works too.
+# Key from `osmosis benchmark list`; its Name column works too.
 benchmark = "terminal-bench-2-1"
 
 # Omit [tasks] to run every task. Choose one selector when narrowing scope;
