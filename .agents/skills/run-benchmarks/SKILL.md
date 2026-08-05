@@ -18,7 +18,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
 8. Read `required_secret_names` and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains record names only. HLE is one example and lists `HF_TOKEN`; never define `HF_TOKEN` in literal env.
 9. HLE and GDPVal require `[execution].judge_api_key_secret`; create that Platform record with `osmosis secret set <NAME>`. `judge_model` may be omitted to use the benchmark default. Omit both judge fields for non-judge benchmarks.
-10. Configure at least one `[[agents]]` entry and its `[agents.model]` table. If its harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
+10. Configure at least one `[[agents]]` entry and its `[agents.model]` table; a run supports at most 8 agents. If an agent's harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
 11. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
 
 ## Task selection
@@ -30,6 +30,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 - Use `task_names` for exact benchmark task IDs, such as `terminal-bench/git-multibranch`, and prefer it for bounded or smoke runs.
 - Use `categories` cautiously: a category can resolve to many tasks. Verify its task scope separately before approval; the pre-submit confirmation shows only the category count, not the resolved task count.
 - Start with a small explicit task list when validating a new agent setup.
+- A run ranks on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); subset runs never rank, so tell the user when a proposed selection is not leaderboard-eligible.
 
 ## Agents and models
 
@@ -74,6 +75,7 @@ osmosis --json benchmark runs logs <run-name>
 - Use `benchmark runs info` to inspect configuration, agents, progress, result totals, metrics, and `platform_url`.
 - Use `benchmark runs logs` to diagnose a pending, running, or failed run. If JSON output returns `next_cursor`, pass it with `--cursor` to retrieve older entries.
 - Bare `benchmark list` and `benchmark info` act on benchmarks themselves — the workspace list and one benchmark's summary, leaderboard, and runs — while everything that manages an individual run lives under `benchmark runs`.
+- In `benchmark info` leaderboard output, a `#N*` rank with the table caption means the entry is tied for first (not statistically distinguishable from the leader), and a `[parity]` suffix on the agent label marks a parity-task-set entrant.
 
 ## Stop
 

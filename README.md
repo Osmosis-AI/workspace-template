@@ -109,7 +109,7 @@ Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity 
 task_set = "parity"
 ```
 
-`task_set = "parity"` takes precedence over `task_names` and `categories`, so do not combine these selectors. Full HLE runs and custom task selections remain supported.
+`task_set = "parity"` takes precedence over `task_names` and `categories`, so do not combine these selectors. Full HLE runs and custom task selections remain supported. A run appears on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); other subset runs never rank.
 
 HLE and GDPVal also require `[execution].judge_api_key_secret`; create the referenced Platform secret record before submission. `judge_model` is optional and uses the benchmark default when omitted. Non-judge benchmarks must omit both judge fields. As one example of `required_secret_names`, HLE requires the implicit `HF_TOKEN` Platform record:
 
@@ -142,7 +142,7 @@ osmosis benchmark runs stop <run-name>
 osmosis benchmark runs download <run-name>
 ```
 
-A Harbor registry benchmark's task list pages in from the registry after it is added. `benchmark list` reports its `sync_status`; submitting before it is `ready` fails. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from that page in the Platform.
+A Harbor registry benchmark's task list pages in from the registry after it is added. In the `benchmark list` table, sync state renders in the Last Run cell (`Queued · Waiting to start`, `Syncing · 12 / 89 tasks`, `Failed · <error>`), and the Tasks column shows `–` while syncing and `unavailable` on failure; `osmosis --json benchmark list` reports the `sync_status` and `sync_error` fields. Submitting before the benchmark is `ready` fails. A failed benchmark's `platform_url` opens its page; retry the sync from that page in the Platform.
 
 `benchmark runs stop` applies only to pending, queued, or running runs.
 

@@ -88,7 +88,7 @@ Required fields:
 
 - `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. `benchmark list` prints the key and the name.
 - Use `benchmark info` before editing selectors to verify task sets, categories, harness and judge requirements, the full task manifest, and `required_secret_names`. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. All three identifiers are exact and case-sensitive.
-- A Harbor registry benchmark's task list pages in after it is added. Submit only when `benchmark list` reports `sync_status = "ready"`; a `failed` row carries a `sync_error`, and its `platform_url` opens the benchmark's page — retry the sync from that page in the Platform.
+- A Harbor registry benchmark's task list pages in after it is added. Submit only when `osmosis --json benchmark list` reports `sync_status = "ready"`; a `failed` entry carries a `sync_error`, and its `platform_url` opens the benchmark's page — retry the sync from that page in the Platform.
 - One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
@@ -114,6 +114,7 @@ Optional sections:
 - `task_set = "parity"` takes precedence over `task_names` and `categories` when combined; the other selectors are ignored. Do not leave ignored selectors in the config.
 - `task_names` uses exact benchmark task IDs, such as `terminal-bench/git-multibranch`; prefer it for bounded or smoke runs. A category can resolve to many tasks, so verify its scope separately before approval. The pre-submit confirmation shows only the category count, not the resolved task count.
 - Before submitting HLE, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
+- A run appears on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); `task_names` and `categories` subset runs never rank.
 - `[execution]` controls attempts, concurrency, timeout, retries, pass threshold, and optional judge settings.
 - `[env]` provides literal environment variables to every agent.
 - `[agents.env]` provides literal environment variables to one agent and overrides the same global key.
