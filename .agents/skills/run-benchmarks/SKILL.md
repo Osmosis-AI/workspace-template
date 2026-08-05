@@ -38,7 +38,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 - `type = "endpoint"` also requires `base_url`; optional `extra_headers` contain literal header values, not secrets.
 - `type = "hosted"` runs one of the workspace's own LoRA models. Take both values from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `lora_model_name` is the LoRA model name. It must already be deployed with `osmosis model deploy`, and a `base_model` that disagrees with what the LoRA model was trained on is rejected. No `api_key_secret` applies.
 - Supported harnesses include `codex`, `claude-code`, `terminus-2`, `openhands`, `cursor-cli`, `mini-swe-agent`, `gemini-cli`, and `opencode`. Every agent still needs its own `[[agents]]` entry: a benchmark that runs only its official scaffold rejects every harness, and one that merely allows a harness runs its official scaffold when `harness` is omitted. `benchmark info` reports which applies and names the default.
-- `cursor-cli` and `mini-swe-agent` require `harness_api_key_secret`. Set it to `CURSOR_API_KEY` for `cursor-cli` or `MSWEA_API_KEY` for `mini-swe-agent` — those are the variables the harnesses read, and any other value is rejected. Omit the field for harnesses that do not require separate authentication.
+- `cursor-cli` and `mini-swe-agent` require `harness_api_key_secret`. Set it to `CURSOR_API_KEY` for `cursor-cli` or `MSWEA_API_KEY` for `mini-swe-agent` (the variables the harnesses read); any other value is rejected. Omit the field for harnesses that do not require separate authentication.
 - When `benchmark info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it, and call out the loss of comparability before proposing another.
 - `[env]` applies literal variables to every agent. `[agents.env]` applies them only to that agent.
 
@@ -74,7 +74,7 @@ osmosis --json benchmark runs logs <run-name>
 - Use `benchmark runs list` to find recent runs and their status.
 - Use `benchmark runs info` to inspect configuration, agents, progress, result totals, metrics, and `platform_url`.
 - Use `benchmark runs logs` to diagnose a pending, running, or failed run. If JSON output returns `next_cursor`, pass it with `--cursor` to retrieve older entries.
-- Bare `benchmark list` and `benchmark info` act on benchmarks themselves — the workspace list and one benchmark's summary, leaderboard, and runs — while everything that manages an individual run lives under `benchmark runs`.
+- Bare `benchmark list` and `benchmark info` act on benchmarks themselves (the workspace list and one benchmark's summary, leaderboard, and runs), while everything that manages an individual run lives under `benchmark runs`.
 - In `benchmark info` leaderboard output, a `#N*` rank with the table caption means the entry is tied for first (not statistically distinguishable from the leader), and a `[parity]` suffix on the agent label marks a parity-task-set entrant.
 
 ## Stop
