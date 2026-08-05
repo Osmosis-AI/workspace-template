@@ -1,0 +1,33 @@
+[experiment]
+# Key from `osmosis benchmark list`; its Name column works too.
+benchmark = "terminal-bench-2-1"
+
+# Omit [tasks] to run every task. Choose one selector when narrowing scope;
+# task_set = "parity" takes precedence over task_names and categories.
+# [tasks]
+# For HLE configs, parity is recommended for comparable published scores:
+# task_set = "parity"
+# Or select exact tasks:
+# task_names = ["terminal-bench/git-multibranch"]
+# Or select a category (verify its scope separately before approval):
+# categories = ["software-engineering"]
+
+[[agents]]
+harness = "codex"
+
+[agents.model]
+type = "provider"
+model = "openai/gpt-5.2"
+api_key_secret = "OPENAI_API_KEY"
+
+# [agents.env]
+# AGENT_MODE = "strict"
+
+[execution]
+attempts_per_task = 1
+max_concurrent_attempts = 4
+timeout_multiplier = 1.0
+max_retries = 0
+
+# [env]
+# LOG_LEVEL = "info"
