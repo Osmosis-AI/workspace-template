@@ -100,7 +100,7 @@ osmosis benchmark info <benchmark-key>
 cp configs/benchmark/default.toml configs/benchmark/<name>.toml
 ```
 
-`benchmark info` shows the benchmark's key and workspace name, available task sets, categories, harness and judge requirements, the default harness its published scores were measured on, pass threshold, and implicit required secret record names, followed by the benchmark's leaderboard and the workspace's runs on it. Set `[experiment].benchmark` to the benchmark's key, name, or ID. Use `osmosis --json benchmark info <benchmark-key>` to inspect the complete task manifest and `required_secret_names` before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Create every listed secret record with `osmosis secret set NAME`; `required_secret_names` contains names only. Omit `[tasks]` to run the full benchmark.
+`benchmark info` shows the benchmark's key and workspace name, available task sets, categories, harness and judge requirements, the default harness its published scores were measured on and pass threshold, followed by the benchmark's leaderboard and the workspace's runs on it. Set `[experiment].benchmark` to the benchmark's key, name, or ID. Use `osmosis --json benchmark info <benchmark-key>` to inspect the complete task manifest before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Omit `[tasks]` to run the full benchmark.
 
 Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity task set so your result is comparable with published HLE scores:
 
@@ -111,14 +111,13 @@ task_set = "parity"
 
 `task_set = "parity"` takes precedence over `task_names` and `categories`, so do not combine these selectors. Full HLE runs and custom task selections remain supported. A run appears on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); other subset runs never rank.
 
-The `LLM Judge` row of `benchmark info` says which judge fields apply. HLE and GDPVal read `Required (default: <model>)` and need `[execution].judge_api_key_secret`, with `judge_model` optional and using the benchmark default when omitted. BrowseComp reads `API key only (pinned grader)`: its adapter pins the grader, so it needs `judge_api_key_secret` and rejects `judge_model`. A `–` row rejects both. Create the referenced Platform secret record before submission. As one example of `required_secret_names`, HLE requires the implicit `HF_TOKEN` Platform record:
+The `LLM Judge` row of `benchmark info` says which judge fields apply. HLE and GDPVal read `Required (default: <model>)` and need `[execution].judge_api_key_secret`, with `judge_model` optional and using the benchmark default when omitted. BrowseComp reads `API key only (pinned grader)`: its adapter pins the grader, so it needs `judge_api_key_secret` and rejects `judge_model`. A `–` row rejects both. Create the referenced Platform secret record before submission:
 
 ```bash
 osmosis secret set <judge-secret-name>
-osmosis secret set HF_TOKEN # HLE only
 ```
 
-`HF_TOKEN` is reserved in literal `[env]` and `[agents.env]` for every benchmark; HLE resolves it from the Platform secret record only.
+`HF_TOKEN` is reserved in literal `[env]` and `[agents.env]` for every benchmark. A gated benchmark's dataset credential is platform infrastructure; a run never supplies it.
 
 ```toml
 [execution]
