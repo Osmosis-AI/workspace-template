@@ -45,6 +45,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 ## Credentials and environment
 
 - Create each model, harness, or judge secret record with `osmosis secret set <NAME>` before submission.
+- For a credential no config field names, list it under `[secrets] required` and supply the value at submit with `--secrets-file <path|->`, an exported environment variable, or the prompt. Those values are never saved; a rerun re-supplies them. Never put a value in the TOML or on the command line.
 - For each provider or endpoint agent, its model `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
 - Model `api_key_secret` cannot reference runner-reserved `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. The Daytona and SkyPilot names are Platform-managed sandbox plumbing; choose another Platform record name for model credentials.
 - A `judge_api_key_secret` name, or any secret named in `[verifier.env]`, cannot also appear in top-level `[env]` or any `[agents.env]`.

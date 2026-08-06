@@ -39,5 +39,11 @@ max_retries = 0
 # [verifier.env]
 # VLM_API_KEY = "MY_VLM_KEY"
 
+# Credentials this run needs that no field above names. Values come from
+# --secrets-file, the environment, or a prompt — never from this file, and they
+# are not saved between runs.
+# [secrets]
+# required = ["WEATHER_API_KEY"]
+
 # [env]
 # LOG_LEVEL = "info"

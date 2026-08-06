@@ -97,7 +97,7 @@ Required fields:
 - `benchmark info` reports `requires_judge_model` and `requires_judge_api_key`. Both true (HLE, GDPVal): `[execution].judge_api_key_secret` is required and `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Only `requires_judge_api_key` (BrowseComp): `judge_api_key_secret` is required and `judge_model` is rejected. Both false: each field is rejected.
 - A registry dataset whose verifier reads its own credentials names them in `[verifier.env]`, one `VARIABLE = "SECRET_RECORD"` pair each, at most 16. Managed benchmarks model their credentials in the catalog and reject the section.
 
-Create every record referenced by the config with `osmosis secret set <NAME>`.
+Names under `[secrets] required` may instead be supplied at submit via `--secrets-file`, the environment, or a prompt; those values are never saved and are re-supplied every run. Create every other record referenced by the config with `osmosis secret set <NAME>`.
 
 Credential and environment rules:
 
