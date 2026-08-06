@@ -89,7 +89,7 @@ Required fields:
 - `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. `benchmark list` prints the key and the name.
 - Use `benchmark info` before editing selectors to verify task sets, categories, harness and judge requirements and the full task manifest. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. All three identifiers are exact and case-sensitive.
 - A Harbor registry benchmark's task list pages in after it is added. Submit only when `osmosis --json benchmark list` reports `sync_status = "ready"`; a `failed` entry carries a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from that page in the Platform.
-- One or more `[[agents]]` entries, each with an `[agents.model]` table. Keep them last in the file: every table after an `[[agents]]` entry nests under that agent.
+- One or more `[[agents]]` entries, each with an `[agents.model]` table.
 - `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
 - `hosted` runs one of the workspace's own LoRA models and takes `base_model` plus `lora_model_name`, both from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `lora_model_name` is the LoRA model name. Deploy it with `osmosis model deploy` first; an undeployed LoRA model, or a `base_model` that disagrees with what it was trained on, is rejected. `hosted` takes no `api_key_secret`.
