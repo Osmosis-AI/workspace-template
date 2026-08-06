@@ -94,7 +94,8 @@ Required fields:
 - Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
 - `hosted` runs one of the workspace's own LoRA models and takes `base_model` plus `lora_model_name`, both from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `lora_model_name` is the LoRA model name. Deploy it with `osmosis model deploy` first; an undeployed LoRA model, or a `base_model` that disagrees with what it was trained on, is rejected. `hosted` takes no `api_key_secret`.
 - `cursor-cli` and `mini-swe-agent` require a per-agent `harness_api_key_secret`. Set it to `CURSOR_API_KEY` or `MSWEA_API_KEY` respectively (the variable each harness reads) and create that record with `osmosis secret set <NAME>`. Any other value is rejected. Omit `harness_api_key_secret` for harnesses that do not require separate authentication.
-- HLE and GDPVal require `[execution].judge_api_key_secret`. `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Benchmarks that do not use a judge must omit both judge fields.
+- The `LLM Judge` row of `benchmark info` says which judge fields apply. `Required (default: <model>)` (HLE, GDPVal) needs `[execution].judge_api_key_secret`, and `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. `API key only (pinned grader)` (BrowseComp) needs `judge_api_key_secret` and rejects `judge_model`. `–` rejects both.
+- A registry dataset whose verifier reads its own credentials names them in `[verifier.env]`, one `VARIABLE = "SECRET_RECORD"` pair each, at most 16. Managed benchmarks model their credentials in the catalog and reject the section.
 - Read `required_secret_names` from the JSON response and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains names only, and these implicit requirements are not repeated in the TOML.
 - HLE is one example: its `required_secret_names` includes the implicit Platform secret record named exactly `HF_TOKEN`.
 
@@ -104,7 +105,7 @@ Credential and environment rules:
 
 - A provider or endpoint model's `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
 - Model `api_key_secret` cannot reference the runner-reserved names `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. The Daytona and SkyPilot names are Platform-managed sandbox plumbing; store model credentials under a different Platform secret record name.
-- A `judge_api_key_secret` name cannot also appear in top-level `[env]` or any `[agents.env]`.
+- A `judge_api_key_secret` name, or any secret named in `[verifier.env]`, cannot also appear in top-level `[env]` or any `[agents.env]`.
 - `CURSOR_API_KEY` and `MSWEA_API_KEY` are the harness credential names. They cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved secret record owns that variable.
 - `HF_TOKEN` is reserved in literal env for every benchmark. Never define it in top-level `[env]` or any `[agents.env]`; HLE resolves it only from the implicit `HF_TOKEN` Platform secret record.
 

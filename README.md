@@ -111,7 +111,7 @@ task_set = "parity"
 
 `task_set = "parity"` takes precedence over `task_names` and `categories`, so do not combine these selectors. Full HLE runs and custom task selections remain supported. A run appears on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); other subset runs never rank.
 
-HLE and GDPVal also require `[execution].judge_api_key_secret`; create the referenced Platform secret record before submission. `judge_model` is optional and uses the benchmark default when omitted. Non-judge benchmarks must omit both judge fields. As one example of `required_secret_names`, HLE requires the implicit `HF_TOKEN` Platform record:
+The `LLM Judge` row of `benchmark info` says which judge fields apply. HLE and GDPVal read `Required (default: <model>)` and need `[execution].judge_api_key_secret`, with `judge_model` optional and using the benchmark default when omitted. BrowseComp reads `API key only (pinned grader)`: its adapter pins the grader, so it needs `judge_api_key_secret` and rejects `judge_model`. A `–` row rejects both. Create the referenced Platform secret record before submission. As one example of `required_secret_names`, HLE requires the implicit `HF_TOKEN` Platform record:
 
 ```bash
 osmosis secret set <judge-secret-name>
