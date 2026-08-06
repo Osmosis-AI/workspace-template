@@ -17,7 +17,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 6. Set `[experiment].benchmark` to the benchmark's key, name, or ID. All three are exact and case-sensitive.
 7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
 8. Read `required_secret_names` and ensure every listed Platform record exists with `osmosis secret set NAME`. The field contains record names only. HLE is one example and lists `HF_TOKEN`; never define `HF_TOKEN` in literal env.
-9. Match the `[execution]` judge fields to the `LLM Judge` row from step 4. `Required (default: <model>)` needs `judge_api_key_secret`, and `judge_model` may be omitted to use the benchmark default. `API key only (pinned grader)` needs `judge_api_key_secret` and rejects `judge_model`. `–` rejects both. Create the record with `osmosis secret set <NAME>`.
+9. Match the `[execution]` judge fields to `requires_judge_model` and `requires_judge_api_key` from step 4. Both true: `judge_api_key_secret` is required, and `judge_model` may be omitted to use the benchmark default. Only `requires_judge_api_key`: `judge_api_key_secret` is required and `judge_model` is rejected. Both false: each field is rejected. Create the record with `osmosis secret set <NAME>`.
 10. Configure at least one `[[agents]]` entry and its `[agents.model]` table; a run supports at most 8 agents. If an agent's harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
 11. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
 
