@@ -54,8 +54,9 @@ osmosis --json doctor --fix
 - Each configured rollout entrypoint must expose one concrete `AgentWorkflow`.
 - Evaluation runs and managed training require a concrete `Grader` in the rollout server.
 - The configured entrypoint must start a rollout server using the SDK backend and `create_rollout_server`, and bind `uvicorn` to `_OSMOSIS_ROLLOUT_PORT` defaulting to `8000`.
-- `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`.
-- Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context and register exactly one sample source, usually via one `OsmosisStrandsAgent` or one `OsmosisAgent` with `OsmosisMemorySession()`. Do not call provider SDKs directly with a fixed policy model from the workflow.
+- `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`, and returns one of three shapes: `AgentWorkflowOutput`, a bare message list, or `None`.
+- Each workflow execution must produce one sample. Return `AgentWorkflowOutput(messages=..., metrics=...)` or a bare message list when the workflow owns the message history; return `None` only when an SDK integration or custom `SampleSource` registers the sample on the active `RolloutContext`. `AgentWorkflowOutput` rejects unknown top-level fields and non-finite metric values.
+- Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context, usually via one `OsmosisStrandsAgent` or one `OsmosisAgent` with `OsmosisMemorySession()`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
 - `Grader.grade` must be async, read the rollout's single sample from `ctx.sample`, and assign its reward in `[0.0, 1.0]` with `ctx.set_reward(...)`.
 - Harbor rollouts import `HarborBackend` from `osmosis_ai.rollout.backend.harbor` and use the v0.3 constructor: `tasks_dir=`, `task_mode=`, `agent=`, and a project-root `code_dir=` when inference is not sufficient. Never use the removed `HarborBackendV2`, `task_dir=`, `user_code_dir=`, or `workflow=` Harbor API.

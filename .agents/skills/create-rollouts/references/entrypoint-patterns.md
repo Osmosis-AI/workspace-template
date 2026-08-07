@@ -17,8 +17,8 @@ from osmosis_ai.rollout import (
     Grader,
     GraderContext,
     LocalBackend,
-    create_rollout_server,
 )
+from osmosis_ai.rollout.server import create_rollout_server
 
 
 class MyWorkflow(AgentWorkflow):
@@ -95,9 +95,11 @@ The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside th
 
 ## Integration Rules
 
-- Strands: construct `OsmosisStrandsAgent` inside `AgentWorkflow.run`, pass `messages=ctx.prompt`, use `OsmosisRolloutModel(params={...})`, and call `await agent.invoke_async()`.
-- OpenAI Agents: construct `OsmosisAgent` inside `run`, use `OsmosisRolloutModel()`, create exactly one `OsmosisMemorySession()` inside `run`, and pass `session=session` to `Runner.run`.
-- Custom integrations: register exactly one sample source with `get_rollout_context().set_sample_source(...)` before the workflow finishes.
+- Install the feature extras used by the rollout: `server` for `create_rollout_server`, plus `strands`, `openai-agents`, or `harbor` when those modules are imported.
+- Strands: import from `osmosis_ai.rollout.integrations.agents.strands`, construct `OsmosisStrandsAgent` inside `AgentWorkflow.run`, pass `messages=ctx.prompt`, use `OsmosisRolloutModel(params={...})`, call `await agent.invoke_async()`, and return `None` so the backend collects the registered sample.
+- OpenAI Agents: import from `osmosis_ai.rollout.integrations.agents.openai_agents`, construct `OsmosisAgent` inside `run`, use `OsmosisRolloutModel()`, create exactly one `OsmosisMemorySession()` inside `run`, pass `session=session` to `Runner.run`, and return `None`.
+- Custom integrations: either return `AgentWorkflowOutput(messages=..., metrics=...)` (or a bare message list), or register exactly one sample source with `get_rollout_context().set_sample_source(...)` and return `None`.
+- `AgentWorkflowOutput` rejects unknown top-level fields and non-finite metric values.
 - Do not call a fixed policy model directly from `run`; provider SDK calls bypass the active rollout context and break sample/reward linkage.
 
 ## Grader Rules
