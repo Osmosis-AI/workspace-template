@@ -30,7 +30,8 @@ timeout_multiplier = 1.0
 max_retries = 0
 # Judge fields follow the LLM Judge row of `osmosis benchmark info <key>`:
 # "Required (default: <model>)" takes both, judge_model optional;
-# "API key only (pinned grader)" takes only the secret; "–" takes neither.
+# "API key only (pinned grader)" takes only the secret, and it must be an
+# OpenAI key; "–" takes neither.
 # judge_model = "openai/gpt-5.2"
 # judge_api_key_secret = "OPENAI_API_KEY"
 
