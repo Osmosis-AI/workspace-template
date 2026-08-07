@@ -117,8 +117,6 @@ The `LLM Judge` row of `benchmark info` says which judge fields apply. HLE and G
 osmosis secret set <judge-secret-name>
 ```
 
-A gated benchmark's dataset credential is platform infrastructure; a run never supplies it, so no config names it. An agent may still take its own `HF_TOKEN` for pulling models or datasets of its own during a task.
-
 ```toml
 [execution]
 judge_api_key_secret = "<judge-secret-name>"

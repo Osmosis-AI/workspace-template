@@ -105,7 +105,6 @@ Credential and environment rules:
 - Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. Those are Platform-managed sandbox plumbing; store model credentials under a different Platform secret record name.
 - A `judge_api_key_secret` name, or any secret named in `[verifier] required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
 - `CURSOR_API_KEY` and `MSWEA_API_KEY` are the harness credential names. They cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved secret record owns that variable.
-- A gated benchmark's dataset credential is platform infrastructure; a run never supplies it, so no config names it. An agent may still set its own `HF_TOKEN` in `[env]` or `[agents.env]` for pulling models or datasets of its own during a task.
 
 Optional sections:
 

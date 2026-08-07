@@ -92,7 +92,6 @@ osmosis --json template apply multiply-local-strands
 - Prefer one benchmark task selector. `task_set = "parity"` takes precedence over `task_names` and `categories`; remove ignored selectors, prefer explicit `task_names` for bounded runs, and verify category scope separately before approval.
 - Before submitting Humanity's Last Exam (HLE), recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
 - A run ranks on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); subset runs never rank.
-- A gated benchmark's dataset credential is platform infrastructure; a run never supplies it, so no config names it. An agent may still set its own `HF_TOKEN` in `[env]` or `[agents.env]`, or reference a secret record of that name, for pulling models or datasets of its own during a task.
 - Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## Models
