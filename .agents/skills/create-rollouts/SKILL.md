@@ -21,7 +21,7 @@ For a blank rollout, start with `osmosis --json rollout init <name>`; it usually
 
 Do not reapply default TOML after `rollout init`. Use `configs/eval/default.toml`, `configs/training/default.toml`, or the skill fallback TOMLs only when repairing missing configs or creating configs without `rollout init`.
 
-For worked examples, run `osmosis --json template list` and apply a local template such as `multiply-local-strands` or `multiply-local-openai`, then adapt it to the dataset.
+For worked examples, run `osmosis --json template list` and apply a template such as `multiply-local-strands`, `multiply-local-openai`, or `multiply-harbor-strands`, then adapt it to the dataset.
 
 Read `references/entrypoint-patterns.md` only when hand-writing or substantially rewriting the configured entrypoint, or when the server/sample-source pattern is failing.
 
@@ -37,6 +37,8 @@ Read `references/entrypoint-patterns.md` only when hand-writing or substantially
 - The grader implements async `grade(ctx)`, reads `ctx.label` as the dataset `ground_truth`, reads the rollout's single sample from `ctx.sample`, and assigns its reward with `ctx.set_reward(reward)`.
 - Keep tools as async Python functions with type hints and docstrings.
 - Keep the grader explicit, partial-credit friendly, and easy to inspect.
+- For Harbor isolation, mirror `multiply-harbor-strands`: import `HarborBackend` from `osmosis_ai.rollout.backend.harbor`; pass `tasks_dir=`, `task_mode=`, and `agent=`; point `code_dir=` at the project root containing `pyproject.toml` when needed; and use `backend.prewarm_lifespan()`. Do not use `HarborBackendV2` or the removed `task_dir=`, `user_code_dir=`, and `workflow=` Harbor arguments.
+- Keep Harbor task Dockerfiles task-only. The backend bundles the rollout project and installs it in the task container, so do not copy the workspace or install the rollout SDK manually in the task image.
 
 ## Validation
 

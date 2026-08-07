@@ -58,6 +58,8 @@ osmosis --json doctor --fix
 - Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context and register exactly one sample source, usually via one `OsmosisStrandsAgent` or one `OsmosisAgent` with `OsmosisMemorySession()`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
 - `Grader.grade` must be async, read the rollout's single sample from `ctx.sample`, and assign its reward in `[0.0, 1.0]` with `ctx.set_reward(...)`.
+- Harbor rollouts import `HarborBackend` from `osmosis_ai.rollout.backend.harbor` and use the v0.3 constructor: `tasks_dir=`, `task_mode=`, `agent=`, and a project-root `code_dir=` when inference is not sufficient. Never use the removed `HarborBackendV2`, `task_dir=`, `user_code_dir=`, or `workflow=` Harbor API.
+- `HarborBackend` packages the rollout project as a wheel. Keep Harbor task Dockerfiles limited to task dependencies, and attach `backend.prewarm_lifespan()` to `create_rollout_server` so task images and agent setup are ready before traffic.
 - Before `osmosis train submit`, submit an evaluation run and push code to the connected workspace repository.
 
 Create a blank rollout scaffold with:

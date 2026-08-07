@@ -2,8 +2,6 @@ from typing import Any, cast
 
 from agents import ModelSettings, Runner
 from agents.models.interface import Model
-
-from multiply_rollout.tools import multiply_tool
 from osmosis_ai.rollout.agent_workflow import AgentWorkflow
 from osmosis_ai.rollout.context import AgentWorkflowContext
 from osmosis_ai.rollout.integrations.agents.openai_agents import (
@@ -12,6 +10,8 @@ from osmosis_ai.rollout.integrations.agents.openai_agents import (
     OsmosisRolloutModel,
 )
 from osmosis_ai.rollout.types import AgentWorkflowConfig
+
+from multiply_rollout.tools import multiply_tool
 
 MAX_TURNS = 8
 

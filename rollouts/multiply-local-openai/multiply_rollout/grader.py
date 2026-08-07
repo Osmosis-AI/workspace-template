@@ -1,10 +1,11 @@
 import logging
 from typing import Any
 
-from multiply_rollout.utils import extract_solution
 from osmosis_ai.rollout.context import GraderContext
 from osmosis_ai.rollout.grader import Grader
 from osmosis_ai.rollout.types import GraderConfig
+
+from multiply_rollout.utils import extract_solution
 
 logger = logging.getLogger(__name__)
 

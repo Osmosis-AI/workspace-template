@@ -76,6 +76,8 @@ osmosis eval submit configs/eval/multiply-local-strands.toml
 
 Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Route policy model calls through exactly one Osmosis-supported integration such as `OsmosisStrandsAgent` or `OsmosisAgent` so each evaluation or training rollout produces one sample with one reward.
 
+The Harbor starter uses the SDK v0.3 `HarborBackend`: it packages the rollout project as a wheel, keeps the task Dockerfile limited to task dependencies, and prewarms the task before serving rollouts.
+
 ## Configs and Data
 
 Evaluation and training configs live in `configs/eval/*.toml` and `configs/training/*.toml`. Both use platform dataset names from:

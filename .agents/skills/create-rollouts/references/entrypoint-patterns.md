@@ -34,12 +34,64 @@ class MyGrader(Grader):
 def main() -> None:
     backend = LocalBackend(workflow=MyWorkflow, grader=MyGrader)
     app = create_rollout_server(backend=backend)
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000")))
+    uvicorn.run(
+        app, host="0.0.0.0", port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000"))
+    )
 
 
 if __name__ == "__main__":
     main()
 ```
+
+## Harbor Skeleton
+
+Use this pattern only when the rollout needs Harbor task isolation. Keep the workflow and grader in an importable package under the rollout project.
+
+```python
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import uvicorn
+from harbor.models.environment_type import EnvironmentType
+from harbor.models.trial.config import EnvironmentConfig
+from harbor.trial.queue import TrialQueue
+
+from my_rollout.grader import MyGrader
+from my_rollout.workflow import MyWorkflow
+from osmosis_ai.rollout.backend.harbor import HarborBackend
+from osmosis_ai.rollout.server import create_rollout_server
+
+ROLLOUT_DIR = Path(__file__).resolve().parent
+
+
+def main() -> None:
+    backend = HarborBackend(
+        orchestrator=TrialQueue(n_concurrent=4),
+        tasks_dir=ROLLOUT_DIR / "task",
+        task_mode="template",
+        agent=MyWorkflow,
+        grader=MyGrader,
+        code_dir=ROLLOUT_DIR,
+        environment_config=EnvironmentConfig(type=EnvironmentType.SKYPILOT),
+    )
+    app = create_rollout_server(
+        backend=backend,
+        lifespan=backend.prewarm_lifespan(),
+    )
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000")),
+    )
+
+
+if __name__ == "__main__":
+    main()
+```
+
+The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside the task container. Keep `task/environment/Dockerfile` limited to task dependencies. `HarborBackendV2` and the old `task_dir=`, `user_code_dir=`, and `workflow=` arguments do not exist.
 
 ## Integration Rules
 
