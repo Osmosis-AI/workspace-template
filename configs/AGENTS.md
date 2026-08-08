@@ -12,6 +12,10 @@ Do not place these configs elsewhere. The CLI validates these locations.
 
 For AI agents or automation, prefer `osmosis --json ...` for structured output or `osmosis --plain ...` for low-noise text.
 
+## Supplying Secret Values
+
+This applies to training, eval, and benchmark configs alike. Names under `[secrets].required` may be supplied at submit via `--secrets-file`, the environment, or an interactive prompt instead of a stored record; first hit wins. Those values are never saved and must be re-supplied on every run. Create every other record referenced by a config with `osmosis secret set <NAME>`. Never write a secret value into a TOML.
+
 ## Training Configs
 
 Start from the default template:
@@ -96,8 +100,6 @@ Required fields:
 - `cursor-cli` and `mini-swe-agent` require a per-agent `harness_api_key_secret`. Set it to `CURSOR_API_KEY` or `MSWEA_API_KEY` respectively (the variable each harness reads) and create that record with `osmosis secret set <NAME>`. Any other value is rejected. Omit `harness_api_key_secret` for harnesses that do not require separate authentication.
 - `benchmark info` reports `requires_judge_model` and `requires_judge_api_key`. Both true (HLE, GDPVal): `[execution].judge_api_key_secret` is required and `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Only `requires_judge_api_key` (BrowseComp): `judge_api_key_secret` is required and must hold an OpenAI key, and `judge_model` is rejected. Both false: each field is rejected.
 - A registry dataset whose verifier reads its own credentials names secret records in `[verifier].required`, at most 16; each is delivered under its own name. Managed benchmarks model their credentials in the catalog and reject the section.
-
-Names under `[secrets].required` may instead be supplied at submit via `--secrets-file`, the environment, or a prompt; those values are never saved and are re-supplied every run. Create every other record referenced by the config with `osmosis secret set <NAME>`.
 
 Credential and environment rules:
 

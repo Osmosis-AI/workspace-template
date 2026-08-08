@@ -53,6 +53,7 @@ dataset = "<your-dataset-name>"       # Platform dataset name from `osmosis data
 # When this block is present, it must include `required`.
 # Register them first with `osmosis secret set NAME` (personal is the default),
 # or pass `--scope workspace` for workspace-shared secrets.
+# Values can also be supplied at submit with `--secrets-file`; they are never saved.
 #
 # Example:
 # required = ["OPENAI_API_KEY"]
