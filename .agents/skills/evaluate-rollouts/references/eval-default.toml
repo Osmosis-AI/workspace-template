@@ -27,4 +27,5 @@ dataset = "<your-dataset-name>"       # Platform dataset name
 # Use required = [] only when this evaluation needs no secret refs.
 # Register secret records first with `osmosis secret set NAME` (personal is the default),
 # or pass `--scope workspace` for workspace-shared secrets.
+# Values can also be supplied at submit with `--secrets-file`; they are never saved.
 required = ["OPENAI_API_KEY"]
