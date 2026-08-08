@@ -95,15 +95,15 @@ Required fields:
 - `hosted` runs one of the workspace's own LoRA models and takes `base_model` plus `lora_model_name`, both from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `lora_model_name` is the LoRA model name. Deploy it with `osmosis model deploy` first; an undeployed LoRA model, or a `base_model` that disagrees with what it was trained on, is rejected. `hosted` takes no `api_key_secret`.
 - `cursor-cli` and `mini-swe-agent` require a per-agent `harness_api_key_secret`. Set it to `CURSOR_API_KEY` or `MSWEA_API_KEY` respectively (the variable each harness reads) and create that record with `osmosis secret set <NAME>`. Any other value is rejected. Omit `harness_api_key_secret` for harnesses that do not require separate authentication.
 - `benchmark info` reports `requires_judge_model` and `requires_judge_api_key`. Both true (HLE, GDPVal): `[execution].judge_api_key_secret` is required and `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Only `requires_judge_api_key` (BrowseComp): `judge_api_key_secret` is required and must hold an OpenAI key, and `judge_model` is rejected. Both false: each field is rejected.
-- A registry dataset whose verifier reads its own credentials names secret records in `[verifier] required`, at most 16; each is delivered under its own name. Managed benchmarks model their credentials in the catalog and reject the section.
+- A registry dataset whose verifier reads its own credentials names secret records in `[verifier].required`, at most 16; each is delivered under its own name. Managed benchmarks model their credentials in the catalog and reject the section.
 
-Names under `[secrets] required` may instead be supplied at submit via `--secrets-file`, the environment, or a prompt; those values are never saved and are re-supplied every run. Create every other record referenced by the config with `osmosis secret set <NAME>`.
+Names under `[secrets].required` may instead be supplied at submit via `--secrets-file`, the environment, or a prompt; those values are never saved and are re-supplied every run. Create every other record referenced by the config with `osmosis secret set <NAME>`.
 
 Credential and environment rules:
 
 - A provider or endpoint model's `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
 - Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. Those are Platform-managed sandbox plumbing; store model credentials under a different Platform secret record name.
-- A `judge_api_key_secret` name, or any secret named in `[verifier] required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
+- A `judge_api_key_secret` name, or any secret named in `[verifier].required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
 - `CURSOR_API_KEY` and `MSWEA_API_KEY` are the harness credential names. They cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved secret record owns that variable.
 
 Optional sections:
@@ -111,7 +111,7 @@ Optional sections:
 - `[tasks]` narrows task scope; omit it to run all tasks. Prefer exactly one of `task_set`, `task_names`, or `categories` so the paid scope is unambiguous.
 - `task_set = "parity"` takes precedence over `task_names` and `categories` when combined; the other selectors are ignored. Do not leave ignored selectors in the config.
 - `task_names` uses exact benchmark task IDs, such as `terminal-bench/git-multibranch`; prefer it for bounded or smoke runs. A category can resolve to many tasks, so verify its scope separately before approval. The pre-submit confirmation shows only the category count, not the resolved task count.
-- Before submitting HLE, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
+- Before submitting HLE, recommend `[tasks].task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
 - A run appears on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); `task_names` and `categories` subset runs never rank.
 - `[execution]` controls attempts, concurrency, timeout, retries, pass threshold, and optional judge settings.
 - `[env]` provides literal environment variables to every agent.

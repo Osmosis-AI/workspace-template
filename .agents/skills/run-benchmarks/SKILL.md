@@ -15,8 +15,8 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 4. Run `osmosis --json benchmark info <key>` and inspect its task sets, categories, complete task manifest, harness and judge requirements, `default_harness` and pass threshold. The response also carries the benchmark's leaderboard and the workspace's runs on it. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
 5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
 6. Set `[experiment].benchmark` to the benchmark's key, name, or ID. All three are exact and case-sensitive.
-7. Before an HLE submission, recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
-8. Never define `HF_TOKEN` in literal env; it is reserved by the runner, and a gated benchmark's dataset credential is platform infrastructure that a run never supplies.
+7. Before an HLE submission, recommend `[tasks].task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
+8. Env var names cannot start with `_OSMOSIS_`. A gated benchmark's dataset credential is platform infrastructure; a run never supplies it, so no config names it.
 9. Match the `[execution]` judge fields to `requires_judge_model` and `requires_judge_api_key` from step 4. Both true: `judge_api_key_secret` is required, and `judge_model` may be omitted to use the benchmark default. Only `requires_judge_api_key`: `judge_api_key_secret` is required and `judge_model` is rejected. Both false: each field is rejected. Create the record with `osmosis secret set <NAME>`.
 10. Configure at least one `[[agents]]` entry and its `[agents.model]` table; a run supports at most 8 agents. If an agent's harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
 11. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
@@ -45,12 +45,12 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 ## Credentials and environment
 
 - Create each model, harness, or judge secret record with `osmosis secret set <NAME>` before submission.
-- For a credential no config field names, list it under `[secrets] required` and supply the value at submit with `--secrets-file <path|->`, an exported environment variable, or the prompt. Those values are never saved; a rerun re-supplies them. Never put a value in the TOML or on the command line.
+- `[secrets].required` lists credentials the run needs that no other field points at — not a model's `api_key_secret`, `harness_api_key_secret`, `judge_api_key_secret`, or `[verifier].required`. A key a benchmark task calls out with is the usual case. Each name resolves at submit from `--secrets-file <path|->`, the process environment, an interactive prompt, or the workspace's stored records, first hit wins. A value supplied at submit is never saved, so a rerun supplies it again. Never put a secret value in the TOML or on the command line.
 - For each provider or endpoint agent, its model `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
-- Model `api_key_secret` cannot reference runner-reserved `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. The Daytona and SkyPilot names are Platform-managed sandbox plumbing; choose another Platform record name for model credentials.
-- A `judge_api_key_secret` name, or any secret named in `[verifier.env]`, cannot also appear in top-level `[env]` or any `[agents.env]`.
+- Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. Those are Platform-managed sandbox plumbing; choose another Platform record name for model credentials.
+- A `judge_api_key_secret` name, or any secret named in `[verifier].required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
 - Do not define `CURSOR_API_KEY` or `MSWEA_API_KEY` in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved harness secret record owns that variable.
-- `HF_TOKEN` is reserved in literal env for every benchmark; never put it in top-level `[env]` or any `[agents.env]`.
+- A gated benchmark's dataset credential is platform infrastructure; a run never supplies it, so no config names it. An agent may still set its own `HF_TOKEN` in `[env]` or `[agents.env]` for pulling models or datasets of its own during a task.
 
 ## Submit
 

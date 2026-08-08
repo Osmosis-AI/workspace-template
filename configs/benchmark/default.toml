@@ -35,14 +35,14 @@ max_retries = 0
 # judge_model = "openai/gpt-5.2"
 # judge_api_key_secret = "OPENAI_API_KEY"
 
-# Registry datasets: list secret record names in [verifier] required; each is
+# Registry datasets: list secret record names in [verifier].required; each is
 # delivered under its own name. Managed benchmarks reject this.
 # [verifier]
 # required = ["MY_VLM_KEY"]
 
-# Credentials this run needs that no field above names. Values come from
-# --secrets-file, the environment, or a prompt — never from this file, and they
-# are not saved between runs.
+# Credentials this run needs that no field above points at. Each name resolves
+# at submit from --secrets-file, the environment, a prompt, or your stored
+# secret records. A value given at submit is never saved — put none in this file.
 # [secrets]
 # required = ["WEATHER_API_KEY"]
 
