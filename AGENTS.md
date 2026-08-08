@@ -43,7 +43,7 @@ osmosis --json doctor --fix
 
 ## Standard Workflow
 
-1. Settle the dataset schema: `system_prompt`, `user_prompt`, `ground_truth`.
+1. Settle one dataset schema: metadata mode (`metadata` is a non-empty JSON object in every row) or prompt mode (`user_prompt` + `ground_truth`, with optional `system_prompt`).
 2. Create or adapt a rollout with `osmosis --json rollout init <name>` or an SDK template.
 3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl --yes`, or confirm it's already on the platform with `osmosis --json dataset list`.
 4. Commit and push rollout code and config changes.
@@ -55,7 +55,7 @@ osmosis --json doctor --fix
 - Each configured rollout entrypoint must expose one concrete `AgentWorkflow`.
 - Evaluation runs and managed training require a concrete `Grader` in the rollout server.
 - The configured entrypoint must start a rollout server using the SDK backend and `create_rollout_server`, and bind `uvicorn` to `_OSMOSIS_ROLLOUT_PORT` defaulting to `8000`.
-- `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`.
+- `AgentWorkflow.run` receives `ctx.prompt`, assembled from the prompt columns that are present; `system_prompt` is optional. Metadata-mode rows may intentionally have no prompt messages.
 - Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context, usually via `OsmosisStrandsAgent` or `OsmosisAgent` with `OsmosisMemorySession`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
 - `Grader.grade` must be async and assign rewards in `[0.0, 1.0]`.

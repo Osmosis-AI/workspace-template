@@ -11,7 +11,7 @@ Create the smallest rollout that can load, submit an evaluation run, and later s
 
 1. Read `AGENTS.md` and `configs/AGENTS.md` if present.
 2. Run `osmosis --json doctor`. If scaffold paths are missing, ask before running `osmosis --json doctor --fix`.
-3. Confirm the local source dataset exists with valid `system_prompt` / `user_prompt` / `ground_truth` rows. If not, run `plan-training` first.
+3. Confirm the local source dataset consistently uses metadata mode or prompt mode. If not, run `plan-training` first.
 4. Pick a rollout name matching `^[a-z][a-z0-9-]*$` (lowercase letters, digits, hyphens; starts with a letter) and not `default`.
 5. Treat `osmosis --json rollout init <name>`, SDK templates, and generated files as source of truth if a hand-written skeleton differs.
 
@@ -31,10 +31,10 @@ Read `references/entrypoint-patterns.md` only when hand-writing or substantially
 - Default new scaffolds to `main.py`, but preserve and honor any explicit `entrypoint` already named in evaluation or training configs.
 - Expose exactly one concrete `AgentWorkflow`.
 - Expose exactly one concrete `Grader`; evaluation configs no longer carry a separate `[grader]` section.
-- The workflow's `run` receives `ctx.prompt`, a list of system/user messages converted from the dataset's `system_prompt` + `user_prompt` columns.
+- The workflow's `run` receives `ctx.prompt`, built from any prompt columns present. `system_prompt` is optional, and metadata-only rows may produce an empty prompt list.
 - The workflow must register at least one sample source, either through an SDK integration (`OsmosisStrandsAgent`, `OsmosisAgent` + `OsmosisMemorySession`) or by calling `get_rollout_context().register_sample_source(...)`.
 - Policy model calls inside `AgentWorkflow.run` must route through the active rollout context. Do not call `litellm`, the OpenAI SDK, or another provider SDK directly with a fixed policy model from the workflow.
-- The grader implements async `grade(ctx)`, reads `ctx.label` as the dataset `ground_truth`, and assigns every sample a reward with `ctx.set_sample_reward(sample_id, reward)`.
+- The grader implements async `grade(ctx)` and assigns every sample a reward with `ctx.set_sample_reward(sample_id, reward)`. In prompt mode, `ctx.label` is the dataset `ground_truth`; metadata-mode graders may instead use `ctx.metadata`.
 - Keep tools as async Python functions with type hints and docstrings.
 - Keep the grader explicit, partial-credit friendly, and easy to inspect.
 
