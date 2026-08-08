@@ -1,33 +1,47 @@
-[experiment]
-# Key from `osmosis benchmark list`; its Name column works too.
-benchmark = "terminal-bench-2-1"
+# Osmosis benchmark config reference.
+# Run `osmosis benchmark info <key>` first: it lists the task sets, categories,
+# harnesses, and judge fields this benchmark accepts.
+# Command: osmosis benchmark submit configs/benchmark/default.toml
 
-# Omit [tasks] to run every task. Choose one selector when narrowing scope;
-# task_set = "parity" takes precedence over task_names and categories.
+[experiment]
+benchmark = "terminal-bench-2-1"        # Key or Name from `osmosis benchmark list`
+
 # [tasks]
-# For HLE configs, parity is recommended for comparable published scores:
-# task_set = "parity"
-# Or select exact tasks:
-# task_names = ["terminal-bench/git-multibranch"]
-# Or select a category (verify its scope separately before approval):
-# categories = ["software-engineering"]
+# Omit this block to run every task. Pick one selector; task_set wins over the rest.
+# task_set = "parity"                   # Published-score subset (recommended for HLE)
+# task_names = ["terminal-bench/git-multibranch"]   # Exact task IDs; best for bounded runs
+# categories = ["software-engineering"] # Can expand to many tasks; check the count first
 
 [[agents]]
-harness = "codex"
+harness = "codex"                       # Scaffold that drives the model
 
 [agents.model]
-type = "provider"
+type = "provider"                       # provider | endpoint | hosted
 model = "openai/gpt-5.2"
-api_key_secret = "OPENAI_API_KEY"
+api_key_secret = "OPENAI_API_KEY"       # Secret record name, never the value
 
 # [agents.env]
-# AGENT_MODE = "strict"
+# AGENT_MODE = "strict"                 # Literal env vars for this agent only
 
 [execution]
 attempts_per_task = 1
 max_concurrent_attempts = 4
 timeout_multiplier = 1.0
 max_retries = 0
+# Set judge fields only where the LLM Judge row of `benchmark info` asks for them.
+# judge_model = "openai/gpt-5.2"          # Only when that row says "Required"; omit for its default
+# judge_api_key_secret = "OPENAI_API_KEY" # Needed by every judged benchmark
+
+# [verifier]
+# For registry datasets whose verifier reads its own credentials; managed benchmarks reject this.
+# required = ["MY_VLM_KEY"]             # Secret record names, delivered under those names
+
+# [secrets]
+# Credentials this run needs that no field above names.
+# Register secret records first with `osmosis secret set NAME` (personal is the default),
+# or pass `--scope workspace` for workspace-shared secrets.
+# Values can also be supplied at submit with `--secrets-file`; they are never saved.
+# required = ["WEATHER_API_KEY"]
 
 # [env]
-# LOG_LEVEL = "info"
+# LOG_LEVEL = "info"                    # Literal env vars for every agent
