@@ -5,9 +5,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir \
-    "osmosis-ai[server]>=0.2.30"
-
-COPY workspace /workspace
-
 CMD ["sleep", "infinity"]
