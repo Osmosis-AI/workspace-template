@@ -17,6 +17,7 @@ Conventions:
 - Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the evaluation or training config is authoritative.
 - Evaluation configs live in `configs/eval/<name>.toml`.
 - Training configs live in `configs/training/<name>.toml`.
+- Benchmark configs live in `configs/benchmark/<name>.toml`.
 - Evaluation and training configs reference platform dataset names from `osmosis dataset list`.
 - Local training guidance lives in `.osmosis/research/program.md`.
 - Local cache and metrics state lives in `.osmosis/` and should not be treated as source.
@@ -42,7 +43,7 @@ osmosis --json doctor --fix
 
 ## Standard Workflow
 
-1. Settle the dataset schema: `system_prompt`, `user_prompt`, `ground_truth`.
+1. Settle one dataset schema: metadata mode (`metadata` is a non-empty JSON object in every row) or prompt mode (`user_prompt` + `ground_truth`, with optional `system_prompt`).
 2. Create or adapt a rollout with `osmosis --json rollout init <name>` or an SDK template.
 3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl --yes`, or confirm it's already on the platform with `osmosis --json dataset list`.
 4. Commit and push rollout code and config changes.
@@ -54,7 +55,7 @@ osmosis --json doctor --fix
 - Each configured rollout entrypoint must expose one concrete `AgentWorkflow`.
 - Evaluation runs and managed training require a concrete `Grader` in the rollout server.
 - The configured entrypoint must start a rollout server using the SDK backend and `create_rollout_server`, and bind `uvicorn` to `_OSMOSIS_ROLLOUT_PORT` defaulting to `8000`.
-- `AgentWorkflow.run` receives `ctx.prompt`, assembled from dataset `system_prompt` and `user_prompt`, and returns one of three shapes: `AgentWorkflowOutput`, a bare message list, or `None`.
+- `AgentWorkflow.run` receives `ctx.prompt`, assembled from the prompt columns that are present; `system_prompt` is optional, and metadata-mode rows may intentionally have no prompt messages. It returns one of three shapes: `AgentWorkflowOutput`, a bare message list, or `None`.
 - Each workflow execution must produce one sample. Return `AgentWorkflowOutput(messages=..., metrics=...)` or a bare message list when the workflow owns the message history; return `None` only when an SDK integration or custom `SampleSource` registers the sample on the active `RolloutContext`. `AgentWorkflowOutput` rejects unknown top-level fields and non-finite metric values.
 - Policy model calls inside `AgentWorkflow.run` must route through the active Osmosis rollout context, usually via one `OsmosisStrandsAgent` or one `OsmosisAgent` with `OsmosisMemorySession()`. Do not call provider SDKs directly with a fixed policy model from the workflow.
 - Tools should have type hints and docstrings. Prefer async tools; wrap blocking sync work so the rollout server event loop is not blocked.
@@ -82,6 +83,17 @@ osmosis --json template apply multiply-local-strands
 
 - Config-specific rules live in `configs/AGENTS.md`.
 - Never put secret values in TOML. The `[secrets]` section must contain a `required` list of platform secret record names that the platform resolves server-side and injects as environment variables with the same names. Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs. Training configs may omit `[secrets]`, but any `[secrets]` section must include `required`. Create records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates workspace-shared secrets.
+- Benchmark credential fields contain Platform secret record names. A provider or endpoint model's `[agents.model].api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`, and cannot be `HF_TOKEN`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`; the Daytona and SkyPilot names are Platform-managed sandbox plumbing.
+- Before editing a benchmark config, use `osmosis --json benchmark list` and `osmosis --json benchmark info <key>` to verify the benchmark's key and name, task sets, categories, harness and judge requirements, full task manifest, and `required_secret_names`. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, and agents must never infer one. `required_secret_names` contains implicit required secret record names only; ensure every listed record exists with `osmosis secret set NAME`.
+- `[experiment].benchmark` accepts a benchmark's key, name, or ID, all exact and case-sensitive. `benchmark list` prints the key and the name.
+- A Harbor registry benchmark's task list pages in after it is added. `osmosis --json benchmark list` reports `sync_status`; submitting against anything other than `ready` fails. A `failed` entry carries a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from that page in the Platform.
+- When `benchmark info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it for comparable results, and say so before proposing another.
+- `cursor-cli` and `mini-swe-agent` require per-agent `harness_api_key_secret`. Set it to `CURSOR_API_KEY` or `MSWEA_API_KEY` respectively; any other value is rejected. Those names cannot also appear in top-level `[env]` or the corresponding agent's `[agents.env]`. Omit `harness_api_key_secret` for harnesses that do not require separate authentication.
+- HLE and GDPVal require `[execution].judge_api_key_secret`; create the named record with `osmosis secret set <NAME>`. `judge_model` is optional and defaults to the benchmark's judge. Non-judge benchmarks must omit both fields, and a judge secret name cannot appear in top-level `[env]` or any `[agents.env]`.
+- Prefer one benchmark task selector. `task_set = "parity"` takes precedence over `task_names` and `categories`; remove ignored selectors, prefer explicit `task_names` for bounded runs, and verify category scope separately before approval.
+- Before submitting Humanity's Last Exam (HLE), recommend `[tasks] task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
+- A run ranks on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); subset runs never rank.
+- HLE is one example: its `required_secret_names` includes the implicit Platform record `HF_TOKEN`; create it with `osmosis secret set HF_TOKEN`. `HF_TOKEN` is reserved in literal env for every benchmark and cannot appear in top-level `[env]` or any `[agents.env]`.
 - Env var names must be uppercase-style keys, cannot overlap between env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## Models
@@ -98,6 +110,7 @@ Detailed workflow guidance lives in project-local Agent Skills under `.agents/sk
 | `plan-training` | Turn a vague task into a concrete local training plan. |
 | `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial evaluation configs. |
 | `evaluate-rollouts` | Run evaluation runs, compare results, and iterate with data. |
+| `run-benchmarks` | Configure and submit managed benchmark runs. |
 | `debug-rollouts` | Diagnose rollout, grader, config, dataset, or preflight failures. |
 | `submit-training` | Prepare a training run config and submit it safely. |
 | `deploy-models` | Deploy or undeploy LoRA models and query their inference endpoints. |
@@ -110,7 +123,7 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 
 - Command examples in this guide use `osmosis --json ...` because this file is written for AI agents and automation, where structured output is the default expectation (use `osmosis --plain ...` for low-noise text).
 - Humans running these commands interactively can drop `--json` to get the default rich output.
-- Commands that ask for confirmation (`dataset upload`, `eval submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`train submit`), pass `--yes` only after the user has explicitly confirmed.
+- Commands that ask for confirmation (`dataset upload`, `eval submit`, `benchmark submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`benchmark submit`, `train submit`), pass `--yes` only after the user has explicitly confirmed.
 
 ## Common Commands
 
@@ -125,6 +138,14 @@ osmosis --json secret list
 osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval logs <eval-name>
 osmosis --json eval stop <eval-name> --yes
+osmosis --json benchmark list
+osmosis --json benchmark info <benchmark-key>
+osmosis --json benchmark submit configs/benchmark/<name>.toml --yes
+osmosis --json benchmark runs list
+osmosis --json benchmark runs info <run-name>
+osmosis --json benchmark runs logs <run-name>
+osmosis --json benchmark runs stop <run-name> --yes
+osmosis --json benchmark runs download <run-name> --type all --yes
 osmosis --json dataset logs <dataset-name>
 osmosis --json train submit configs/training/<name>.toml --yes
 osmosis --json train list

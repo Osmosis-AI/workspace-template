@@ -40,7 +40,7 @@ osmosis --json dataset preview <dataset-name> --rows 5
 osmosis --json dataset download <dataset-name> -o data/<dataset-name>.jsonl
 ```
 
-For first uploads, run `osmosis --json dataset upload data/<name>.jsonl --yes`. Confirm status is `uploaded`, required columns exist, `ground_truth` matches `Grader.grade(ctx.label)`, and prompts match `AgentWorkflow.run(ctx.prompt)`. Re-run the evaluation run when parity is uncertain.
+For first uploads, run `osmosis --json dataset upload data/<name>.jsonl --yes`. Confirm status is `uploaded` and every row follows the selected schema. In prompt mode, verify `ground_truth` matches `Grader.grade(ctx.label)` and prompts match `AgentWorkflow.run(ctx.prompt)`; in metadata mode, verify the workflow and grader consume `ctx.metadata`. Re-run the evaluation run when parity is uncertain.
 
 ### C. Git push & source pin
 
