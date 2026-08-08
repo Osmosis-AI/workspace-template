@@ -16,10 +16,9 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 5. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
 6. Set `[experiment].benchmark` to the benchmark's key, name, or ID. All three are exact and case-sensitive.
 7. Before an HLE submission, recommend `[tasks].task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
-8. Env var names cannot start with `_OSMOSIS_`. A gated benchmark's dataset credential is platform infrastructure; a run never supplies it, so no config names it.
-9. Match the `[execution]` judge fields to `requires_judge_model` and `requires_judge_api_key` from step 4. Both true: `judge_api_key_secret` is required, and `judge_model` may be omitted to use the benchmark default. Only `requires_judge_api_key`: `judge_api_key_secret` is required and `judge_model` is rejected. Both false: each field is rejected. Create the record with `osmosis secret set <NAME>`.
-10. Configure at least one `[[agents]]` entry and its `[agents.model]` table; a run supports at most 8 agents. If an agent's harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
-11. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
+8. Match the `[execution]` judge fields to `requires_judge_model` and `requires_judge_api_key` from step 4. Both true: `judge_api_key_secret` is required, and `judge_model` may be omitted to use the benchmark default. Only `requires_judge_api_key`: `judge_api_key_secret` is required and `judge_model` is rejected. Both false: each field is rejected. Create the record with `osmosis secret set <NAME>`.
+9. Configure at least one `[[agents]]` entry and its `[agents.model]` table; a run supports at most 8 agents. If an agent's harness requires separate authentication, set the per-agent `harness_api_key_secret` described below.
+10. Create every referenced secret record with `osmosis secret set <NAME>`; never write secret values into TOML.
 
 ## Task selection
 
@@ -50,7 +49,7 @@ Use managed benchmarks to compare agent harness and model combinations on a work
 - Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. Those are Platform-managed sandbox plumbing; choose another Platform record name for model credentials.
 - A `judge_api_key_secret` name, or any secret named in `[verifier].required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
 - Do not define `CURSOR_API_KEY` or `MSWEA_API_KEY` in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved harness secret record owns that variable.
-- A gated benchmark's dataset credential is platform infrastructure; a run never supplies it, so no config names it. An agent may still set its own `HF_TOKEN` in `[env]` or `[agents.env]` for pulling models or datasets of its own during a task.
+- Env var names must be uppercase-style keys, cannot overlap between the env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## Submit
 
