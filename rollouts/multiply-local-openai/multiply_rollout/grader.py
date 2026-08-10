@@ -1,17 +1,18 @@
 import logging
 from typing import Any
 
-from multiply_rollout.utils import extract_solution
 from osmosis_ai.rollout.context import GraderContext
 from osmosis_ai.rollout.grader import Grader
 from osmosis_ai.rollout.types import GraderConfig
+
+from multiply_rollout.utils import extract_solution
 
 logger = logging.getLogger(__name__)
 
 
 class MultiplyGraderConfig(GraderConfig):
     name: str = "MultiplyOpenAIAgentsGrader"
-    description: str = "Grades multiplication rollouts using OpenAI Agents"
+    description: str | None = "Grades multiplication rollouts using OpenAI Agents"
 
 
 multiply_grader_config = MultiplyGraderConfig()
@@ -20,6 +21,8 @@ multiply_grader_config = MultiplyGraderConfig()
 class MultiplyGrader(Grader):
     def compute_reward(self, solution_str: str, ground_truth: str) -> float:
         extracted = extract_solution(solution_str)
+        if extracted is None:
+            return 0.0
         try:
             sol_val = float(extracted)
             gt_val = float(ground_truth)
@@ -31,16 +34,15 @@ class MultiplyGrader(Grader):
         return 0.0
 
     async def grade(self, ctx: GraderContext) -> None:
-        samples = ctx.get_samples()
-        if "multiply" not in samples:
-            for sample_id in samples:
-                ctx.set_sample_reward(sample_id, 0.0)
-            return
+        sample = ctx.sample
+        if sample is None:
+            raise ValueError("No rollout sample to grade")
 
-        last_message = samples["multiply"].messages[-1]
-        content = last_message.get("content", "")
+        content: Any = ""
+        if sample.messages:
+            content = sample.messages[-1].get("content", "")
         reward = self.compute_reward(_extract_text(content), ctx.label or "")
-        ctx.set_sample_reward("multiply", reward)
+        ctx.set_reward(reward)
         logger.info("[MultiplyGrader] reward = %.1f", reward)
 
 

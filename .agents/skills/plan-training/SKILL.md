@@ -5,7 +5,7 @@ description: Use when an Osmosis task idea, dataset, or training goal is not set
 
 # Plan Training
 
-Anchor the plan on the dataset. The row shape (`system_prompt`, `user_prompt`, `ground_truth`) is the contract for rollout, grader, evaluation, and training.
+Anchor the plan on the dataset. Choose one contract for the whole file: metadata mode (`metadata` is a non-empty JSON object in every row) or prompt mode (`user_prompt` + `ground_truth`, with optional `system_prompt`).
 
 ## First checks
 
@@ -21,9 +21,9 @@ Before writing any rollout code, settle the dataset. Ask the user which case app
 1. **Local sample file already on disk**
    - Place it at `data/<name>.jsonl` (or `.csv` / `.parquet`).
    - Run `osmosis --json dataset validate <path>` and inspect `warnings`.
-   - If validation fails because the source schema differs from Osmosis' expected row shape, inspect 5-10 rows and ask the user to confirm the intended field mapping.
+   - If validation fails because the source schema differs from the two supported modes, inspect 5-10 rows and ask the user to confirm the intended field mapping.
    - When the source has enough information, create one normalized dataset copy under `data/<name>.jsonl` with the expected columns, preserve the original file, then validate and inspect the normalized copy before continuing.
-   - Read 5-10 normalized rows to confirm every row has non-empty string `system_prompt`, `user_prompt`, and `ground_truth`, and note the actual `ground_truth` format (numeric string? JSON? free text?).
+   - Read 5-10 normalized rows. For metadata mode, confirm every row has a non-empty JSON object; for prompt mode, confirm `user_prompt` and `ground_truth` exist and note the actual `ground_truth` format. `system_prompt` is optional.
 
 2. **Already uploaded to the Osmosis platform**
    - List with `osmosis --json dataset list` and confirm the name is in the active workspace.
@@ -35,7 +35,7 @@ Before writing any rollout code, settle the dataset. Ask the user which case app
    - Read 5-10 rows and verify local schema parity before designing rollout or grader logic.
 
 3. **No sample data yet**
-   - Discuss the use case with the user before generating anything: input shape (what goes in `system_prompt` / `user_prompt`), success criterion (what `ground_truth` should encode), tools the agent will call.
+   - Discuss the use case with the user before generating anything: whether rows are metadata-driven or prompt-driven, the success criterion, and the tools the agent will call.
    - Generate 5-20 rows in `data/<name>.jsonl` matching the required schema.
    - Run `osmosis --json dataset validate data/<name>.jsonl` and inspect any JSON `warnings`.
 

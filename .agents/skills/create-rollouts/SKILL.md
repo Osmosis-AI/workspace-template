@@ -11,7 +11,7 @@ Create the smallest rollout that can load, submit an evaluation run, and later s
 
 1. Read `AGENTS.md` and `configs/AGENTS.md` if present.
 2. Run `osmosis --json doctor`. If scaffold paths are missing, ask before running `osmosis --json doctor --fix`.
-3. Confirm the local source dataset exists with valid `system_prompt` / `user_prompt` / `ground_truth` rows. If not, run `plan-training` first.
+3. Confirm the local source dataset consistently uses metadata mode or prompt mode. If not, run `plan-training` first.
 4. Pick a rollout name matching `^[a-z][a-z0-9-]*$` (lowercase letters, digits, hyphens; starts with a letter) and not `default`.
 5. Treat `osmosis --json rollout init <name>`, SDK templates, and generated files as source of truth if a hand-written skeleton differs.
 
@@ -21,7 +21,7 @@ For a blank rollout, start with `osmosis --json rollout init <name>`; it usually
 
 Do not reapply default TOML after `rollout init`. Use `configs/eval/default.toml`, `configs/training/default.toml`, or the skill fallback TOMLs only when repairing missing configs or creating configs without `rollout init`.
 
-For worked examples, run `osmosis --json template list` and apply a local template such as `multiply-local-strands` or `multiply-local-openai`, then adapt it to the dataset.
+For worked examples, run `osmosis --json template list` and apply a template such as `multiply-local-strands`, `multiply-local-openai`, or `multiply-harbor-strands`, then adapt it to the dataset.
 
 Read `references/entrypoint-patterns.md` only when hand-writing or substantially rewriting the configured entrypoint, or when the server/sample-source pattern is failing.
 
@@ -31,12 +31,15 @@ Read `references/entrypoint-patterns.md` only when hand-writing or substantially
 - Default new scaffolds to `main.py`, but preserve and honor any explicit `entrypoint` already named in evaluation or training configs.
 - Expose exactly one concrete `AgentWorkflow`.
 - Expose exactly one concrete `Grader`; evaluation configs no longer carry a separate `[grader]` section.
-- The workflow's `run` receives `ctx.prompt`, a list of system/user messages converted from the dataset's `system_prompt` + `user_prompt` columns.
-- The workflow must register at least one sample source, either through an SDK integration (`OsmosisStrandsAgent`, `OsmosisAgent` + `OsmosisMemorySession`) or by calling `get_rollout_context().register_sample_source(...)`.
+- The workflow's `run` receives `ctx.prompt`, built from any prompt columns present. `system_prompt` is optional, and metadata-only rows may produce an empty prompt list.
+- The workflow must produce one sample. Return `AgentWorkflowOutput(messages=..., metrics=...)` or a bare message list when the workflow owns the history. Return `None` only after an SDK integration (`OsmosisStrandsAgent`, `OsmosisAgent` + `OsmosisMemorySession`) or custom `get_rollout_context().set_sample_source(...)` call registers exactly one fallback source.
+- Keep `AgentWorkflowOutput.metrics` finite and numeric; unknown top-level output fields and `NaN`/infinite metrics are rejected by both Local and Harbor/container execution.
 - Policy model calls inside `AgentWorkflow.run` must route through the active rollout context. Do not call `litellm`, the OpenAI SDK, or another provider SDK directly with a fixed policy model from the workflow.
-- The grader implements async `grade(ctx)`, reads `ctx.label` as the dataset `ground_truth`, and assigns every sample a reward with `ctx.set_sample_reward(sample_id, reward)`.
+- The grader implements async `grade(ctx)`, reads the rollout's single sample from `ctx.sample`, and assigns its reward with `ctx.set_reward(reward)`. In prompt mode, `ctx.label` is the dataset `ground_truth`; metadata-mode graders may instead use `ctx.metadata`.
 - Keep tools as async Python functions with type hints and docstrings.
 - Keep the grader explicit, partial-credit friendly, and easy to inspect.
+- For Harbor isolation, mirror `multiply-harbor-strands`: import `HarborBackend` from `osmosis_ai.rollout.backend.harbor`; pass `tasks_dir=`, `task_mode=`, and `agent=`; point `code_dir=` at the project root containing `pyproject.toml` when needed; and use `backend.prewarm_lifespan()`. Do not use `HarborBackendV2` or the removed `task_dir=`, `user_code_dir=`, and `workflow=` Harbor arguments.
+- Keep Harbor task Dockerfiles task-only. The backend bundles the rollout project and installs it in the task container, so do not copy the workspace or install the rollout SDK manually in the task image.
 
 ## Validation
 

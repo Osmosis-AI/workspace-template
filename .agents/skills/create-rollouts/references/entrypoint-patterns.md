@@ -17,8 +17,8 @@ from osmosis_ai.rollout import (
     Grader,
     GraderContext,
     LocalBackend,
-    create_rollout_server,
 )
+from osmosis_ai.rollout.server import create_rollout_server
 
 
 class MyWorkflow(AgentWorkflow):
@@ -28,30 +28,83 @@ class MyWorkflow(AgentWorkflow):
 
 class MyGrader(Grader):
     async def grade(self, ctx: GraderContext) -> None:
-        for sample_id in ctx.get_samples():
-            ctx.set_sample_reward(sample_id, 0.0)
+        ctx.set_reward(0.0)
 
 
 def main() -> None:
     backend = LocalBackend(workflow=MyWorkflow, grader=MyGrader)
     app = create_rollout_server(backend=backend)
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000")))
+    uvicorn.run(
+        app, host="0.0.0.0", port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000"))
+    )
 
 
 if __name__ == "__main__":
     main()
 ```
 
+## Harbor Skeleton
+
+Use this pattern only when the rollout needs Harbor task isolation. Keep the workflow and grader in an importable package under the rollout project.
+
+```python
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import uvicorn
+from harbor.models.environment_type import EnvironmentType
+from harbor.models.trial.config import EnvironmentConfig
+from harbor.trial.queue import TrialQueue
+
+from my_rollout.grader import MyGrader
+from my_rollout.workflow import MyWorkflow
+from osmosis_ai.rollout.backend.harbor import HarborBackend
+from osmosis_ai.rollout.server import create_rollout_server
+
+ROLLOUT_DIR = Path(__file__).resolve().parent
+
+
+def main() -> None:
+    backend = HarborBackend(
+        orchestrator=TrialQueue(n_concurrent=4),
+        tasks_dir=ROLLOUT_DIR / "task",
+        task_mode="template",
+        agent=MyWorkflow,
+        grader=MyGrader,
+        code_dir=ROLLOUT_DIR,
+        environment_config=EnvironmentConfig(type=EnvironmentType.SKYPILOT),
+    )
+    app = create_rollout_server(
+        backend=backend,
+        lifespan=backend.prewarm_lifespan(),
+    )
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.environ.get("_OSMOSIS_ROLLOUT_PORT", "8000")),
+    )
+
+
+if __name__ == "__main__":
+    main()
+```
+
+The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside the task container. Keep `task/environment/Dockerfile` limited to task dependencies. `HarborBackendV2` and the old `task_dir=`, `user_code_dir=`, and `workflow=` arguments do not exist.
+
 ## Integration Rules
 
-- Strands: construct `OsmosisStrandsAgent` inside `AgentWorkflow.run`, pass `messages=ctx.prompt`, use `OsmosisRolloutModel(params={...})`, and call `await agent.invoke_async()`.
-- OpenAI Agents: construct `OsmosisAgent` inside `run`, use `OsmosisRolloutModel()`, create an `OsmosisMemorySession` inside `run`, and pass `session=session` to `Runner.run`.
-- Custom integrations: register a sample source with `get_rollout_context().register_sample_source(...)` before the workflow finishes.
+- Install the feature extras used by the rollout: `server` for `create_rollout_server`, plus `strands`, `openai-agents`, or `harbor` when those modules are imported.
+- Strands: import from `osmosis_ai.rollout.integrations.agents.strands`, construct `OsmosisStrandsAgent` inside `AgentWorkflow.run`, pass `messages=ctx.prompt`, use `OsmosisRolloutModel(params={...})`, call `await agent.invoke_async()`, and return `None` so the backend collects the registered sample.
+- OpenAI Agents: import from `osmosis_ai.rollout.integrations.agents.openai_agents`, construct `OsmosisAgent` inside `run`, use `OsmosisRolloutModel()`, create exactly one `OsmosisMemorySession()` inside `run`, pass `session=session` to `Runner.run`, and return `None`.
+- Custom integrations: either return `AgentWorkflowOutput(messages=..., metrics=...)` (or a bare message list), or register exactly one sample source with `get_rollout_context().set_sample_source(...)` and return `None`.
+- `AgentWorkflowOutput` rejects unknown top-level fields and non-finite metric values.
 - Do not call a fixed policy model directly from `run`; provider SDK calls bypass the active rollout context and break sample/reward linkage.
 
 ## Grader Rules
 
-- Iterate real sample IDs from `ctx.get_samples()` or `ctx.samples.items()`.
+- Read the rollout's single sample from `ctx.sample`.
 - Parse `ctx.label` according to the dataset's actual `ground_truth` format.
-- Call `ctx.set_sample_reward(sample_id, reward)` for every sample.
+- Call `ctx.set_reward(reward)` to assign the sample's scalar reward.
 - Keep rewards numeric and task-scaled, normally `[0.0, 1.0]`.

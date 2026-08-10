@@ -1,10 +1,5 @@
 from typing import Any
 
-from strands.agent.agent_result import AgentResult
-from strands.models.model import Model
-
-from multiply_rollout.tools import multiply_tool
-from multiply_rollout.utils import extract_solution
 from osmosis_ai.rollout.agent_workflow import AgentWorkflow
 from osmosis_ai.rollout.context import AgentWorkflowContext
 from osmosis_ai.rollout.integrations.agents.strands import OsmosisRolloutModel
@@ -12,11 +7,16 @@ from osmosis_ai.rollout.integrations.agents.strands import (
     OsmosisStrandsAgent as StrandsAgent,
 )
 from osmosis_ai.rollout.types import AgentWorkflowConfig
+from strands.agent.agent_result import AgentResult
+from strands.models.model import Model
+
+from multiply_rollout.tools import multiply_tool
+from multiply_rollout.utils import extract_solution
 
 
 class MultiplyAgentWorkflowConfig(AgentWorkflowConfig):
     name: str = "MultiplyAgentWorkflow"
-    description: str = "Multiply two numbers using Strands"
+    description: str | None = "Multiply two numbers using Strands"
     model: Model
     tools: Any
 
@@ -49,6 +49,9 @@ class MultiplyWorkflow(AgentWorkflow):
 
     async def run(self, ctx: AgentWorkflowContext) -> None:
         config = ctx.config
+        if config is None:
+            raise ValueError("MultiplyWorkflow requires a workflow config")
+
         agent = StrandsAgent(
             name="multiply",
             model=config.model,

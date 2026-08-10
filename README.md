@@ -28,6 +28,7 @@ For AI agents or automation, prefer `osmosis --json ...` for structured output o
 repository/
 ├── rollouts/            # AgentWorkflow + Grader code
 ├── configs/
+│   ├── benchmark/       # Managed benchmark run configs
 │   ├── eval/            # Evaluation run configs
 │   └── training/        # Training run configs
 ├── data/                # Local dataset files for upload
@@ -36,7 +37,7 @@ repository/
 └── pyproject.toml       # Workspace Python package
 ```
 
-The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Keep rollout code and configs in those canonical paths so evaluation run and training run submissions can discover them.
+The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Benchmark configs submitted through the CLI must live under `configs/benchmark/`. Keep code and configs in their canonical paths so submissions can discover them.
 
 ## Run the Starter Example
 
@@ -74,7 +75,9 @@ git push
 osmosis eval submit configs/eval/multiply-local-strands.toml
 ```
 
-Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Route policy model calls through Osmosis-supported integrations such as `OsmosisStrandsAgent` or `OsmosisAgent` so evaluation runs and training runs can collect samples and attach rewards.
+Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Each `AgentWorkflow.run()` must produce one sample, either by returning `AgentWorkflowOutput` or a bare message list, or by returning `None` after an Osmosis-supported integration such as `OsmosisStrandsAgent` or `OsmosisAgent` registers the sample source. The grader assigns that sample one reward.
+
+The Harbor starter uses the SDK v0.3 `HarborBackend`: it packages the rollout project as a wheel, keeps the task Dockerfile limited to task dependencies, and prewarms the task before serving rollouts.
 
 ## Configs and Data
 
@@ -90,6 +93,68 @@ Push rollout code and configs, then submit evals with:
 git push
 osmosis eval submit configs/eval/<name>.toml
 ```
+
+Managed benchmark configs live in `configs/benchmark/*.toml`. Benchmarks are added to a workspace from the Platform's Benchmarks page; `benchmark list` shows what the current workspace can run. Start from the included default, then set the workspace benchmark name and agent model:
+
+```bash
+osmosis benchmark list
+osmosis benchmark info <benchmark-key>
+cp configs/benchmark/default.toml configs/benchmark/<name>.toml
+```
+
+`benchmark info` shows the benchmark's key and workspace name, available task sets, categories, harness and judge requirements, the default harness its published scores were measured on and pass threshold, followed by the benchmark's leaderboard and the workspace's runs on it. Set `[experiment].benchmark` to the benchmark's key, name, or ID. Use `osmosis --json benchmark info <benchmark-key>` to inspect the complete task manifest before selecting `task_names` or `categories`. Every task has a `difficulty` value of `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. Omit `[tasks]` to run the full benchmark.
+
+Before submitting Humanity's Last Exam (HLE), we recommend selecting its parity task set so your result is comparable with published HLE scores:
+
+```toml
+[tasks]
+task_set = "parity"
+```
+
+`task_set = "parity"` takes precedence over `task_names` and `categories`, so do not combine these selectors. Full HLE runs and custom task selections remain supported. A run appears on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); other subset runs never rank.
+
+The `LLM Judge` row of `benchmark info` says which judge fields apply. HLE and GDPVal read `Required (default: <model>)` and need `[execution].judge_api_key_secret`, with `judge_model` optional and using the benchmark default when omitted. BrowseComp reads `API key only (pinned grader)`: its adapter pins the grader, so it needs `judge_api_key_secret` and rejects `judge_model`. Because the pinned grader is an OpenAI model, BrowseComp's `judge_api_key_secret` must hold an OpenAI key. A `–` row rejects both. Create the referenced Platform secret record before submission:
+
+```bash
+osmosis secret set <judge-secret-name>
+```
+
+```toml
+[execution]
+judge_api_key_secret = "<judge-secret-name>"
+# judge_model = "<provider/model>" # Optional; omit for the benchmark default.
+```
+
+Submit the reviewed config with:
+
+```bash
+osmosis benchmark submit configs/benchmark/<name>.toml
+```
+
+Manage the resulting run by name with the `benchmark runs` commands:
+
+```bash
+osmosis benchmark runs list
+osmosis benchmark runs info <run-name>
+osmosis benchmark runs logs <run-name>
+osmosis benchmark runs stop <run-name>
+osmosis benchmark runs download <run-name>
+```
+
+A Harbor registry benchmark's task list pages in from the registry after it is added. In the `benchmark list` table, sync state renders in the Last Run cell (`Queued · Waiting to start`, `Syncing · 12 / 89 tasks`, `Failed · <error>`), and the Tasks column shows `–` while syncing and `unavailable` on failure; `osmosis --json benchmark list` reports the `sync_status` and `sync_error` fields. Submitting before the benchmark is `ready` fails. A failed benchmark's `platform_url` opens its page; retry the sync from that page in the Platform.
+
+`benchmark runs stop` applies only to pending, queued, or running runs.
+
+`benchmark runs download` accepts `summary`, `results`, `artifacts`, `logs`, or `all`; the default is `summary,results`. Downloads use this fixed layout under `.osmosis/benchmarks/<run-name>/`:
+
+```text
+summary.csv
+results.csv
+logs.txt
+artifacts/<result-id>/<path>
+```
+
+Pending and queued runs do not have downloadable outputs. Downloads from a running run are snapshots; use `--overwrite` to refresh existing files.
 
 Upload local JSONL, CSV, or Parquet datasets when you are ready to train:
 
@@ -133,6 +198,7 @@ This workspace includes project-local Agent Skills in `.agents/skills/`:
 - `plan-eval`
 - `create-rollouts`
 - `evaluate-rollouts`
+- `run-benchmarks`
 - `debug-rollouts`
 - `submit-training`
 - `submit-eval`

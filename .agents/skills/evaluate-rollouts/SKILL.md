@@ -56,8 +56,8 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 
 ## Dataset rules
 
-- Local source datasets and platform datasets should share the Osmosis row shape: `system_prompt`, `user_prompt`, `ground_truth`.
-- `ctx.prompt` is derived from `system_prompt` + `user_prompt`; `ctx.label` is the `ground_truth` string passed to `Grader.grade`.
+- Local source datasets and platform datasets must use one schema throughout: metadata mode (`metadata` is non-empty on every row) or prompt mode (`user_prompt` + `ground_truth`, with optional `system_prompt`).
+- In prompt mode, `ctx.prompt` is derived from the prompt columns and `ctx.label` is the `ground_truth` string passed to `Grader.grade`. In metadata mode, inspect `ctx.metadata` and do not assume prompt or label fields exist.
 - Prefer real or user-approved examples.
 - Add failure cases that exercise the grader and common user mistakes.
 - When local data changes, upload or replace the platform dataset before treating an evaluation run as representative.
