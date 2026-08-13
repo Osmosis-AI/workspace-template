@@ -112,10 +112,10 @@ Detailed workflow guidance lives in project-local Agent Skills under `.agents/sk
 | `plan-eval` | Turn an evaluation goal into a concrete evaluation plan. |
 | `create-rollouts` | Create or adapt rollouts, graders, entrypoints, and initial evaluation configs. |
 | `evaluate-rollouts` | Smoke-test evaluation runs, compare results, and iterate with data. |
-| `run-benchmarks` | Configure and submit managed benchmark runs. |
 | `debug-rollouts` | Diagnose rollout, grader, config, dataset, or preflight failures. |
 | `submit-training` | Prepare a training run config and submit it safely. |
 | `submit-eval` | Prepare a full evaluation run config and submit it safely. |
+| `submit-benchmarks` | Configure and submit benchmark runs. |
 | `deploy-models` | Deploy or undeploy LoRA models and query their inference endpoints. |
 
 Some skills include `references/` files for fallback config templates and entrypoint patterns. Use those only when the workspace scaffold or local defaults are missing or when a skill explicitly tells you to read them.

@@ -27,7 +27,7 @@ Read the target `configs/eval/<name>.toml` and confirm:
 - `model_path` is the LiteLLM-style name of the model actually under test.
 - `[evaluation].limit` is commented out or removed; the formal run covers the whole dataset.
 - The rest of `[evaluation]` stays commented unless the user deliberately wants an override (`n` for repeated attempts, `pass_threshold` for the pass bar).
-- `[secrets].required` lists every platform secret record the rollout needs; verify each exists with `osmosis --json secret list`.
+- Every name in `[secrets].required` resolves at submit from `--secrets-file <path|->`, the environment, an interactive prompt, or a stored record, first hit wins; confirm each name has a route, checking stored records with `osmosis --json secret list`. A value supplied at submit is never saved, so a rerun must supply it again.
 
 ### B. Platform dataset gate
 

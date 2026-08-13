@@ -14,7 +14,7 @@ Submit only after every gate below is green.
 ## First checks
 
 1. Read `AGENTS.md` and `configs/AGENTS.md` if present.
-2. Confirm there is a working rollout, an evaluation config, and a recorded evaluation run result in `.osmosis/research/`.
+2. Confirm there is a working rollout, an evaluation config, and a passing full-size evaluation run on the platform.
 
 ## Pre-submit gates (run in order)
 
@@ -23,11 +23,18 @@ Submit only after every gate below is green.
 ```bash
 osmosis --json doctor
 pip install -e rollouts/<name>
-osmosis --json eval submit configs/eval/<name>.toml --yes
-osmosis --json eval info <eval-name-from-submit>
+osmosis --json eval list
+osmosis --json eval info <eval-name>
 ```
 
-For a quick smoke test, set `[evaluation].limit = 1` in the evaluation config before submitting. Then run the full evaluation by removing the temporary limit override; every sample must receive a reward and meet any threshold in `.osmosis/research/program.md`.
+A full-size evaluation run must already have passed on the revision being submitted. Find the run with `eval list`, inspect it with `eval info`, and confirm:
+
+- It covered the whole dataset — no `[evaluation].limit` override.
+- Every sample received a reward.
+- The score meets the success criterion, taken from `.osmosis/research/program.md` when present. That directory is gitignored and empty on a fresh clone, so the platform run is the authority.
+- Its pinned commit matches the revision Gate C pins. A rollout, grader, dataset, or config change since that run makes it stale.
+
+If no qualifying run exists, or it is stale, stop and route the user to the `submit-eval` skill.
 
 ### B. Platform dataset gate
 
@@ -40,7 +47,7 @@ osmosis --json dataset preview <dataset-name> --rows 5
 osmosis --json dataset download <dataset-name> -o data/<dataset-name>.jsonl
 ```
 
-For first uploads, run `osmosis --json dataset upload data/<name>.jsonl --yes`. Confirm status is `uploaded` and every row follows the selected schema. In prompt mode, verify `ground_truth` matches `Grader.grade(ctx.label)` and prompts match `AgentWorkflow.run(ctx.prompt)`; in metadata mode, verify the workflow and grader consume `ctx.metadata`. Re-run the evaluation run when parity is uncertain.
+For first uploads, run `osmosis --json dataset upload data/<name>.jsonl --yes`. Confirm status is `uploaded` and every row follows the selected schema. In prompt mode, verify `ground_truth` matches `Grader.grade(ctx.label)` and prompts match `AgentWorkflow.run(ctx.prompt)`; in metadata mode, verify the workflow and grader consume `ctx.metadata`. Route back to `submit-eval` for a fresh evaluation run when parity is uncertain.
 
 ### C. Git push & source pin
 
@@ -59,7 +66,7 @@ osmosis --json train submit configs/training/<run>.toml --yes
 osmosis --json train info <run-name>
 ```
 
-`osmosis --json train submit configs/training/<run>.toml --yes` performs the training-run preflight checks and, if they pass, submits the run. If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying.
+`osmosis --json train submit configs/training/<run>.toml --yes` performs the training-run preflight checks and, if they pass, submits the run. If any gate is missing or failing, route to `submit-eval` for a missing or stale evaluation run, or to `evaluate-rollouts` or `debug-rollouts`, before retrying.
 
 Find run names with `osmosis --json train list`. If a run fails or crashes, inspect `osmosis --json train logs <run-name>`. Stop an in-progress run with `osmosis --json train stop <run-name> --yes` — only after the user explicitly asks. `train info -o <path>` exports the run's metrics JSON.
 

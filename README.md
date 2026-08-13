@@ -198,10 +198,10 @@ This workspace includes project-local Agent Skills in `.agents/skills/`:
 - `plan-eval`
 - `create-rollouts`
 - `evaluate-rollouts`
-- `run-benchmarks`
 - `debug-rollouts`
 - `submit-training`
 - `submit-eval`
+- `submit-benchmarks`
 - `deploy-models`
 
 `AGENTS.md` contains the always-loaded workspace contract. `CLAUDE.md` imports that contract for Claude Code, and `.claude/skills/<skill-name>` symlinks expose the same skills while pointing back to the canonical `.agents` directories.
