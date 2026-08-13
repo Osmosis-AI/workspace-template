@@ -1,6 +1,6 @@
 ---
 name: plan-training
-description: Use when an Osmosis task idea, dataset, or training goal is not settled; the user asks what to train or evaluate next; or a rollout/evaluation/training path needs planning before code changes.
+description: Use when an Osmosis task idea, dataset, or training goal is not settled; the user asks what to train next; or a rollout/training path needs planning before code changes.
 ---
 
 # Plan Training
@@ -51,6 +51,7 @@ Record the dataset decision, hypotheses, eval plan, and stop conditions in `.osm
    - no runnable rollout -> `create-rollouts`
    - runnable eval result needs improvement -> `evaluate-rollouts`
    - evaluation, config, loading, or grader fails -> `debug-rollouts`
+   - rollout and config are settled and the formal measurement is next -> `submit-eval`
    - validated evaluation run result is ready for a platform training run -> `submit-training`
 
 ## Guardrails
