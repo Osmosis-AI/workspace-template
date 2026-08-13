@@ -16,14 +16,14 @@ Anchor the plan on the number you intend to report. Settle what is being measure
 
 ## Dataset-first decision
 
-The row shape (`system_prompt`, `user_prompt`, `ground_truth`) is the contract for the rollout, the grader, and the score. Settle the dataset before shaping an evaluation config. Ask the user which case applies:
+The dataset schema is the contract for the rollout, the grader, and the score. Choose one schema for the whole file: metadata mode (`metadata` is a non-empty JSON object in every row) or prompt mode (`user_prompt` + `ground_truth`, with optional `system_prompt`). Settle the dataset before shaping an evaluation config. Ask the user which case applies:
 
 1. **Local sample file already on disk**
    - Place it at `data/<name>.jsonl` (or `.csv` / `.parquet`).
    - Run `osmosis --json dataset validate <path>` and inspect `warnings`.
    - If validation fails because the source schema differs from Osmosis' expected row shape, inspect 5-10 rows and ask the user to confirm the intended field mapping.
    - When the source has enough information, create one normalized dataset copy under `data/<name>.jsonl` with the expected columns, preserve the original file, then validate and inspect the normalized copy before continuing.
-   - Read 5-10 normalized rows to confirm every row has non-empty string `system_prompt`, `user_prompt`, and `ground_truth`, and note the actual `ground_truth` format (numeric string? JSON? free text?).
+   - Read 5-10 normalized rows. For metadata mode, confirm every row has a non-empty JSON object; for prompt mode, confirm `user_prompt` and `ground_truth` exist and note the actual `ground_truth` format (numeric string? JSON? free text?). `system_prompt` is optional.
 
 2. **Already uploaded to the Osmosis platform**
    - Confirm the name is in the active workspace and inspect what the platform actually holds:
@@ -39,7 +39,7 @@ The row shape (`system_prompt`, `user_prompt`, `ground_truth`) is the contract f
    - Use `--overwrite` only when intentionally replacing an existing local copy.
 
 3. **No sample data yet**
-   - Discuss the use case with the user before generating anything: input shape (what goes in `system_prompt` / `user_prompt`), success criterion (what `ground_truth` should encode), tools the agent will call.
+   - Discuss the use case with the user before generating anything: input shape (what goes in `user_prompt` and the optional `system_prompt`, or in `metadata`), success criterion (what `ground_truth` or the metadata should encode), tools the agent will call.
    - Generate 5-20 rows in `data/<name>.jsonl` matching the required schema.
    - Run `osmosis --json dataset validate data/<name>.jsonl` and inspect any JSON `warnings`.
 
@@ -53,7 +53,7 @@ Record the dataset decision, the model(s) under test, the success criterion, and
 2. State what the score means: the capability under test, and what counts as a pass for a single row.
 3. Fix the success criterion up front — target score or pass rate — so the run returns a verdict instead of a number.
 4. Choose the model(s) to score. `[experiment].model_path` is a LiteLLM-style model name and the platform resolves the provider endpoint from its prefix; use one evaluation config per rollout/model setup and keep the dataset identical across them so scores stay comparable.
-5. Confirm a grader exists that reads `ctx.label` in the dataset's real `ground_truth` format and can express partial credit.
+5. Confirm a grader exists that can express partial credit: in prompt mode it reads `ctx.label` in the dataset's real `ground_truth` format; in metadata mode it consumes `ctx.metadata`.
 6. Shape `configs/eval/<name>.toml` by copying `configs/eval/default.toml`; if it is missing, use `.agents/skills/evaluate-rollouts/references/eval-default.toml`. `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required; `branch` and `commit_sha` are optional and mutually exclusive; `[secrets]` must be present with a `required` list; leave `[evaluation]` values commented unless deliberately overriding platform defaults.
 7. Route execution:
    - no runnable rollout -> `create-rollouts`
