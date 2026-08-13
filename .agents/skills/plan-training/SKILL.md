@@ -51,6 +51,7 @@ Record the dataset decision, hypotheses, eval plan, and stop conditions in `.osm
    - no runnable rollout -> `create-rollouts`
    - runnable eval result needs improvement -> `evaluate-rollouts`
    - evaluation, config, loading, or grader fails -> `debug-rollouts`
+   - rollout and config are settled and the formal measurement is next -> `submit-eval`
    - validated evaluation run result is ready for a platform training run -> `submit-training`
 
 ## Guardrails
