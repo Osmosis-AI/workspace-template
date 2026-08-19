@@ -1,0 +1,64 @@
+README.md
+  s_da81c311ad5559::t_48248338c18283 65
+  s_da81c311ad5559::t_a84be99d106930 50,74,89,91-93,96-99,172,174-175,185
+.agents/skills/submit-eval/SKILL.md
+  s_da81c311ad5559::t_27510834f5c460 8,11-12,32,42,48-60,62,64-65,84-85
+  s_da81c311ad5559::t_10d86fef1ffd7f 61
+  s_da81c311ad5559::t_f42a8ddec31e4b 63
+AGENTS.md
+  s_da81c311ad5559::t_48248338c18283 49-50
+  s_da81c311ad5559::t_8bea27d3869880 51-52
+  s_da81c311ad5559::t_a84be99d106930 66,131-132,144-146
+.agents/skills/plan-eval/SKILL.md
+  s_da81c311ad5559::t_f5e685a1d78f34 57
+  s_da81c311ad5559::t_866833d0c161bd 46
+  s_da81c311ad5559::t_27510834f5c460 62,69
+.agents/skills/submit-training/SKILL.md
+  s_da81c311ad5559::t_27510834f5c460 30
+.agents/skills/evaluate-rollouts/references/eval-default.toml
+  s_da81c311ad5559::t_549c1e07a9a35c 15-16
+  s_da81c311ad5559::t_a84be99d106930 3-4
+.agents/skills/create-rollouts/SKILL.md
+  s_da81c311ad5559::t_27510834f5c460 53,56
+configs/eval/multiply-local-openai.toml
+  s_da81c311ad5559::t_53d983c682963c 16
+  s_da81c311ad5559::t_f5e685a1d78f34 15
+  s_da81c311ad5559::t_866833d0c161bd 2-3
+configs/eval/multiply-harbor-strands.toml
+  s_da81c311ad5559::t_866833d0c161bd 2-3
+  s_da81c311ad5559::t_53d983c682963c 16
+  s_da81c311ad5559::t_f5e685a1d78f34 15
+configs/eval/default.toml
+  s_da81c311ad5559::t_a84be99d106930 2-3
+  s_da81c311ad5559::t_549c1e07a9a35c 14-16
+configs/eval/multiply-local-strands.toml
+  s_da81c311ad5559::t_53d983c682963c 16
+  s_da81c311ad5559::t_f5e685a1d78f34 15
+  s_da81c311ad5559::t_866833d0c161bd 2-3
+.agents/skills/evaluate-rollouts/SKILL.md
+  s_da81c311ad5559::t_27510834f5c460 8,37,39,41-42,44,46-47,53,67-68,71,73
+  s_da81c311ad5559::t_f5e685a1d78f34 21
+  s_da81c311ad5559::t_549c1e07a9a35c 36
+.agents/skills/debug-rollouts/SKILL.md
+  s_da81c311ad5559::t_10d86fef1ffd7f 24
+  s_da81c311ad5559::t_27510834f5c460 20,25,35,42-43
+configs/AGENTS.md
+  s_da81c311ad5559::t_549c1e07a9a35c 151-152
+  s_da81c311ad5559::t_a84be99d106930 139-140,173-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bf5f54e0fce51a83357cb9a659ef16701da36492",
+  "prompts": {},
+  "sessions": {
+    "s_da81c311ad5559": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a01895-dec9-7890-9790-3a46143eac1e",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "JoyboyBrian <gzybrian@gmail.com>"
+    }
+  }
+}
