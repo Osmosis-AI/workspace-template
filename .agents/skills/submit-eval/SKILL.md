@@ -5,11 +5,11 @@ description: Use when the rollout and evaluation config are settled and the user
 
 # Submit Eval
 
-The full-size evaluation run is the measurement of record. Submit only after every gate below is green.
+The full-size evaluation run is the measurement of record. Choose local execution plus optional upload, or managed execution, then proceed only after the applicable gates below are green.
 
 - Config `dataset` is a **platform dataset name** from `osmosis --json dataset list`, not a `dataset_id` and not a `data/` path.
-- The configured `entrypoint` is a **server** cloned from Git and run during the evaluation run; it is often `main.py` but does not have to be.
-- `osmosis --json eval submit ... --yes` grades every row and costs money. Use `--yes` only after the user has explicitly confirmed submission intent.
+- `osmosis eval run` executes the configured server from local files through `LocalBackend` or local Harbor. `osmosis eval submit` clones the pushed server from Git and runs it on managed infrastructure.
+- `osmosis --json eval submit ... --yes` grades the managed selection and costs money. Use `--yes` only after the user has explicitly confirmed submission intent.
 
 ## First checks
 
@@ -29,7 +29,7 @@ Read the target `configs/eval/<name>.toml` and confirm:
 - The rest of `[evaluation]` stays commented unless the user deliberately wants an override (`n` for repeated attempts, `pass_threshold` for the pass bar).
 - Every name in `[secrets].required` resolves at submit from `--secrets-file <path|->`, the environment, a stored record, or an interactive prompt (TTY only), first hit wins; confirm each name has a route, checking stored records with `osmosis --json secret list`. A value supplied at submit is never saved, so a rerun must supply it again.
 
-### B. Platform dataset gate
+### B. Dataset gate
 
 ```bash
 osmosis --json dataset list
@@ -39,13 +39,30 @@ osmosis --json dataset preview <dataset-name> --rows 5
 
 Confirm status is `uploaded`, required columns exist, `ground_truth` matches `Grader.grade(ctx.label)`, and prompts match `AgentWorkflow.run(ctx.prompt)`. If the local source data changed during iteration, upload or replace the platform dataset before treating the run as the measurement of record.
 
-### C. Git push & source pin
+### C. Managed-only Git push & source pin
 
 `osmosis --json eval submit` reads the config from disk but fetches rollout code from the connected Git repository. Local edits that are not pushed are ignored.
 
 Commit and push the intended revision, config included. Set `branch` to pin to a branch or `commit_sha` to pin to the exact commit being measured; the two fields are mutually exclusive, and omitting both uses the connected repository's default branch. A pinned commit is what makes the reported score reproducible. Treat dirty/ahead/no-upstream warnings as blockers until the user explicitly accepts them.
 
-## Submit
+## Run locally and optionally upload
+
+```bash
+osmosis --json eval run configs/eval/<name>.toml
+osmosis --json eval run configs/eval/<name>.toml --upload
+```
+
+The default run directory is `.osmosis/evals/<run-name>/`. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded. To publish an already-completed run later, use the exact run directory:
+
+```bash
+osmosis --json eval upload .osmosis/evals/<run-name>/
+```
+
+`eval upload` has no confirmation and no extra flags. It requires workspace authentication/context and a compatible directory containing `manifest.json`, `index.jsonl`, `progress.json`, and `metrics.json`. Re-running it after interruption is safe: the server returns the same platform run and the CLI uploads only files missing there.
+
+The upload includes `index.jsonl`, `progress.json`, canonical referenced `trajectory*.json` files, and safe artifacts for selected rollout IDs. It keeps `logs.txt` local and excludes local `manifest.json` bytes, `events.jsonl`, `metrics.json`, summary/projection copies, control files, per-trial logs, and superseded attempts. Manifest digest, schema versions, and allowlisted redacted Git provenance are sent as metadata; the server validates files, recomputes metrics, and does not launch a hosted or Temporal evaluation.
+
+## Submit on managed infrastructure
 
 ```bash
 osmosis --json eval submit configs/eval/<name>.toml --yes
@@ -64,6 +81,8 @@ If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollou
 ## Guardrails
 
 - Confirm with the user before every `--yes`; a full-size evaluation run grades every row and costs money.
+- Uploaded local results appear in `eval list`, `eval info`, and Platform viewers with a Local badge; dirty Git provenance produces a warning.
+- Do not claim an uploaded local run satisfies the managed full-size evaluation gate before training.
 - Do not iterate here. Hypothesis-driven rollout and grader changes belong to `evaluate-rollouts`; return once the change is settled.
 - Do not shrink the run to reach a better number. `[evaluation].limit` belongs to smoke tests.
 - If the run fails to start, samples come back ungraded, or rewards are unexpectedly zero, switch to `debug-rollouts` instead of interpreting the score.

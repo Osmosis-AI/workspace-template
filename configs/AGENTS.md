@@ -136,6 +136,8 @@ Eval configs must include `[secrets]`; default OpenAI eval configs should includ
 
 Use one evaluation config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. `dataset` must be a platform dataset name from `osmosis dataset list`.
 
+`osmosis eval run configs/eval/<name>.toml` executes the config locally through its `LocalBackend` or local Harbor backend and writes `.osmosis/evals/<run-name>/` by default. Add `--upload` to publish the result after a complete terminal run, or later run `osmosis eval upload .osmosis/evals/<run-name>/`. `eval submit` remains the separate create-and-run path on managed infrastructure.
+
 ```toml
 [experiment]
 rollout = "calculator"
@@ -146,8 +148,8 @@ dataset = "calculator"
 # commit_sha =
 
 [evaluation]
-# Optional. Omit values to use platform defaults.
-# limit = 200
+# Optional. Omit values to use defaults for the selected execution mode.
+# limit = 200 # First N rows; local omit runs all, managed omit samples.
 # n = 3
 # batch_size = 2
 # pass_threshold = 1.0
@@ -168,6 +170,9 @@ required = ["OPENAI_API_KEY"]
 ```bash
 osmosis doctor
 osmosis dataset upload data/train.jsonl
+osmosis eval run configs/eval/<name>.toml
+osmosis eval run configs/eval/<name>.toml --upload
+osmosis eval upload .osmosis/evals/<run-name>/
 git push
 osmosis eval submit configs/eval/<name>.toml
 osmosis benchmark list

@@ -1,6 +1,7 @@
 # Osmosis evaluation config fallback.
 # Use when configs/eval/default.toml is missing from a generated workspace.
-# Command after copying: osmosis eval submit configs/eval/<name>.toml
+# Run locally after copying: osmosis eval run configs/eval/<name>.toml
+# Managed run: osmosis eval submit configs/eval/<name>.toml
 
 [experiment]
 rollout = "<your-rollout>"            # Rollout name
@@ -11,8 +12,8 @@ dataset = "<your-dataset-name>"       # Platform dataset name
 # commit_sha =                        # Optional pinned pushed commit
 
 [evaluation]
-# Optional. Omit values to use platform defaults.
-# limit = 200                         # Optional row cap for evaluation run
+# Optional. Omit values to use defaults for the selected execution mode.
+# limit = 200                         # First N rows; local omit runs all, managed omit samples
 # n = 1                               # Number of evaluation attempts
 # batch_size = 1                      # Rows evaluated per batch
 # pass_threshold = 1.0                # Minimum passing score

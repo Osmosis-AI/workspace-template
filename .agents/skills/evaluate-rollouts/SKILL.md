@@ -5,7 +5,7 @@ description: Use when smoke-testing rollout configs, iterating on rollout or gra
 
 # Evaluate Rollouts
 
-Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval submit` sends a platform evaluation run against the platform dataset named in `configs/eval/<name>.toml`, using the Git-synced rollout entrypoint, workflow, and grader.
+Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` executes the config with the rollout's `LocalBackend` or local Harbor backend, using the files on disk; publishing the completed result is optional.
 
 ## First checks
 
@@ -18,7 +18,7 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
    - `dataset` is a platform dataset name, not a `data/` path or dataset ID.
    - `branch` and `commit_sha` are optional and mutually exclusive; omit both to use the default branch.
    - `model_path` uses a LiteLLM-style model name; the platform resolves the provider endpoint from its prefix.
-   - `[evaluation]` values are optional; leave them commented unless deliberately overriding platform defaults.
+   - `[evaluation]` values are optional; leave them commented unless deliberately overriding the selected command's defaults.
 6. Confirm dataset availability:
    ```bash
    osmosis --json dataset list
@@ -33,24 +33,24 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 
 ## Core loop
 
-1. Set `[evaluation].limit = 1` for the smoke run, and leave the other optional evaluation fields commented out to use the platform defaults.
-2. Ensure the intended rollout code and config are committed and pushed to the connected workspace repository.
-3. Submit the evaluation run:
+1. Set `[evaluation].limit = 1` for the smoke run, and leave the other optional evaluation fields commented out to use their command defaults.
+2. Run the evaluation locally:
    ```bash
-   osmosis --json eval submit configs/eval/<name>.toml --yes
+   osmosis --json eval run configs/eval/<name>.toml
    ```
-4. Inspect the returned run name, then check details/results:
+3. Inspect `.osmosis/evals/<run-name>/` and confirm the run reaches a complete terminal state.
+4. If the user wants the run in platform viewers, publish only after it completes:
    ```bash
-   osmosis --json eval info <eval-name>
+   osmosis --json eval upload .osmosis/evals/<run-name>/
    ```
-5. Confirm the smoke run starts, completes, and grades every sample. Once iteration is done and no rollout or grader change is pending, hand the formal full-size run to `submit-eval`.
-6. Inspect score, pass rate, sample count, and failure details returned by `eval info` (add `-o <path>` to export the metrics JSON for comparisons) or the platform UI.
+5. Confirm the smoke run starts, completes, and grades every sample. Failed and skipped samples are terminal and uploadable; pending or cancelled runs are not. Once iteration is done and no rollout or grader change is pending, hand the formal full-size run to `submit-eval`.
+6. Inspect score, pass rate, sample count, and failure details in the local metrics and progress files or, after upload, with `osmosis --json eval info <eval-name>`.
 7. Choose one small hypothesis or data improvement.
 8. Change only the necessary surface:
    - `rollouts/<name>/<entrypoint-from-config>` or its package modules
    - `configs/eval/<name>.toml`
    - local source datasets under `data/` when preparing a new platform upload
-9. Commit and push the change, then re-submit the same evaluation config and compare against the prior evaluation run.
+9. Re-run the same evaluation config and compare against the prior local or uploaded evaluation run.
 10. Keep or discard the change.
 11. Log the experiment under `.osmosis/research/experiments/`.
 
@@ -64,10 +64,10 @@ Use evaluation runs to decide what to keep, fix, or try next. `osmosis eval subm
 
 ## Guardrails
 
-- Evaluation run validates platform-side dataset availability, Git sync, rollout startup, workflow execution, and grader behavior together.
-- Stop a runaway run (e.g. a full-size submit that should have been a smoke test) with `osmosis --json eval stop <eval-name> --yes`.
+- `eval run` validates local rollout startup, workflow execution, and grader behavior without validating managed Git sync or hosted infrastructure.
+- Stop a runaway local run through the local runner; `osmosis --json eval stop <eval-name> --yes` applies to managed runs created by `eval submit`.
 - Do not report a run from this loop as the formal measurement. When the change is settled, the full-size run belongs to `submit-eval`.
 - Do not launch a platform training run from the evaluation loop.
-- Local edits that are not pushed can be ignored by platform evaluation runs; use `branch` or `commit_sha` to pin pushed code.
+- Uploading a completed local result is idempotent and server-authoritative. Re-run `osmosis --json eval upload .osmosis/evals/<run-name>/` after interruption; it returns the same platform run and uploads only missing server files.
 - Prefer small, reviewable diffs over rewrites.
-- If the rollout cannot load, the platform evaluation run fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.
+- If the rollout cannot load, the local run fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.

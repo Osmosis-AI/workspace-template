@@ -46,9 +46,10 @@ osmosis --json doctor --fix
 1. Settle one dataset schema: metadata mode (`metadata` is a non-empty JSON object in every row) or prompt mode (`user_prompt` + `ground_truth`, with optional `system_prompt`).
 2. Create or adapt a rollout with `osmosis --json rollout init <name>` or an SDK template.
 3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl --yes`, or confirm it's already on the platform with `osmosis --json dataset list`.
-4. Commit and push rollout code and config changes.
-5. Submit an evaluation run with `osmosis --json eval submit configs/eval/<name>.toml --yes`.
-6. Submit training only after the user is ready.
+4. Run an evaluation locally with `osmosis --json eval run configs/eval/<name>.toml`, then optionally publish the completed result with `--upload`.
+5. Commit and push the settled rollout code and config changes.
+6. Before training, push the intended revision and pass the managed full-size gate with `osmosis --json eval submit configs/eval/<name>.toml --yes`; an uploaded local result does not replace it.
+7. Submit training only after the user is ready.
 
 ## Rollout Contract
 
@@ -62,7 +63,7 @@ osmosis --json doctor --fix
 - `Grader.grade` must be async, read the rollout's single sample from `ctx.sample`, and assign its reward in `[0.0, 1.0]` with `ctx.set_reward(...)`.
 - Harbor rollouts import `HarborBackend` from `osmosis_ai.rollout.backend.harbor` and use the v0.3 constructor: `tasks_dir=`, `task_mode=`, `agent=`, and a project-root `code_dir=` when inference is not sufficient. Never use the removed `HarborBackendV2`, `task_dir=`, `user_code_dir=`, or `workflow=` Harbor API.
 - `HarborBackend` packages the rollout project as a wheel. Keep Harbor task Dockerfiles limited to task dependencies, and attach `backend.prewarm_lifespan()` to `create_rollout_server` so task images and agent setup are ready before traffic.
-- Before `osmosis train submit`, submit an evaluation run and push code to the connected workspace repository.
+- Before `osmosis train submit`, pass the managed full-size evaluation gate with `osmosis eval submit` and push code to the connected workspace repository. Do not treat an uploaded local result as satisfying that gate.
 
 Create a blank rollout scaffold with:
 
@@ -127,6 +128,8 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 - Command examples in this guide use `osmosis --json ...` because this file is written for AI agents and automation, where structured output is the default expectation (use `osmosis --plain ...` for low-noise text).
 - Humans running these commands interactively can drop `--json` to get the default rich output.
 - Commands that ask for confirmation (`dataset upload`, `eval submit`, `benchmark submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`benchmark submit`, `train submit`), pass `--yes` only after the user has explicitly confirmed.
+- `eval run` executes with the rollout's `LocalBackend` or local Harbor backend and writes `.osmosis/evals/<run-name>/` by default. Add `--upload` to publish only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded.
+- `eval upload <run-dir>` publishes an already-completed compatible local run without confirmation or extra flags. It requires workspace authentication/context and is safe to repeat after interruption: the server returns the same platform run and the CLI uploads only files still missing there.
 
 ## Common Commands
 
@@ -138,6 +141,9 @@ osmosis --json rollout init <name>
 osmosis --json rollout list
 osmosis --json dataset upload data/<name>.jsonl --yes
 osmosis --json secret list
+osmosis --json eval run configs/eval/<name>.toml
+osmosis --json eval run configs/eval/<name>.toml --upload
+osmosis --json eval upload .osmosis/evals/<run-name>/
 osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval logs <eval-name>
 osmosis --json eval stop <eval-name> --yes

@@ -43,7 +43,7 @@ The dataset schema is the contract for the rollout, the grader, and the score. C
    - Generate 5-20 rows in `data/<name>.jsonl` matching the required schema.
    - Run `osmosis --json dataset validate data/<name>.jsonl` and inspect any JSON `warnings`.
 
-An evaluation dataset may be a held-out slice rather than the training data, but it has to reach the platform before a run: `[experiment].dataset` is a platform dataset name, never a `data/` path and never a dataset ID. Upload with `osmosis --json dataset upload data/<name>.jsonl --yes` when the local file is the source.
+An evaluation dataset may be a held-out slice rather than the training data. `[experiment].dataset` is a platform dataset name, never a `data/` path and never a dataset ID. It must reach the platform before managed `eval submit`; local `eval run` can instead use the supported `--dataset-file data/<name>.jsonl` override. Upload with `osmosis --json dataset upload data/<name>.jsonl --yes` when the local file should become the managed source.
 
 Record the dataset decision, the model(s) under test, the success criterion, and the stop conditions in `.osmosis/research/program.md`; use `.osmosis/research/<task>.md` for task notes.
 
@@ -54,18 +54,18 @@ Record the dataset decision, the model(s) under test, the success criterion, and
 3. Fix the success criterion up front — target score or pass rate — so the run returns a verdict instead of a number.
 4. Choose the model(s) to score. `[experiment].model_path` is a LiteLLM-style model name and the platform resolves the provider endpoint from its prefix; use one evaluation config per rollout/model setup and keep the dataset identical across them so scores stay comparable.
 5. Confirm a grader exists that can express partial credit: in prompt mode it reads `ctx.label` in the dataset's real `ground_truth` format; in metadata mode it consumes `ctx.metadata`.
-6. Shape `configs/eval/<name>.toml` by copying `configs/eval/default.toml`; if it is missing, use `.agents/skills/evaluate-rollouts/references/eval-default.toml`. `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required; `branch` and `commit_sha` are optional and mutually exclusive; `[secrets]` must be present with a `required` list; leave `[evaluation]` values commented unless deliberately overriding platform defaults.
+6. Shape `configs/eval/<name>.toml` by copying `configs/eval/default.toml`; if it is missing, use `.agents/skills/evaluate-rollouts/references/eval-default.toml`. `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required; `branch` and `commit_sha` are optional and mutually exclusive; `[secrets]` must be present with a `required` list; leave `[evaluation]` values commented unless deliberately overriding the selected command's defaults.
 7. Route execution:
    - no runnable rollout -> `create-rollouts`
    - rollout or grader still needs iteration -> `evaluate-rollouts`
    - evaluation, config, loading, or grader fails -> `debug-rollouts`
-   - rollout and config are settled and the formal number is next -> `submit-eval`
+   - rollout and config are settled and the formal number is next -> `submit-eval`, choosing local `eval run` plus optional upload or managed `eval submit`
 
 ## Guardrails
 
 - Do not skip the dataset decision; the score has nothing to bind to without it.
 - Do not invent benchmark examples. Generate sample rows only after the user has agreed on the use case.
 - Do not design rollout or grader logic around a non-conforming raw dataset schema when a one-time normalization step can produce the expected dataset contract.
-- Do not submit any run from planning. Smoke runs belong to `evaluate-rollouts`; the full-size run belongs to `submit-eval`.
+- Do not execute or upload any run from planning. Smoke runs belong to `evaluate-rollouts`; the full-size run belongs to `submit-eval`.
 - Do not plan a training run here. If the user pivots from measuring a model to improving one, hand off to `plan-training`.
 - Keep all artifacts in canonical Osmosis project paths.

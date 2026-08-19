@@ -50,10 +50,9 @@ osmosis --json doctor
 python -m py_compile rollouts/<name>/<entrypoint-from-config>
 pip install -e rollouts/<name>
 osmosis --json dataset info <dataset-name-from-eval-config>
-osmosis --json eval submit configs/eval/<name>.toml --yes
-osmosis --json eval info <eval-name-from-submit>
+osmosis --json eval run configs/eval/<name>.toml
 ```
 
-Submit an evaluation run first to confirm your config works before you submit a training run. The evaluation run uses the same Git-synced entrypoint, workflow, grader, and model config, so a passing run means that setup is correct. The dataset can differ (e.g. a held-out eval set), but `[experiment].dataset` must be a platform dataset name, not a placeholder or local path.
+Run an evaluation locally first to confirm the entrypoint, workflow, grader, model config, and selected local backend work together. The dataset can differ (e.g. a held-out eval set), but `[experiment].dataset` must be a platform dataset name, not a placeholder or local path. Uploading that result is optional and does not replace the managed full-size evaluation gate before training.
 
 If a matching training config exists, inspect and update that original file now, then include the config changes in the intended commit when the user is ready to prepare a training run. Do not submit a training run from this skill. `osmosis --json train submit configs/training/<run>.toml --yes` performs the current SDK preflight when the user is ready to train.

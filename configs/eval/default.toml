@@ -1,5 +1,6 @@
 # Osmosis evaluation config reference.
-# Command: osmosis eval submit configs/eval/default.toml
+# Run locally: osmosis eval run configs/eval/default.toml
+# Managed run: osmosis eval submit configs/eval/default.toml
 
 [experiment]
 rollout = "<your-rollout>"            # Rollout name
@@ -10,9 +11,9 @@ dataset = "<your-dataset-name>"       # Platform dataset name
 # commit_sha =                        # Pin to a specific commit
 
 [evaluation]
-# Optional. Omit values to use platform defaults.
-# Uncomment a field only when you want to override platform behavior.
-# limit = 200                         # Optional row cap
+# Optional. Omit values to use defaults for the selected execution mode.
+# Uncomment a field only when you want to override default behavior.
+# limit = 200                         # First N rows; local omit runs all, managed omit samples
 # n = 1                               # Number of evaluation attempts
 # batch_size = 1                      # Rows evaluated per batch
 # pass_threshold = 1.0                # Minimum passing score
