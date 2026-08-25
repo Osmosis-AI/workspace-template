@@ -46,7 +46,7 @@ osmosis --json doctor --fix
 1. Settle one dataset schema: metadata mode (`metadata` is a non-empty JSON object in every row) or prompt mode (`user_prompt` + `ground_truth`, with optional `system_prompt`).
 2. Create or adapt a rollout with `osmosis --json rollout init <name>` or an SDK template.
 3. Upload your dataset with `osmosis --json dataset upload data/<name>.jsonl --yes`, or confirm it's already on the platform with `osmosis --json dataset list`.
-4. Run an evaluation locally with `osmosis --json eval run configs/eval/<name>.toml`, then optionally publish the completed result with `--upload`.
+4. Run an evaluation locally with `osmosis --json eval run configs/eval/<name>.toml`, then optionally publish the completed result with `--upload`. For Harbor, first manually set `environment_config.type` to `EnvironmentType.DOCKER`; local eval does not support Daytona, SkyPilot, or other Harbor environments.
 5. Commit and push the settled rollout code and config changes.
 6. Before training, push the intended revision and pass the managed full-size gate with `osmosis --json eval submit configs/eval/<name>.toml --yes`; an uploaded local result does not replace it.
 7. Submit training only after the user is ready.
@@ -130,7 +130,7 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 - JSON errors are written to stderr with `error.code`, `error.message`, and `error.details`; there is no `request_id`. Missing submit secrets never prompt in `--json` or `--plain` mode and return `INTERACTIVE_REQUIRED` with all missing names and usable flags.
 - Commands that ask for confirmation (`dataset upload`, `eval submit`, `benchmark submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`benchmark submit`, `train submit`), pass `--yes` only after the user has explicitly confirmed.
 - An `OSMOSIS_TOKEN` used against a non-production platform must set a matching `OSMOSIS_TOKEN_PLATFORM_URL`; missing or mismatched bindings fail before network access.
-- `eval run` executes with the rollout's `LocalBackend` or local Harbor backend and writes `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name to resume. Add `--upload` to publish only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded.
+- `eval run` executes with the rollout's `LocalBackend` or Harbor Docker backend and writes `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name to resume. Add `--upload` to publish only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded.
 - `eval upload <run-dir>` publishes an already-completed compatible local run without confirmation or extra flags. It requires workspace authentication/context and is safe to repeat after interruption: the server returns the same platform run and the CLI uploads only files still missing there.
 
 ## Common Commands

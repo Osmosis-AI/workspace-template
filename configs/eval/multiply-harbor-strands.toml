@@ -1,5 +1,6 @@
 # Multiply eval - Harbor Strands backend.
-# Run locally: osmosis eval run configs/eval/multiply-harbor-strands.toml
+# Local run: first set ENVIRONMENT_TYPE = EnvironmentType.DOCKER in main.py.
+# Command: osmosis eval run configs/eval/multiply-harbor-strands.toml
 # Managed run: osmosis eval submit configs/eval/multiply-harbor-strands.toml
 
 [experiment]

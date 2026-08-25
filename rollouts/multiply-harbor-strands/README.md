@@ -1,11 +1,14 @@
 # Multiply Harbor Strands
 
-Self-contained multiply rollout using the SDK v0.3 `HarborBackend` with the Strands agent integration. The backend packages this rollout project as a wheel, installs it inside each Harbor trial, and runs the trial in a SkyPilot Sandbox. The Harbor task definition is kept inside this rollout folder under `multiply_harbor_task/`.
+Self-contained multiply rollout using the SDK v0.3 `HarborBackend` with the Strands agent integration. The backend packages this rollout project as a wheel, installs it inside each Harbor trial, and runs the trial in a SkyPilot Sandbox by default. The Harbor task definition is kept inside this rollout folder under `multiply_harbor_task/`.
+
+Harbor-backed local eval supports only Docker. Before running `osmosis eval run`, manually change `ENVIRONMENT_TYPE` in `main.py` from `EnvironmentType.SKYPILOT` (or any other environment you normally use) to `EnvironmentType.DOCKER`; restore the usual environment afterward.
 
 Run from the project root:
 
 ```bash
 osmosis --json doctor
+osmosis --json eval run configs/eval/multiply-harbor-strands.toml
 osmosis --json eval submit configs/eval/multiply-harbor-strands.toml --yes
 osmosis --json train submit configs/training/multiply-harbor-strands.toml
 ```
