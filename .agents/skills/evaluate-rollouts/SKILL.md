@@ -5,7 +5,7 @@ description: Use when smoke-testing rollout configs, iterating on rollout or gra
 
 # Evaluate Rollouts
 
-Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` executes the config with the rollout's `LocalBackend` or local Harbor backend, using the files on disk; publishing the completed result is optional.
+Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` requires SDK 0.3.1's `eval` extra and executes the config with the rollout's `LocalBackend` or local Harbor backend, using the files on disk; publishing the completed result is optional.
 
 ## First checks
 
@@ -38,7 +38,7 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
    ```bash
    osmosis --json eval run configs/eval/<name>.toml
    ```
-3. Inspect `.osmosis/evals/<run-name>/` and confirm the run reaches a complete terminal state.
+3. Capture `resource.run_name` from the result and inspect `.osmosis/evals/<run-name>/`. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work.
 4. If the user wants the run in platform viewers, publish only after it completes:
    ```bash
    osmosis --json eval upload .osmosis/evals/<run-name>/
@@ -69,5 +69,6 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
 - Do not report a run from this loop as the formal measurement. When the change is settled, the full-size run belongs to `submit-eval`.
 - Do not launch a platform training run from the evaluation loop.
 - Uploading a completed local result is idempotent and server-authoritative. Re-run `osmosis --json eval upload .osmosis/evals/<run-name>/` after interruption; it returns the same platform run and uploads only missing server files.
+- A named run is locked to its resolved inputs. Resume only after an interruption without code or data changes; start a new generated-name run for an experiment, or use `--fresh` when deliberately archiving and replacing the named run.
 - Prefer small, reviewable diffs over rewrites.
 - If the rollout cannot load, the local run fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.

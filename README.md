@@ -93,7 +93,7 @@ osmosis eval run configs/eval/<name>.toml
 osmosis eval run configs/eval/<name>.toml --upload
 ```
 
-Local results are written to `.osmosis/evals/<run-name>/` by default. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload .osmosis/evals/<run-name>/`; it requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
+Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload .osmosis/evals/<run-name>/`; it requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
 
 Use `osmosis eval submit configs/eval/<name>.toml` when you want Osmosis to create and run the evaluation on managed infrastructure. Push the rollout and config first because managed runs use the synced repository.
 

@@ -127,8 +127,10 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 
 - Command examples in this guide use `osmosis --json ...` because this file is written for AI agents and automation, where structured output is the default expectation (use `osmosis --plain ...` for low-noise text).
 - Humans running these commands interactively can drop `--json` to get the default rich output.
+- JSON errors are written to stderr with `error.code`, `error.message`, and `error.details`; there is no `request_id`. Missing submit secrets never prompt in `--json` or `--plain` mode and return `INTERACTIVE_REQUIRED` with all missing names and usable flags.
 - Commands that ask for confirmation (`dataset upload`, `eval submit`, `benchmark submit`, `train submit`, `stop` commands, ...) fail in `--json` mode with an `INTERACTIVE_REQUIRED` error that includes everything the confirmation prompt would have shown; re-run with `--yes` to confirm. For operations that cost money (`benchmark submit`, `train submit`), pass `--yes` only after the user has explicitly confirmed.
-- `eval run` executes with the rollout's `LocalBackend` or local Harbor backend and writes `.osmosis/evals/<run-name>/` by default. Add `--upload` to publish only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded.
+- An `OSMOSIS_TOKEN` used against a non-production platform must set a matching `OSMOSIS_TOKEN_PLATFORM_URL`; missing or mismatched bindings fail before network access.
+- `eval run` executes with the rollout's `LocalBackend` or local Harbor backend and writes `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name to resume. Add `--upload` to publish only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded.
 - `eval upload <run-dir>` publishes an already-completed compatible local run without confirmation or extra flags. It requires workspace authentication/context and is safe to repeat after interruption: the server returns the same platform run and the CLI uploads only files still missing there.
 
 ## Common Commands
