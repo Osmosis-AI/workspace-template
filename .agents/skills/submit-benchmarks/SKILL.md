@@ -53,7 +53,7 @@ Default to the smallest run that answers the question: one agent, a bounded task
 - `type = "endpoint"` also requires `base_url`; optional `extra_headers` contain literal header values, not secrets.
 - `type = "hosted"` runs one of the workspace's own LoRA models. Take both values from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `lora_model_name` is the LoRA model name. It must already be deployed with `osmosis model deploy`, and a `base_model` that disagrees with what the LoRA model was trained on is rejected. No `api_key_secret` applies.
 - Supported harnesses include `codex`, `claude-code`, `terminus-2`, `openhands`, `cursor-cli`, `mini-swe-agent`, `gemini-cli`, and `opencode`. Every agent still needs its own `[[agents]]` entry: a benchmark that runs only its official scaffold rejects every harness, and one that merely allows a harness runs its official scaffold when `harness` is omitted. `benchmark info` reports which applies and names the default.
-- `cursor-cli` and `mini-swe-agent` require `harness_api_key_secret`. Set it to `CURSOR_API_KEY` for `cursor-cli` or `MSWEA_API_KEY` for `mini-swe-agent` (the variables the harnesses read); any other value is rejected. Omit the field for harnesses that do not require separate authentication.
+- `cursor-cli` requires `harness_api_key_secret = "CURSOR_API_KEY"`. Mini SWE-agent rejects `harness_api_key_secret`: provider and endpoint models reuse their `api_key_secret` as `MSWEA_API_KEY`, while hosted models receive no injected model key and may set `MSWEA_API_KEY` in the effective environment. Omit `harness_api_key_secret` for every other harness.
 - When `benchmark info` reports a `default_harness`, that is the scaffold the benchmark's published scores were measured on. Recommend it, and call out the loss of comparability before proposing another.
 - `[env]` applies literal variables to every agent. `[agents.env]` applies them only to that agent.
 
@@ -64,7 +64,7 @@ Default to the smallest run that answers the question: one agent, a bounded task
 - For each provider or endpoint agent, its model `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
 - Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. Those are Platform-managed sandbox plumbing; choose another Platform record name for model credentials.
 - A `judge_api_key_secret` name, or any secret named in `[verifier].required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
-- Do not define `CURSOR_API_KEY` or `MSWEA_API_KEY` in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved harness secret record owns that variable.
+- Do not define `CURSOR_API_KEY` in top-level `[env]` or the corresponding Cursor agent's `[agents.env]`. Do not define `MSWEA_API_KEY` for a provider or endpoint Mini SWE-agent because the Platform injects the model key under that name; a hosted Mini SWE-agent may set it explicitly.
 - Env var names must be uppercase-style keys, cannot overlap between the env and secret sections, and cannot start with `_OSMOSIS_`.
 
 ## Submit

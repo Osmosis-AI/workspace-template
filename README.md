@@ -47,6 +47,7 @@ Use the included multiply example to verify the full loop before building a cust
 pip install -e rollouts/multiply-local-openai
 export OPENAI_API_KEY="sk-..."
 osmosis dataset upload data/multiply.jsonl
+osmosis eval run configs/eval/multiply-local-openai.toml --upload
 git push
 osmosis eval submit configs/eval/multiply-local-openai.toml
 osmosis train submit configs/training/multiply-local-openai.toml
@@ -61,18 +62,16 @@ Create a blank scaffold:
 ```bash
 osmosis rollout init my-rollout
 pip install -e rollouts/my-rollout
+osmosis eval run configs/eval/my-rollout.toml
 git add rollouts/my-rollout configs/eval/my-rollout.toml configs/training/my-rollout.toml
 git commit -m "add my rollout"
-git push
-osmosis eval submit configs/eval/my-rollout.toml
 ```
 
 Or adapt one of the starter rollouts included in this repository by default: `multiply-local-strands`, `multiply-local-openai`, or `multiply-harbor-strands`.
 
 ```bash
 pip install -e rollouts/multiply-local-strands
-git push
-osmosis eval submit configs/eval/multiply-local-strands.toml
+osmosis eval run configs/eval/multiply-local-strands.toml
 ```
 
 Each rollout should expose one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint, usually `main.py`. Each `AgentWorkflow.run()` must produce one sample, either by returning `AgentWorkflowOutput` or a bare message list, or by returning `None` after an Osmosis-supported integration such as `OsmosisStrandsAgent` or `OsmosisAgent` registers the sample source. The grader assigns that sample one reward.
@@ -87,12 +86,18 @@ Evaluation and training configs live in `configs/eval/*.toml` and `configs/train
 osmosis dataset list
 ```
 
-Push rollout code and configs, then submit evals with:
+Run the rollout locally with its configured `LocalBackend` or Harbor Docker backend:
 
-```bash
-git push
-osmosis eval submit configs/eval/<name>.toml
+```cli
+osmosis eval run configs/eval/<name>.toml
+osmosis eval run configs/eval/<name>.toml --upload
 ```
+
+For a Harbor rollout, local eval supports only `EnvironmentType.DOCKER`. If its entrypoint normally selects Daytona, SkyPilot, or another Harbor environment, manually change `environment_config.type` to Docker before running and restore the usual environment afterward.
+
+Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload .osmosis/evals/<run-name>/`; it requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
+
+Use `osmosis eval submit configs/eval/<name>.toml` when you want Osmosis to create and run the evaluation on managed infrastructure. Push the rollout and config first because managed runs use the synced repository.
 
 Managed benchmark configs live in `configs/benchmark/*.toml`. Benchmarks are added to a workspace from the Platform's Benchmarks page; `benchmark list` shows what the current workspace can run. Start from the included default, then set the workspace benchmark name and agent model:
 
@@ -166,9 +171,10 @@ Never put secret values in TOML. The `[secrets]` section must contain a `require
 
 ## Git Sync, Eval, and Training
 
-Push rollout code and configs to the connected workspace repository before submitting evaluation runs or training runs. Automatic Git Sync runs from the default branch, and platform runs use the synced code version.
+Local `eval run` executes the files on disk and does not require a Git push. Push rollout code and configs to the connected workspace repository before `eval submit` or `train submit`; automatic Git Sync runs from the default branch, and managed runs use the synced code version.
 
-```bash
+```cli
+osmosis eval run configs/eval/<name>.toml
 git add .
 git commit -m "add rollout"
 git push
@@ -177,6 +183,8 @@ osmosis train submit configs/training/<name>.toml
 ```
 
 Use `commit_sha` in evaluation or training configs when you need to pin a run to a specific pushed commit.
+
+Uploaded local results appear in evaluation lists, details, and Platform viewers with a Local badge. Dirty Git provenance produces a warning. Upload metadata includes the manifest digest, schema versions, and allowlisted redacted Git provenance, but the local `manifest.json` itself is never uploaded.
 
 Inspect training runs and deploy LoRA models:
 

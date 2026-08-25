@@ -93,6 +93,8 @@ if __name__ == "__main__":
 
 The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside the task container. Keep `task/environment/Dockerfile` limited to task dependencies. `HarborBackendV2` and the old `task_dir=`, `user_code_dir=`, and `workflow=` arguments do not exist.
 
+The skeleton uses SkyPilot for managed runs. Before `osmosis eval run`, manually change `EnvironmentType.SKYPILOT` to `EnvironmentType.DOCKER`; Docker is the only Harbor environment supported by local eval. Restore the usual environment afterward.
+
 ## Integration Rules
 
 - Install the feature extras used by the rollout: `server` for `create_rollout_server`, plus `strands`, `openai-agents`, or `harbor` when those modules are imported.

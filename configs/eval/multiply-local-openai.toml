@@ -1,5 +1,6 @@
 # Multiply eval - local OpenAI Agents backend.
-# Command: osmosis eval submit configs/eval/multiply-local-openai.toml
+# Run locally: osmosis eval run configs/eval/multiply-local-openai.toml
+# Managed run: osmosis eval submit configs/eval/multiply-local-openai.toml
 
 [experiment]
 rollout = "multiply-local-openai"
@@ -11,8 +12,8 @@ dataset = "multiply"
 # commit_sha =
 
 [evaluation]
-# Optional. Omit values to use platform defaults.
-# limit = 200
+# Optional. Omit values to use defaults for the selected execution mode.
+# limit = 200 # First N rows; local omit runs all, managed omit samples.
 # n = 1
 # batch_size = 1
 # pass_threshold = 1.0

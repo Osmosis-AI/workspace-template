@@ -27,7 +27,7 @@ osmosis --json eval list
 osmosis --json eval info <eval-name>
 ```
 
-A full-size evaluation run must already have passed on the revision being submitted. Find the run with `eval list`, inspect it with `eval info`, and confirm:
+A full-size managed evaluation run created by `osmosis eval submit` must already have passed on the revision being submitted. An uploaded local result can support diagnosis and comparison but does not satisfy this gate. Find the managed run with `eval list`, inspect it with `eval info`, and confirm:
 
 - It covered the whole dataset — no `[evaluation].limit` override.
 - Every sample received a reward.

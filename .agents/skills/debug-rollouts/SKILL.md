@@ -17,11 +17,12 @@ Find the smallest fix that makes the project runnable again.
 
 - Structure/config: missing scaffold paths, config outside canonical directories, wrong entrypoint, or entrypoint escapes `rollouts/<name>/`.
 - Discovery: zero/multiple concrete `AgentWorkflow` classes, no concrete `Grader`, or `Grader.grade` is not async.
-- Server: the configured entrypoint, often `main.py`, lacks backend construction, `create_rollout_server`, `uvicorn.run`, or `_OSMOSIS_ROLLOUT_PORT`; evaluation run startup can also fail if `pyproject.toml` is missing, the required `server`/integration/backend extras are absent, or imports only work from an unpushed local checkout. Inspect `osmosis --json eval info <eval-name>` and the evaluation run logs from `osmosis --json eval logs <eval-name>`.
+- Server: the configured entrypoint, often `main.py`, lacks backend construction, `create_rollout_server`, `uvicorn.run`, or `_OSMOSIS_ROLLOUT_PORT`; local or managed evaluation startup can also fail if `pyproject.toml` is missing or the required `server`/integration/backend extras are absent. Managed runs can additionally fail when imports only work from an unpushed local checkout; inspect `osmosis --json eval info <eval-name>` and `osmosis --json eval logs <eval-name>`.
 - Dataset readiness: The dataset in your evaluation or training config isn't listed by `osmosis --json dataset list`, its status isn't `uploaded`, local data has diverged, rows mix schema modes, metadata is empty, prompt-mode columns are missing, or workflow/grader code expects prompt or label fields that the selected mode does not provide.
 - Sample/reward contract: workflow bypasses Osmosis with direct fixed-model provider calls; `run()` returns an unsupported type, unknown output fields, or non-finite metrics; `run()` returns `None` without exactly one registered sample source; the grader cannot read `ctx.sample` or skips `ctx.set_reward(...)`; reward logic is too strict, lenient, or broken.
 - Harbor v0.3 migration: the entrypoint still passes removed `task_dir`, `user_code_dir`, or `workflow` arguments; `code_dir` does not contain `pyproject.toml` and an importable package; the task Dockerfile still copies rollout source or installs the SDK; or startup omits `backend.prewarm_lifespan()` and first-rollout setup fails or times out.
-- Git sync: Your code is uncommitted or unpushed, the `commit_sha` hasn't been pushed, or Git Sync isn't configured. Compare the pushed HEAD against `last_synced_commit_sha` from `osmosis --json rollout list`.
+- Local upload: the run is pending or cancelled, or its directory lacks compatible `manifest.json`, `index.jsonl`, `progress.json`, or `metrics.json`. Failed and skipped samples are terminal; re-run `osmosis --json eval upload .osmosis/evals/<run-name>/` after an interrupted upload because the server resumes the same platform run.
+- Git sync: For managed `eval submit`, your code is uncommitted or unpushed, the `commit_sha` hasn't been pushed, or Git Sync isn't configured. Compare the pushed HEAD against `last_synced_commit_sha` from `osmosis --json rollout list`.
 - Runtime config: The evaluation or training `[env]` or `[secrets]` is missing or incorrect, a secret section points to a platform secret record that doesn't exist (check with `osmosis --json secret list`), or you're using reserved `_OSMOSIS_` variables.
 - LLM config: `[experiment].model_path` is missing or isn't a LiteLLM-style model name. The platform resolves the provider endpoint from the `model_path` prefix. There is no SDK-side base URL override.
 - Intermittent zero-output rows: blocked async event loop from sync calls such as `mcp.list_tools_sync()`; wrap blocking calls in `asyncio.get_running_loop().run_in_executor(None, ...)`, or raise `agent_workflow_timeout_s` for long-horizon tasks.
@@ -31,13 +32,15 @@ Find the smallest fix that makes the project runnable again.
 1. Reproduce the failure with the narrowest command.
 2. Fix one issue at a time.
 3. Re-run immediately after each fix.
-4. Re-submit the evaluation run after changing datasets, rollout files, configs, dependencies, or Git commit pins.
+4. Re-run the local evaluation after changing datasets, rollout files, configs, or dependencies; re-submit a managed evaluation after changing Git commit pins.
 5. Stop once the evaluation run baseline is healthy again.
 
 ## Useful commands
 
 ```bash
 osmosis --json doctor
+osmosis --json eval run configs/eval/<name>.toml
+osmosis --json eval upload .osmosis/evals/<run-name>/
 osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval info <eval-name>
 osmosis --json eval logs <eval-name>
