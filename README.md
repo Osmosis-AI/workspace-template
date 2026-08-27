@@ -86,14 +86,20 @@ Evaluation and training configs live in `configs/eval/*.toml` and `configs/train
 osmosis dataset list
 ```
 
-Run the rollout locally with its configured `LocalBackend` or Harbor Docker backend:
+Run an evaluation from your machine with the rollout's configured `LocalBackend` or Harbor backend:
 
 ```cli
 osmosis eval run configs/eval/<name>.toml
 osmosis eval run configs/eval/<name>.toml --upload
 ```
 
-For a Harbor rollout, local eval supports only `EnvironmentType.DOCKER`. If its entrypoint normally selects Daytona, SkyPilot, or another Harbor environment, manually change `environment_config.type` to Docker before running and restore the usual environment afterward.
+Harbor Docker works directly on macOS. For Daytona, SkyPilot, another Harbor cloud environment, or model-calling Harbor Docker on Linux, keep the configured environment and expose the local model bridge with `--tunnel cloudflared`:
+
+```cli
+osmosis eval run configs/eval/<name>.toml --tunnel cloudflared
+```
+
+This development-scale path requires `cloudflared` on `PATH`. To use a tunnel you manage instead, pass its public base URL with the fixed local port it forwards to: `--listener-port 8710 --advertise-url https://eval.example.com`.
 
 Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload .osmosis/evals/<run-name>/`; it requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
 
