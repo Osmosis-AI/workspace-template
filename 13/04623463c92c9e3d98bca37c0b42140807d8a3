@@ -1,0 +1,32 @@
+AGENTS.md
+  s_a9ea5f79705da2::t_d4751d4a26d8b0 133
+  s_a9ea5f79705da2::t_ed07522e4678a4 49
+  s_a9ea5f79705da2::t_3bb9c7c1253686 147
+.agents/skills/create-rollouts/references/entrypoint-patterns.md
+  s_a9ea5f79705da2::t_ed07522e4678a4 96
+README.md
+  s_a9ea5f79705da2::t_d4751d4a26d8b0 89
+  s_a9ea5f79705da2::t_ed07522e4678a4 96-102
+.agents/skills/submit-eval/SKILL.md
+  s_a9ea5f79705da2::t_ed07522e4678a4 11
+.agents/skills/create-rollouts/SKILL.md
+  s_a9ea5f79705da2::t_ed07522e4678a4 56
+.agents/skills/evaluate-rollouts/SKILL.md
+  s_a9ea5f79705da2::t_ed07522e4678a4 8,15,42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1304623463c92c9e3d98bca37c0b42140807d8a3",
+  "prompts": {},
+  "sessions": {
+    "s_a9ea5f79705da2": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a041c5-81c9-7fc2-a221-be390c992dc7",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "JoyboyBrian <gzybrian@gmail.com>"
+    }
+  }
+}
