@@ -5,14 +5,14 @@ description: Use when smoke-testing rollout configs, iterating on rollout or gra
 
 # Evaluate Rollouts
 
-Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` requires SDK 0.3.1's `eval` extra and executes the config with the rollout's `LocalBackend` or Harbor Docker backend, using the files on disk; publishing the completed result is optional.
+Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` requires SDK 0.3.1's `eval` extra and executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk; publishing the completed result is optional.
 
 ## First checks
 
 1. Read `AGENTS.md`, `configs/AGENTS.md` if present, and `.osmosis/research/program.md` if present.
 2. Run `osmosis --json doctor`.
 3. Identify the target rollout, `configs/eval/<name>.toml`, and platform dataset name.
-4. If the rollout uses Harbor, manually set its `environment_config.type` to `EnvironmentType.DOCKER` before running. Daytona, SkyPilot, and every other Harbor environment are unsupported by local eval; restore the usual environment afterward.
+4. If the rollout uses Harbor, inspect `environment_config.type`. Docker works directly on macOS. For Daytona, SkyPilot, another cloud environment, or model-calling Docker on Linux, keep the configured environment and plan to add `--tunnel cloudflared`; use `--listener-port <port> --advertise-url <url>` only when the user already manages a suitable public tunnel.
 5. If creating an evaluation config, copy from `configs/eval/default.toml`; if it is missing, use `references/eval-default.toml`.
 6. Confirm the evaluation config uses the evaluation run schema:
    - `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required.
@@ -39,6 +39,7 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
    ```bash
    osmosis --json eval run configs/eval/<name>.toml
    ```
+   Add `--tunnel cloudflared` when the Harbor environment needs a route back to the local model bridge.
 3. Capture `resource.run_name` from the result and inspect `.osmosis/evals/<run-name>/`. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work.
 4. If the user wants the run in platform viewers, publish only after it completes:
    ```bash

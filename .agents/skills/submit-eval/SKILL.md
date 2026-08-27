@@ -8,7 +8,7 @@ description: Use when the rollout and evaluation config are settled and the user
 The full-size evaluation run is the measurement of record. Choose local execution plus optional upload, or managed execution, then proceed only after the applicable gates below are green.
 
 - Config `dataset` is a **platform dataset name** from `osmosis --json dataset list`, not a `dataset_id` and not a `data/` path.
-- `osmosis eval run` executes the configured server from local files through `LocalBackend` or Harbor with `EnvironmentType.DOCKER`. Daytona, SkyPilot, and other Harbor environments must be changed to Docker manually for local eval, then restored afterward. `osmosis eval submit` clones the pushed server from Git and runs it on managed infrastructure.
+- `osmosis eval run` executes the configured server from local files through `LocalBackend` or Harbor. Harbor Docker works directly on macOS; Daytona, SkyPilot, other Harbor cloud environments, and model-calling Harbor Docker on Linux need `--tunnel cloudflared` or a user-managed tunnel via `--listener-port` and `--advertise-url`. `osmosis eval submit` clones the pushed server from Git and runs it on managed infrastructure.
 - `osmosis --json eval submit ... --yes` grades the managed selection and costs money. Use `--yes` only after the user has explicitly confirmed submission intent.
 
 ## First checks
