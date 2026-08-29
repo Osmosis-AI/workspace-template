@@ -7,6 +7,8 @@ description: Use when the user explicitly asks to deploy or undeploy a LoRA mode
 
 Deployment is never automatic: deploy, undeploy, and endpoint calls happen only when the user explicitly asks.
 
+Run model commands inside the connected repository for Git-derived scope. From any other directory, select the exact platform workspace with root `osmosis --workspace <workspace-name> ...`; explicit-scope JSON reports `workspace.name` without fabricated local Git fields.
+
 ## Choose a checkpoint
 
 ```bash

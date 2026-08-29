@@ -20,7 +20,11 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
    - `branch` and `commit_sha` are optional and mutually exclusive; omit both to use the default branch.
    - `model_path` uses a LiteLLM-style model name; the platform resolves the provider endpoint from its prefix.
    - `[evaluation]` values are optional; leave them commented unless deliberately overriding the selected command's defaults.
-7. Confirm dataset availability:
+7. Choose the dataset source. For a local file, pass it explicitly and omit `--upload`; this path does not require platform credentials:
+   ```bash
+   osmosis --json eval run configs/eval/<name>.toml --dataset-file data/<name>.jsonl
+   ```
+   Otherwise, confirm the platform dataset is available in the Git-derived workspace:
    ```bash
    osmosis --json dataset list
    osmosis --json dataset info <dataset-name>
@@ -39,7 +43,7 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
    ```bash
    osmosis --json eval run configs/eval/<name>.toml
    ```
-   Add `--tunnel cloudflared` when the Harbor environment needs a route back to the local model bridge.
+   Add `--dataset-file data/<name>.jsonl` to stay local without platform credentials, or add `--tunnel cloudflared` when the Harbor environment needs a route back to the local model bridge.
 3. Capture `resource.run_name` from the result and inspect `.osmosis/evals/<run-name>/`. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work.
 4. If the user wants the run in platform viewers, publish only after it completes:
    ```bash
@@ -67,6 +71,7 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
 ## Guardrails
 
 - `eval run` validates local rollout startup, workflow execution, and grader behavior without validating managed Git sync or hosted infrastructure.
+- `eval run --dataset-file PATH` without `--upload` needs the local workspace scaffold but no platform login. Platform dataset selection and `--upload` still require authenticated Git workspace context.
 - Stop a runaway local run through the local runner; `osmosis --json eval stop <eval-name> --yes` applies to managed runs created by `eval submit`.
 - Do not report a run from this loop as the formal measurement. When the change is settled, the full-size run belongs to `submit-eval`.
 - Do not launch a platform training run from the evaluation loop.

@@ -17,7 +17,7 @@ Conventions:
 - Rollout entrypoints live inside `rollouts/<name>/`; SDK scaffolds usually use `main.py`, but the `entrypoint` field in the evaluation or training config is authoritative.
 - Evaluation configs live in `configs/eval/<name>.toml`.
 - Training configs live in `configs/training/<name>.toml`.
-- Benchmark configs live in `configs/benchmark/<name>.toml`.
+- Repository-managed benchmark configs live in `configs/benchmark/<name>.toml`; `benchmark submit` also accepts any readable TOML path.
 - Evaluation and training configs reference platform dataset names from `osmosis dataset list`.
 - Local training guidance lives in `.osmosis/research/program.md`.
 - Local cache and metrics state lives in `.osmosis/` and should not be treated as source.
@@ -133,6 +133,12 @@ Claude Code discovers the same skills through `.claude/skills/<skill-name>` syml
 - `eval run` executes with the rollout's `LocalBackend` or Harbor backend and writes `.osmosis/evals/<run-name>/` by default. Harbor cloud environments require `--tunnel cloudflared` or a public endpoint you manage via `--listener-port <port> --advertise-url <url>` so the sandbox can reach the local model bridge. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name to resume. Add `--upload` to publish only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded.
 - `eval upload <run-dir>` publishes an already-completed compatible local run without confirmation or extra flags. It requires workspace authentication/context and is safe to repeat after interruption: the server returns the same platform run and the CLI uploads only files still missing there.
 
+Root option `osmosis --workspace <workspace-name> ...` selects an exact platform workspace and sends only `X-Osmosis-Workspace`, never `X-Osmosis-Git` alongside it. Use it from any directory for the complete benchmark command family, platform dataset/model/secret operations, and `train` / `eval` list, info, logs, and stop. Without it, those commands retain the current repository's Git-derived scope. Explicit-scope structured output includes `workspace.name` and omits fabricated `git` or `workspace_directory` context.
+
+`eval submit` and `train submit` also accept root `--workspace` from any current directory, but their config path must be absolute and must remain under the containing repository's canonical `configs/eval/` or `configs/training/` directory. The CLI locates that Git workspace, verifies the selected platform workspace is connected to the same repository, and sends only workspace-name scope; the result may still include the real local Git context used for source validation.
+
+Local `eval run --dataset-file PATH` without `--upload` does not initialize platform credentials. Selecting the platform dataset from the config or adding `--upload` still requires authenticated Git workspace context.
+
 ## Common Commands
 
 ```bash
@@ -141,6 +147,7 @@ osmosis --json template list
 osmosis --json template apply multiply-local-strands
 osmosis --json rollout init <name>
 osmosis --json rollout list
+osmosis --workspace <workspace-name> --json dataset list
 osmosis --json dataset upload data/<name>.jsonl --yes
 osmosis --json secret list
 osmosis --json eval run configs/eval/<name>.toml
@@ -152,6 +159,7 @@ osmosis --json eval logs <eval-name>
 osmosis --json eval stop <eval-name> --yes
 osmosis --json benchmark list
 osmosis --json benchmark info <benchmark-key>
+osmosis --workspace <workspace-name> --json benchmark runs list
 osmosis --json benchmark submit configs/benchmark/<name>.toml --yes
 osmosis --json benchmark runs list
 osmosis --json benchmark runs info <run-name>

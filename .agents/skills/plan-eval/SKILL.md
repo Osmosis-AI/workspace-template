@@ -43,7 +43,7 @@ The dataset schema is the contract for the rollout, the grader, and the score. C
    - Generate 5-20 rows in `data/<name>.jsonl` matching the required schema.
    - Run `osmosis --json dataset validate data/<name>.jsonl` and inspect any JSON `warnings`.
 
-An evaluation dataset may be a held-out slice rather than the training data. `[experiment].dataset` is a platform dataset name, never a `data/` path and never a dataset ID. It must reach the platform before managed `eval submit`; local `eval run` can instead use the supported `--dataset-file data/<name>.jsonl` override. Upload with `osmosis --json dataset upload data/<name>.jsonl --yes` when the local file should become the managed source.
+An evaluation dataset may be a held-out slice rather than the training data. `[experiment].dataset` is a platform dataset name, never a `data/` path and never a dataset ID. It must reach the platform before managed `eval submit`; local `eval run` can instead use the supported `--dataset-file data/<name>.jsonl` override. That local-file path requires no platform credentials when `--upload` is omitted; platform dataset selection or upload still does. Upload with `osmosis --json dataset upload data/<name>.jsonl --yes` when the local file should become the managed source.
 
 Record the dataset decision, the model(s) under test, the success criterion, and the stop conditions in `.osmosis/research/program.md`; use `.osmosis/research/<task>.md` for task notes.
 
