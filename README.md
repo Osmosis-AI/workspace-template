@@ -1,6 +1,6 @@
 # Osmosis Workspace Repository
 
-This repository is the source of truth for the rollout code, evaluation configs, and training configs linked to a single Osmosis platform workspace. Datasets in this folder are just local copies for inspecting data; the real datasets live on the platform. Run Osmosis CLI commands from within this repository so they're scoped to the linked workspace, which the CLI identifies from the GitHub `origin` remote.
+This repository is the source of truth for the rollout code, evaluation configs, and training configs linked to a single Osmosis platform workspace. Datasets in this folder are just local copies for inspecting data; the real datasets live on the platform. By default, run Osmosis CLI commands from within this repository so they're scoped to the linked workspace, which the CLI identifies from the GitHub `origin` remote.
 
 ## Setup
 
@@ -22,6 +22,15 @@ osmosis doctor --fix
 
 For AI agents or automation, prefer `osmosis --json ...` for structured output or `osmosis --plain ...` for low-noise text.
 
+For platform-only work outside a workspace clone, select the exact workspace by name with root option `--workspace`:
+
+```cli
+osmosis --workspace <workspace-name> --json dataset list
+osmosis --workspace <workspace-name> --json benchmark runs list
+```
+
+This works for the benchmark catalog, submit, and run-management commands; dataset, model, and secret commands; and `train` / `eval` list, info, logs, and stop. Explicit selection sends only `X-Osmosis-Workspace`, never `X-Osmosis-Git` alongside it. Without `--workspace`, these commands keep using the current repository's Git-derived scope. Structured output for explicit scope reports the selected workspace and does not invent local Git or workspace-directory fields.
+
 ## Repository Layout
 
 ```text
@@ -37,7 +46,7 @@ repository/
 └── pyproject.toml       # Workspace Python package
 ```
 
-The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Benchmark configs submitted through the CLI must live under `configs/benchmark/`. Keep code and configs in their canonical paths so submissions can discover them.
+The CLI expects `rollouts/`, `configs/eval/`, `configs/training/`, and `data/` to exist. Keep repository-managed benchmark configs under `configs/benchmark/`, although `benchmark submit` accepts any readable TOML path. Evaluation and training configs stay in their canonical directories so source-backed submissions can discover their repository.
 
 ## Run the Starter Example
 
@@ -90,8 +99,11 @@ Run an evaluation from your machine with the rollout's configured `LocalBackend`
 
 ```cli
 osmosis eval run configs/eval/<name>.toml
+osmosis eval run configs/eval/<name>.toml --dataset-file data/<name>.jsonl
 osmosis eval run configs/eval/<name>.toml --upload
 ```
+
+`eval run --dataset-file PATH` stays local and does not require platform credentials when `--upload` is omitted. Selecting the platform dataset from the config or adding `--upload` still requires an authenticated Git workspace.
 
 Harbor Docker works directly on macOS. For Daytona, SkyPilot, another Harbor cloud environment, or model-calling Harbor Docker on Linux, keep the configured environment and expose the local model bridge with `--tunnel cloudflared`:
 
@@ -105,7 +117,16 @@ Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `
 
 Use `osmosis eval submit configs/eval/<name>.toml` when you want Osmosis to create and run the evaluation on managed infrastructure. Push the rollout and config first because managed runs use the synced repository.
 
-Managed benchmark configs live in `configs/benchmark/*.toml`. Benchmarks are added to a workspace from the Platform's Benchmarks page; `benchmark list` shows what the current workspace can run. Start from the included default, then set the workspace benchmark name and agent model:
+From any current directory, root `--workspace` can submit a source-backed eval or training config by absolute path:
+
+```cli
+osmosis --workspace <workspace-name> eval submit /absolute/path/to/repository/configs/eval/<name>.toml
+osmosis --workspace <workspace-name> train submit /absolute/path/to/repository/configs/training/<name>.toml
+```
+
+The config must still live under the containing repository's canonical `configs/eval/` or `configs/training/` directory. The CLI locates that Osmosis Git workspace, verifies the selected platform workspace is connected to the same repository, and scopes the request only by workspace name.
+
+Repository-managed benchmark configs conventionally live in `configs/benchmark/*.toml`, but `benchmark submit` accepts any readable TOML path. Benchmarks are added to a workspace from the Platform's Benchmarks page; `benchmark list` shows what the current workspace can run. Start from the included default, then set the workspace benchmark name and agent model:
 
 ```bash
 osmosis benchmark list
@@ -140,6 +161,12 @@ Submit the reviewed config with:
 
 ```bash
 osmosis benchmark submit configs/benchmark/<name>.toml
+```
+
+Outside a workspace clone, select the workspace explicitly and pass any readable TOML path:
+
+```cli
+osmosis --workspace <workspace-name> benchmark submit /path/to/<name>.toml
 ```
 
 Manage the resulting run by name with the `benchmark runs` commands:

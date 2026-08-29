@@ -66,9 +66,19 @@ osmosis --json train submit configs/training/<run>.toml --yes
 osmosis --json train info <run-name>
 ```
 
+From another current directory, select the workspace at the root and pass the config's absolute canonical path:
+
+```cli
+osmosis --workspace <workspace-name> --json train submit /absolute/path/to/repository/configs/training/<run>.toml --yes
+```
+
+The CLI locates the config's containing Osmosis Git workspace, verifies the selected platform workspace is connected to that repository, and submits with workspace-name scope only. The config must remain under that repository's `configs/training/` directory. Without root `--workspace`, submission retains the current directory's Git-derived scope.
+
 `osmosis --json train submit configs/training/<run>.toml --yes` performs the training-run preflight checks and, if they pass, submits the run. If any gate is missing or failing, route to `submit-eval` for a missing or stale evaluation run, or to `evaluate-rollouts` or `debug-rollouts`, before retrying.
 
 Find run names with `osmosis --json train list`. If a run fails or crashes, inspect `osmosis --json train logs <run-name>`. Stop an in-progress run with `osmosis --json train stop <run-name> --yes` — only after the user explicitly asks. `train info -o <path>` exports the run's metrics JSON.
+
+Outside the clone, prefix train list, info, logs, or stop with `osmosis --workspace <workspace-name>`.
 
 ## After the run finishes
 

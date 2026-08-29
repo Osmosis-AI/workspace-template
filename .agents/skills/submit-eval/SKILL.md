@@ -8,7 +8,7 @@ description: Use when the rollout and evaluation config are settled and the user
 The full-size evaluation run is the measurement of record. Choose local execution plus optional upload, or managed execution, then proceed only after the applicable gates below are green.
 
 - Config `dataset` is a **platform dataset name** from `osmosis --json dataset list`, not a `dataset_id` and not a `data/` path.
-- `osmosis eval run` executes the configured server from local files through `LocalBackend` or Harbor. Harbor Docker works directly on macOS; Daytona, SkyPilot, other Harbor cloud environments, and model-calling Harbor Docker on Linux need `--tunnel cloudflared` or a user-managed tunnel via `--listener-port` and `--advertise-url`. `osmosis eval submit` clones the pushed server from Git and runs it on managed infrastructure.
+- `osmosis eval run` executes the configured server from local files through `LocalBackend` or Harbor. With `--dataset-file PATH` and no `--upload`, it does not require platform credentials; platform dataset selection or upload still does. Harbor Docker works directly on macOS; Daytona, SkyPilot, other Harbor cloud environments, and model-calling Harbor Docker on Linux need `--tunnel cloudflared` or a user-managed tunnel via `--listener-port` and `--advertise-url`. `osmosis eval submit` clones the pushed server from Git and runs it on managed infrastructure.
 - `osmosis --json eval submit ... --yes` grades the managed selection and costs money. Use `--yes` only after the user has explicitly confirmed submission intent.
 
 ## First checks
@@ -49,8 +49,11 @@ Commit and push the intended revision, config included. Set `branch` to pin to a
 
 ```bash
 osmosis --json eval run configs/eval/<name>.toml
+osmosis --json eval run configs/eval/<name>.toml --dataset-file data/<name>.jsonl
 osmosis --json eval run configs/eval/<name>.toml --upload
 ```
+
+The `--dataset-file` form stays local without platform credentials only when `--upload` is absent. The config still belongs under `configs/eval/` in a valid local workspace.
 
 The default run directory is `.osmosis/evals/<run-name>/`. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded. To publish an already-completed run later, use the exact run directory:
 
@@ -69,6 +72,14 @@ osmosis --json eval submit configs/eval/<name>.toml --yes
 osmosis --json eval info <eval-name-from-submit>
 ```
 
+From another current directory, pass the root workspace selector and the config's absolute canonical path:
+
+```cli
+osmosis --workspace <workspace-name> --json eval submit /absolute/path/to/repository/configs/eval/<name>.toml --yes
+```
+
+The CLI locates the config's containing Osmosis Git workspace, verifies the selected platform workspace is connected to that repository, and submits with workspace-name scope only. Without root `--workspace`, submission retains the current directory's Git-derived scope.
+
 If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying. Find run names with `osmosis --json eval list --limit 10`. Stop a run submitted by mistake with `osmosis --json eval stop <eval-name> --yes`.
 
 ## Read out the result
@@ -77,6 +88,8 @@ If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollou
 2. Export the metrics JSON with `osmosis --json eval info <eval-name> -o <path>` so the run can be compared against later ones.
 3. Give the verdict against the success criterion in `.osmosis/research/program.md`, not just the raw score.
 4. Log the run under `.osmosis/research/experiments/` with its config, pinned commit, model, and dataset.
+
+Outside the clone, platform read and lifecycle commands can use explicit scope, for example `osmosis --workspace <workspace-name> --json eval info <eval-name>`.
 
 ## Guardrails
 

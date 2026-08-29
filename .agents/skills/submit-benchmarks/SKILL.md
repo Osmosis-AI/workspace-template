@@ -5,16 +5,16 @@ description: Use when configuring, submitting, monitoring, stopping, or download
 
 # Submit Benchmarks
 
-Compare agent harness and model combinations on a benchmark in the workspace. Benchmark runs execute on Platform-managed infrastructure and do not use the workspace's rollout code.
+Compare agent harness and model combinations on a benchmark in the workspace. Benchmark runs execute on Platform-managed infrastructure and do not use the workspace's rollout code. Run inside the connected repository for Git-derived scope, or prefix every platform command with root `osmosis --workspace <workspace-name>` from any directory.
 
 ## First checks
 
-1. Read `AGENTS.md` and `configs/AGENTS.md`.
-2. Run `osmosis --json doctor`.
+1. When working in the repository, read `AGENTS.md` and `configs/AGENTS.md`.
+2. For Git-derived scope, run `osmosis --json doctor`. Outside a workspace clone, select the exact platform workspace with `osmosis --workspace <workspace-name>` instead; no local repository is required.
 3. Run `osmosis --json benchmark list` to confirm the benchmark is present in the current workspace and copy its key. Check its `sync_status`: only `ready` can be submitted. A `failed` row reports a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from that page in the Platform.
 4. Run `osmosis --json benchmark info <key>` and inspect its task sets, categories, complete task manifest, harness and judge requirements, `default_harness` and pass threshold. The response also carries the benchmark's leaderboard and the workspace's runs on it. Every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; treat `null` as source metadata not provided and never infer a difficulty.
 5. Settle the run with the user before writing any config — see [Agree the run](#agree-the-run).
-6. Copy `configs/benchmark/default.toml` to a descriptive filename under the same directory.
+6. In a workspace repository, copy `configs/benchmark/default.toml` to a descriptive filename under the same directory. Outside a clone, `benchmark submit` accepts any readable TOML path.
 7. Set `[experiment].benchmark` to the benchmark's key, name, or ID. All three are exact and case-sensitive.
 8. Before an HLE submission, recommend `[tasks].task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain allowed when the user intends them.
 9. Match the `[execution]` judge fields to `requires_judge_model` and `requires_judge_api_key` from step 4. Both true: `judge_api_key_secret` is required, and `judge_model` may be omitted to use the benchmark default. Only `requires_judge_api_key`: `judge_api_key_secret` is required and `judge_model` is rejected. Both false: each field is rejected. Create the record with `osmosis secret set <NAME>`.
@@ -75,7 +75,13 @@ Check the confirmation output against what the user agreed in [Agree the run](#a
 osmosis --json benchmark submit configs/benchmark/<name>.toml --yes
 ```
 
-The structured result includes the generated run name, task count, status, and `platform_url`.
+Outside the repository, select the workspace explicitly and pass any readable config path:
+
+```cli
+osmosis --workspace <workspace-name> --json benchmark submit /path/to/<name>.toml --yes
+```
+
+The structured result includes the generated run name, task count, status, `platform_url`, and selected `workspace.name`. Explicit scope does not fabricate `git` or `workspace_directory` fields.
 
 ## Monitor and inspect
 
