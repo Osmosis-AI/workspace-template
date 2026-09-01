@@ -5,14 +5,14 @@ description: Use when smoke-testing rollout configs, iterating on rollout or gra
 
 # Evaluate Rollouts
 
-Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` requires SDK 0.3.1's `eval` extra and executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk; publishing the completed result is optional.
+Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` requires SDK 0.3.2's `eval` extra and executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk; publishing the completed result is optional.
 
 ## First checks
 
 1. Read `AGENTS.md`, `configs/AGENTS.md` if present, and `.osmosis/research/program.md` if present.
 2. Run `osmosis --json doctor`.
 3. Identify the target rollout, `configs/eval/<name>.toml`, and platform dataset name.
-4. If the rollout uses Harbor, inspect `environment_config.type`. Docker works directly on macOS. For Daytona, SkyPilot, another cloud environment, or model-calling Docker on Linux, keep the configured environment and plan to add `--tunnel cloudflared`; use `--listener-port <port> --advertise-url <url>` only when the user already manages a suitable public tunnel.
+4. If the rollout uses Harbor, inspect `environment_config.type`. Docker works directly on macOS. For Daytona, SkyPilot, another cloud environment, or model-calling Docker on Linux, keep the configured environment; the run starts a `cloudflared` tunnel to the local model bridge automatically, so confirm `cloudflared` is on `PATH`. Optional `--tunnel cloudflared` only forces that tunnel; use `--listener-port <port> --advertise-url <url>` only when the user already manages a suitable public tunnel.
 5. If creating an evaluation config, copy from `configs/eval/default.toml`; if it is missing, use `references/eval-default.toml`.
 6. Confirm the evaluation config uses the evaluation run schema:
    - `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required.
@@ -43,11 +43,11 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
    ```bash
    osmosis --json eval run configs/eval/<name>.toml
    ```
-   Add `--dataset-file data/<name>.jsonl` to stay local without platform credentials, or add `--tunnel cloudflared` when the Harbor environment needs a route back to the local model bridge.
+   Add `--dataset-file data/<name>.jsonl` to stay local without platform credentials. A Harbor environment that needs a public route back to the local model bridge gets a `cloudflared` tunnel automatically; `--tunnel cloudflared` only forces one.
 3. Capture `resource.run_name` from the result and inspect `.osmosis/evals/<run-name>/`. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work.
 4. If the user wants the run in platform viewers, publish only after it completes:
    ```bash
-   osmosis --json eval upload .osmosis/evals/<run-name>/
+   osmosis --json eval upload <run-name>
    ```
 5. Confirm the smoke run starts, completes, and grades every sample. Failed and skipped samples are terminal and uploadable; pending or cancelled runs are not. Once iteration is done and no rollout or grader change is pending, hand the formal full-size run to `submit-eval`.
 6. Inspect score, pass rate, sample count, and failure details in the local metrics and progress files or, after upload, with `osmosis --json eval info <eval-name>`.
@@ -75,7 +75,7 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
 - Stop a runaway local run through the local runner; `osmosis --json eval stop <eval-name> --yes` applies to managed runs created by `eval submit`.
 - Do not report a run from this loop as the formal measurement. When the change is settled, the full-size run belongs to `submit-eval`.
 - Do not launch a platform training run from the evaluation loop.
-- Uploading a completed local result is idempotent and server-authoritative. Re-run `osmosis --json eval upload .osmosis/evals/<run-name>/` after interruption; it returns the same platform run and uploads only missing server files.
+- Uploading a completed local result is idempotent and server-authoritative. Re-run `osmosis --json eval upload <run-name>` after interruption; it returns the same platform run and uploads only missing server files.
 - A named run is locked to its resolved inputs. Resume only after an interruption without code or data changes; start a new generated-name run for an experiment, or use `--fresh` when deliberately archiving and replacing the named run.
 - Prefer small, reviewable diffs over rewrites.
 - If the rollout cannot load, the local run fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.

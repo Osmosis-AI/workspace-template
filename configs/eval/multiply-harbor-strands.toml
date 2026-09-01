@@ -1,6 +1,6 @@
 # Multiply eval - Harbor Strands backend.
-# Local run: first set ENVIRONMENT_TYPE = EnvironmentType.DOCKER in main.py.
-# Command: osmosis eval run configs/eval/multiply-harbor-strands.toml
+# Run locally: osmosis eval run configs/eval/multiply-harbor-strands.toml
+# The SkyPilot sandbox in main.py cannot reach this machine, so the run starts a cloudflared tunnel automatically; keep cloudflared on PATH.
 # Managed run: osmosis eval submit configs/eval/multiply-harbor-strands.toml
 
 [experiment]

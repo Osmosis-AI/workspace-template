@@ -105,15 +105,17 @@ osmosis eval run configs/eval/<name>.toml --upload
 
 `eval run --dataset-file PATH` stays local and does not require platform credentials when `--upload` is omitted. Selecting the platform dataset from the config or adding `--upload` still requires an authenticated Git workspace.
 
-Harbor Docker works directly on macOS. For Daytona, SkyPilot, another Harbor cloud environment, or model-calling Harbor Docker on Linux, keep the configured environment and expose the local model bridge with `--tunnel cloudflared`:
+Keep the environment the rollout already configures. `LocalBackend` and Harbor Docker on macOS reach the local model bridge directly; for Daytona, SkyPilot, another Harbor cloud environment, or model-calling Harbor Docker on Linux, the run detects that the sandbox cannot reach this machine and starts a `cloudflared` quick tunnel automatically, so keep `cloudflared` on `PATH`.
+
+`--tunnel cloudflared` is optional and only forces that tunnel:
 
 ```cli
 osmosis eval run configs/eval/<name>.toml --tunnel cloudflared
 ```
 
-This development-scale path requires `cloudflared` on `PATH`. To use a tunnel you manage instead, pass its public base URL with the fixed local port it forwards to: `--listener-port 8710 --advertise-url https://eval.example.com`.
+To use a tunnel you manage instead, pass its public base URL with the fixed local port it forwards to: `--listener-port 8710 --advertise-url https://eval.example.com`.
 
-Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload .osmosis/evals/<run-name>/`; it requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
+Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload <run-name>`; a bare name resolves under the workspace's `.osmosis/evals/`, and an explicit directory path still works. It requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
 
 Use `osmosis eval submit configs/eval/<name>.toml` when you want Osmosis to create and run the evaluation on managed infrastructure. Push the rollout and config first because managed runs use the synced repository.
 
