@@ -17,7 +17,7 @@ from osmosis_ai.rollout.server import create_rollout_server
 
 logger = logging.getLogger(__name__)
 ROLLOUT_DIR = Path(__file__).resolve().parent
-# Local eval supports only EnvironmentType.DOCKER; switch this value manually.
+# Local eval keeps this environment; `eval run` auto-starts cloudflared for cloud sandboxes.
 ENVIRONMENT_TYPE = EnvironmentType.SKYPILOT
 CONCURRENT_TRIALS = 8
 

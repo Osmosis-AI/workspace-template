@@ -4,7 +4,7 @@ description = "Self-contained Harbor Strands multiply rollout"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
-    "osmosis-ai[server,strands,harbor]>=0.3.1,<0.4",
+    "osmosis-ai[server,strands,harbor]>=0.3.2,<0.4",
 ]
 
 [build-system]

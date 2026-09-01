@@ -136,7 +136,7 @@ Eval configs must include `[secrets]`; default OpenAI eval configs should includ
 
 Use one evaluation config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. `dataset` must be a platform dataset name from `osmosis dataset list`.
 
-`osmosis eval run configs/eval/<name>.toml` executes the config locally through its `LocalBackend` or Harbor Docker backend and writes `.osmosis/evals/<run-name>/` by default. For Harbor, manually change Daytona, SkyPilot, or another environment to `EnvironmentType.DOCKER` before running and restore the usual setting afterward. Add `--upload` to publish the result after a complete terminal run, or later run `osmosis eval upload .osmosis/evals/<run-name>/`. `eval submit` remains the separate create-and-run path on managed infrastructure.
+`osmosis eval run configs/eval/<name>.toml` executes the config locally through its `LocalBackend` or Harbor backend and writes `.osmosis/evals/<run-name>/` by default. For Harbor, keep the configured environment: when Daytona, SkyPilot, another cloud environment, or model-calling Docker on Linux cannot reach the local model bridge, the run starts a `cloudflared` tunnel automatically, so keep `cloudflared` on `PATH`; optional `--tunnel cloudflared` only forces it. Add `--upload` to publish the result after a complete terminal run, or later run `osmosis eval upload <run-name>`. `eval submit` remains the separate create-and-run path on managed infrastructure.
 
 ```toml
 [experiment]
@@ -172,7 +172,7 @@ osmosis doctor
 osmosis dataset upload data/train.jsonl
 osmosis eval run configs/eval/<name>.toml
 osmosis eval run configs/eval/<name>.toml --upload
-osmosis eval upload .osmosis/evals/<run-name>/
+osmosis eval upload <run-name>
 git push
 osmosis eval submit configs/eval/<name>.toml
 osmosis benchmark list

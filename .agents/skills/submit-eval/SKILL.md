@@ -8,7 +8,7 @@ description: Use when the rollout and evaluation config are settled and the user
 The full-size evaluation run is the measurement of record. Choose local execution plus optional upload, or managed execution, then proceed only after the applicable gates below are green.
 
 - Config `dataset` is a **platform dataset name** from `osmosis --json dataset list`, not a `dataset_id` and not a `data/` path.
-- `osmosis eval run` executes the configured server from local files through `LocalBackend` or Harbor. With `--dataset-file PATH` and no `--upload`, it does not require platform credentials; platform dataset selection or upload still does. Harbor Docker works directly on macOS; Daytona, SkyPilot, other Harbor cloud environments, and model-calling Harbor Docker on Linux need `--tunnel cloudflared` or a user-managed tunnel via `--listener-port` and `--advertise-url`. `osmosis eval submit` clones the pushed server from Git and runs it on managed infrastructure.
+- `osmosis eval run` executes the configured server from local files through `LocalBackend` or Harbor. With `--dataset-file PATH` and no `--upload`, it does not require platform credentials; platform dataset selection or upload still does. Harbor Docker works directly on macOS; Daytona, SkyPilot, other Harbor cloud environments, and model-calling Harbor Docker on Linux need a public route to the local model bridge, which the run creates with `cloudflared` automatically, so keep `cloudflared` on `PATH` or supply a tunnel you manage via `--listener-port` and `--advertise-url`. `osmosis eval submit` clones the pushed server from Git and runs it on managed infrastructure.
 - `osmosis --json eval submit ... --yes` grades the managed selection and costs money. Use `--yes` only after the user has explicitly confirmed submission intent.
 
 ## First checks
@@ -55,13 +55,13 @@ osmosis --json eval run configs/eval/<name>.toml --upload
 
 The `--dataset-file` form stays local without platform credentials only when `--upload` is absent. The config still belongs under `configs/eval/` in a valid local workspace.
 
-The default run directory is `.osmosis/evals/<run-name>/`. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded. To publish an already-completed run later, use the exact run directory:
+The default run directory is `.osmosis/evals/<run-name>/`. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal, while pending or cancelled runs cannot be uploaded. To publish an already-completed run later, pass its run name or an explicit run directory:
 
 ```bash
-osmosis --json eval upload .osmosis/evals/<run-name>/
+osmosis --json eval upload <run-name>
 ```
 
-`eval upload` has no confirmation and no extra flags. It requires workspace authentication/context and a compatible directory containing `manifest.json`, `index.jsonl`, `progress.json`, and `metrics.json`. Re-running it after interruption is safe: the server returns the same platform run and the CLI uploads only files missing there.
+`eval upload` has no confirmation and no extra flags. A bare run name resolves under the workspace's `.osmosis/evals/`; a path with a separator, or an existing directory of that name, is used as given. It requires workspace authentication/context and a compatible directory containing `manifest.json`, `index.jsonl`, `progress.json`, and `metrics.json`. Re-running it after interruption is safe: the server returns the same platform run and the CLI uploads only files missing there.
 
 The upload includes `index.jsonl`, `progress.json`, canonical referenced `trajectory*.json` files, and safe artifacts for selected rollout IDs. It keeps `logs.txt` local and excludes local `manifest.json` bytes, `events.jsonl`, `metrics.json`, summary/projection copies, control files, per-trial logs, and superseded attempts. Manifest digest, schema versions, and allowlisted redacted Git provenance are sent as metadata; the server validates files, recomputes metrics, and does not launch a hosted or Temporal evaluation.
 
