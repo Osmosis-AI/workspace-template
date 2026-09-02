@@ -1,0 +1,41 @@
+configs/training/multiply-harbor-strands.toml
+  s_4f34242cdc294f::t_e51310c4716452 32-34
+rollouts/multiply-harbor-strands/README.md
+  s_4f34242cdc294f::t_e51310c4716452 3,5-11
+README.md
+  s_4f34242cdc294f::t_e51310c4716452 108
+configs/AGENTS.md
+  s_4f34242cdc294f::t_e51310c4716452 107,139
+.agents/skills/create-rollouts/SKILL.md
+  s_4f34242cdc294f::t_e51310c4716452 56
+rollouts/multiply-harbor-strands/main.py
+  s_4f34242cdc294f::t_e51310c4716452 21
+.agents/skills/submit-eval/SKILL.md
+  s_4f34242cdc294f::t_e51310c4716452 11
+configs/eval/multiply-harbor-strands.toml
+  s_4f34242cdc294f::t_e51310c4716452 3,25
+.agents/skills/create-rollouts/references/entrypoint-patterns.md
+  s_4f34242cdc294f::t_e51310c4716452 77,96
+AGENTS.md
+  s_4f34242cdc294f::t_e51310c4716452 49,87
+.agents/skills/submit-benchmarks/SKILL.md
+  s_4f34242cdc294f::t_e51310c4716452 65
+.agents/skills/evaluate-rollouts/SKILL.md
+  s_4f34242cdc294f::t_e51310c4716452 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1d5d4c30198ffba2890a4e39960f105b0497fc27",
+  "prompts": {},
+  "sessions": {
+    "s_4f34242cdc294f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0643c-6a56-7131-9b5b-746059c55cd4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "JoyboyBrian <gzybrian@gmail.com>"
+    }
+  }
+}
