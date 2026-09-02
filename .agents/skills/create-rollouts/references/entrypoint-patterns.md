@@ -74,7 +74,7 @@ def main() -> None:
         agent=MyWorkflow,
         grader=MyGrader,
         code_dir=ROLLOUT_DIR,
-        environment_config=EnvironmentConfig(type=EnvironmentType.SKYPILOT),
+        environment_config=EnvironmentConfig(type=EnvironmentType.DAYTONA),
     )
     app = create_rollout_server(
         backend=backend,
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
 The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside the task container. Keep `task/environment/Dockerfile` limited to task dependencies. `HarborBackendV2` and the old `task_dir=`, `user_code_dir=`, and `workflow=` arguments do not exist.
 
-The skeleton uses SkyPilot for managed runs. Keep that environment for local eval too: `osmosis eval run <config>` detects that the sandbox cannot reach this machine and starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. Use Docker instead only when you deliberately want the host Docker runtime.
+The skeleton uses Daytona for managed runs and requires `DAYTONA_API_KEY` under `[secrets].required`. Keep that environment for local eval too: `osmosis eval run <config>` detects that the sandbox cannot reach this machine and starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. Use Docker instead only when you deliberately want the host Docker runtime.
 
 ## Integration Rules
 

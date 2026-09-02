@@ -105,7 +105,7 @@ osmosis eval run configs/eval/<name>.toml --upload
 
 `eval run --dataset-file PATH` stays local and does not require platform credentials when `--upload` is omitted. Selecting the platform dataset from the config or adding `--upload` still requires an authenticated Git workspace.
 
-Keep the environment the rollout already configures. `LocalBackend` and Harbor Docker on macOS reach the local model bridge directly; for Daytona, SkyPilot, another Harbor cloud environment, or model-calling Harbor Docker on Linux, the run detects that the sandbox cannot reach this machine and starts a `cloudflared` quick tunnel automatically, so keep `cloudflared` on `PATH`.
+Keep the environment the rollout already configures. `LocalBackend` and Harbor Docker on macOS reach the local model bridge directly; for Daytona, another Harbor cloud environment, or model-calling Harbor Docker on Linux, the run detects that the sandbox cannot reach this machine and starts a `cloudflared` quick tunnel automatically, so keep `cloudflared` on `PATH`.
 
 `--tunnel cloudflared` is optional and only forces that tunnel:
 

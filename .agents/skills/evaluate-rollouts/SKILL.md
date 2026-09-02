@@ -12,7 +12,7 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
 1. Read `AGENTS.md`, `configs/AGENTS.md` if present, and `.osmosis/research/program.md` if present.
 2. Run `osmosis --json doctor`.
 3. Identify the target rollout, `configs/eval/<name>.toml`, and platform dataset name.
-4. If the rollout uses Harbor, inspect `environment_config.type`. Docker works directly on macOS. For Daytona, SkyPilot, another cloud environment, or model-calling Docker on Linux, keep the configured environment; the run starts a `cloudflared` tunnel to the local model bridge automatically, so confirm `cloudflared` is on `PATH`. Optional `--tunnel cloudflared` only forces that tunnel; use `--listener-port <port> --advertise-url <url>` only when the user already manages a suitable public tunnel.
+4. If the rollout uses Harbor, inspect `environment_config.type`. Docker works directly on macOS. For Daytona, another cloud environment, or model-calling Docker on Linux, keep the configured environment; the run starts a `cloudflared` tunnel to the local model bridge automatically, so confirm `cloudflared` is on `PATH`. Optional `--tunnel cloudflared` only forces that tunnel; use `--listener-port <port> --advertise-url <url>` only when the user already manages a suitable public tunnel.
 5. If creating an evaluation config, copy from `configs/eval/default.toml`; if it is missing, use `references/eval-default.toml`.
 6. Confirm the evaluation config uses the evaluation run schema:
    - `[experiment].rollout`, `entrypoint`, `model_path`, and `dataset` are required.

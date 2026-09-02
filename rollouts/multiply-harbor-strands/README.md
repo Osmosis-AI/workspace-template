@@ -1,8 +1,14 @@
 # Multiply Harbor Strands
 
-Self-contained multiply rollout using the SDK v0.3 `HarborBackend` with the Strands agent integration. The backend packages this rollout project as a wheel, installs it inside each Harbor trial, and runs the trial in a SkyPilot Sandbox by default. The Harbor task definition is kept inside this rollout folder under `multiply_harbor_task/`.
+Self-contained multiply rollout using the SDK v0.3 `HarborBackend` with the Strands agent integration. The backend packages this rollout project as a wheel, installs it inside each Harbor trial, and runs the trial in a Daytona Sandbox by default. The Harbor task definition is kept inside this rollout folder under `multiply_harbor_task/`.
 
-Local eval keeps the configured `ENVIRONMENT_TYPE`. SkyPilot, Daytona, and other Harbor cloud environments cannot reach this machine, so `osmosis eval run` starts a `cloudflared` tunnel to the local model bridge automatically; keep `cloudflared` on `PATH`, or pass `--listener-port <port> --advertise-url <url>` to use a tunnel you manage. Optional `--tunnel cloudflared` only forces that tunnel, and switching `ENVIRONMENT_TYPE` in `main.py` to `EnvironmentType.DOCKER` is for when you deliberately want the host Docker runtime.
+Local eval keeps the configured `ENVIRONMENT_TYPE`. Daytona and other Harbor cloud environments cannot reach this machine, so `osmosis eval run` starts a `cloudflared` tunnel to the local model bridge automatically; keep `cloudflared` on `PATH`, or pass `--listener-port <port> --advertise-url <url>` to use a tunnel you manage. Optional `--tunnel cloudflared` only forces that tunnel, and switching `ENVIRONMENT_TYPE` in `main.py` to `EnvironmentType.DOCKER` is for when you deliberately want the host Docker runtime.
+
+Create the Daytona credential record before running or submitting this rollout:
+
+```bash
+osmosis secret set DAYTONA_API_KEY
+```
 
 Run from the project root:
 

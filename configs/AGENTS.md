@@ -104,7 +104,7 @@ Required fields:
 Credential and environment rules:
 
 - A provider or endpoint model's `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
-- Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY`, `DAYTONA_API_URL`, `SKYPILOT_SERVICE_ACCOUNT_TOKEN`, or `SKYPILOT_API_SERVER_ENDPOINT`. Those are Platform-managed sandbox plumbing; store model credentials under a different Platform secret record name.
+- Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY` or `DAYTONA_API_URL`. Those are Platform-managed sandbox plumbing; store model credentials under a different Platform secret record name.
 - A `judge_api_key_secret` name, or any secret named in `[verifier].required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
 - `CURSOR_API_KEY` cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved Cursor secret owns that variable.
 - For Mini SWE-agent with a provider or endpoint model, `MSWEA_API_KEY` cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`, because the Platform injects the model key under that name. Hosted Mini SWE-agent models may set it explicitly.
@@ -136,7 +136,7 @@ Eval configs must include `[secrets]`; default OpenAI eval configs should includ
 
 Use one evaluation config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. `dataset` must be a platform dataset name from `osmosis dataset list`.
 
-`osmosis eval run configs/eval/<name>.toml` executes the config locally through its `LocalBackend` or Harbor backend and writes `.osmosis/evals/<run-name>/` by default. For Harbor, keep the configured environment: when Daytona, SkyPilot, another cloud environment, or model-calling Docker on Linux cannot reach the local model bridge, the run starts a `cloudflared` tunnel automatically, so keep `cloudflared` on `PATH`; optional `--tunnel cloudflared` only forces it. Add `--upload` to publish the result after a complete terminal run, or later run `osmosis eval upload <run-name>`. `eval submit` remains the separate create-and-run path on managed infrastructure.
+`osmosis eval run configs/eval/<name>.toml` executes the config locally through its `LocalBackend` or Harbor backend and writes `.osmosis/evals/<run-name>/` by default. For Harbor, keep the configured environment: when Daytona, another cloud environment, or model-calling Docker on Linux cannot reach the local model bridge, the run starts a `cloudflared` tunnel automatically, so keep `cloudflared` on `PATH`; optional `--tunnel cloudflared` only forces it. Add `--upload` to publish the result after a complete terminal run, or later run `osmosis eval upload <run-name>`. `eval submit` remains the separate create-and-run path on managed infrastructure.
 
 ```toml
 [experiment]
