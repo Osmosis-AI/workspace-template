@@ -1,192 +1,52 @@
 # Training, Eval, and Benchmark Configs
 
-Configs are workspace-scoped and must stay in their canonical directories.
+Use the root [workspace contract](../AGENTS.md) for authorization, workspace scope, and local versus managed execution. This file owns config-specific rules; follow only the section relevant to the config being changed.
 
-## Canonical Paths
+## Templates and Paths
 
-- Training: `configs/training/<name>.toml`
-- Eval: `configs/eval/<name>.toml`
-- Benchmark: `configs/benchmark/<name>.toml`
+| Config | Repository path | Bundled default | Workflow |
+| --- | --- | --- | --- |
+| Training | `configs/training/<name>.toml` | [training/default.toml](training/default.toml) | [submit-training](../.agents/skills/submit-training/SKILL.md) |
+| Evaluation | `configs/eval/<name>.toml` | [eval/default.toml](eval/default.toml) | [evaluate-rollouts](../.agents/skills/evaluate-rollouts/SKILL.md), [submit-eval](../.agents/skills/submit-eval/SKILL.md) |
+| Benchmark | `configs/benchmark/<name>.toml` | [benchmark/default.toml](benchmark/default.toml) | [submit-benchmarks](../.agents/skills/submit-benchmarks/SKILL.md) |
 
-Do not place these configs elsewhere. The CLI validates these locations.
+Edit a rollout's existing generated config. Copy a default only when creating a config without `rollout init` or repairing a missing file. If local defaults are missing, use the bundled [training fallback](../.agents/skills/submit-training/references/training-default.toml) or [eval fallback](../.agents/skills/evaluate-rollouts/references/eval-default.toml); do not invent schemas from memory. Eval/train paths are enforced by the CLI; benchmark paths above are a repository convention, and `benchmark submit` accepts any readable TOML path.
 
-For AI agents or automation, prefer `osmosis --json ...` for structured output or `osmosis --plain ...` for low-noise text.
+## Environment and Secrets
 
-## Supplying Secret Values
+- Never put secret values in TOML, including `[env]`, `[agents.env]`, or endpoint headers. Credential fields contain Platform secret record names.
+- `[secrets].required` lists credentials not already referenced by another credential field. Each name resolves at submit from `--secrets-file`, the process environment, stored records, or an interactive prompt, first hit wins. Supplied values are not saved and must be supplied again on reruns; structured output never prompts for them.
+- Create other referenced records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates a workspace-shared record. Resolved secrets are injected under their own names.
+- Evaluation configs require `[secrets]`: default OpenAI evals include `OPENAI_API_KEY`, and `required = []` is only for evals needing no secret refs. Training configs may omit `[secrets]`, but any present section must include `required`.
+- `[env]` holds non-secret literals. Env keys match `^[A-Z_][A-Z0-9_]*$`; secret names match `^[A-Z][A-Z0-9_]*$`. A name cannot overlap between env and secrets, and `_OSMOSIS_` env names are reserved.
+- Daytona rollout configs need `DAYTONA_API_KEY` under `[secrets].required`. Benchmark sandbox credentials are Platform-managed; do not confuse them with rollout credentials.
 
-This applies to training, eval, and benchmark configs alike. Names under `[secrets].required` may be supplied at submit via `--secrets-file`, the environment, or an interactive prompt instead of a stored record; first hit wins. Those values are never saved and must be re-supplied on every run. Create every other record referenced by a config with `osmosis secret set <NAME>`. Never write a secret value into a TOML.
+## Training and Evaluation
 
-## Training Configs
+- `[experiment]` requires real `rollout`, `entrypoint`, `model_path`, and `dataset` values, with no placeholders. `rollout` names a directory under `rollouts/`; `entrypoint` names its Python server file. Preserve an explicitly configured filename instead of assuming `main.py`.
+- `dataset` is a platform dataset name from `osmosis dataset list`, not a dataset ID or local path. A local file is selected separately with `eval run --dataset-file PATH`.
+- `branch` and `commit_sha` are optional and mutually exclusive. Omit both for the connected repository's default branch; a pinned commit must be pushed before managed execution.
+- Training `model_path` must be a supported base model; evaluation uses the LiteLLM-style name of the model under test. Leave optional `[training]`, `[sampling]`, `[checkpoints]`, and `[evaluation]` settings at their defaults unless deliberately overriding them. Use the bundled TOMLs for field names and examples.
+- A smoke eval can limit rows. Remove the limit for a formal full-size evaluation; do not shrink a run to improve its reported score. Training readiness and managed source checks belong to `submit-training`.
+- Read [training config gates](../.agents/skills/submit-training/references/training-config-gates.md) when tuning training fields or remote rollout concurrency. Local execution, tunnel selection, upload, and resume instructions belong to `evaluate-rollouts` and `submit-eval`.
 
-Start from the default template:
+## Benchmarks
 
-```bash
-cp configs/training/default.toml configs/training/<run-name>.toml
-```
+### Catalog and Task Scope
 
-If `configs/training/default.toml` was deleted in this workspace, recover the shape from the repo-root fallback `.agents/skills/submit-training/references/training-default.toml` instead of inventing the TOML schema from memory.
+- Inspect `osmosis --json benchmark list` and `osmosis --json benchmark info <key>` before selecting tasks, harnesses, or judges. `[experiment].benchmark` accepts the workspace benchmark's key, name, or ID, all exact and case-sensitive.
+- Submit a registry benchmark only when `sync_status` is `ready`. A failed sync reports `sync_error`; use its `platform_url` to retry from the Platform page.
+- Use the returned full task manifest. Difficulty is `easy`, `medium`, `hard`, or `null`; never infer a missing difficulty. Recommend `default_harness` for comparability with published scores and explain departures.
+- Omit `[tasks]` for all tasks, or choose one of `task_set`, `task_names`, and `categories`. `task_set = "parity"` overrides the other selectors, so remove ignored selectors. Prefer exact `task_names` for bounded runs; resolve categories to task counts before seeking approval.
+- Recommend parity for HLE comparability; intentional full or custom runs remain supported. Only full runs or leaderboard-eligible parity runs (currently HLE) rank; other subsets do not.
+- Use Osmosis fields such as `attempts_per_task` and `max_concurrent_attempts`, not Harbor config fields. The `submit-benchmarks` workflow owns trial-count review, approval, submission, and run management.
 
-Required `[experiment]` fields:
+### Agents and Credentials
 
-- `rollout` must match a directory under `rollouts/`.
-- `entrypoint` must be a Python file relative to that rollout. SDK-generated configs usually use `main.py`, but any in-rollout Python entrypoint is valid when the config names it.
-- `model_path` must be a supported base model.
-- `dataset` must be a platform dataset name from `osmosis dataset list`.
-- `branch` is optional and pins training code to a branch.
-- `commit_sha` is optional and pins training code to a specific pushed commit.
-- `branch` and `commit_sha` are mutually exclusive; omit both to use the connected repository's default branch.
-
-Common optional `[training]` fields:
-
-- `lr`
-- `total_epochs`
-- `n_samples_per_prompt`
-- `rollout_batch_size`
-- `max_prompt_length`
-- `max_response_length`
-- `agent_workflow_timeout_s`
-- `grader_timeout_s`
-
-Optional sections:
-
-- `[sampling]` for rollout sampling parameters.
-- `[checkpoints]` for eval and checkpoint cadence.
-- `[env]` for non-secret literal environment variables.
-- `[secrets]` for platform secret record names. Training configs may omit `[secrets]` when no secret refs are needed; if the section is present, it must include `required`.
-
-### Environment Variables and Secrets
-
-```toml
-[env]
-# Literal values visible in this file. Do NOT put secrets here.
-LOG_LEVEL = "INFO"
-MY_CONFIG = "some-value"
-
-[secrets]
-# Each name is a platform environment_secret record name. The platform resolves and injects it server-side.
-# Include this block only when the rollout needs platform secret refs.
-# When this block is present, it must include `required`.
-required = ["OPENAI_API_KEY"]
-```
-
-Rules:
-
-- Keys must match `^[A-Z_][A-Z0-9_]*$`.
-- Secret names must match `^[A-Z][A-Z0-9_]*$`.
-- The same name cannot appear in both sections.
-- Env var names starting with `_OSMOSIS_` are reserved by the platform.
-
-Inside the rollout container both sets of vars are available via `os.environ`.
-
-## Benchmark Configs
-
-Start from the default template:
-
-```bash
-osmosis --json benchmark list
-osmosis --json benchmark info <benchmark-key>
-cp configs/benchmark/default.toml configs/benchmark/<run-name>.toml
-```
-
-Required fields:
-
-- `[experiment].benchmark` identifies a benchmark already added to the current workspace, by key, name, or ID. `benchmark list` prints the key and the name.
-- Use `benchmark info` before editing selectors to verify task sets, categories, harness and judge requirements and the full task manifest. In JSON output, every task's `difficulty` is `easy`, `medium`, `hard`, or `null`; `null` means the source did not provide a difficulty, so never infer one. All three identifiers are exact and case-sensitive.
-- A Harbor registry benchmark's task list pages in after it is added. Submit only when `osmosis --json benchmark list` reports `sync_status = "ready"`; a `failed` entry carries a `sync_error`, and its `platform_url` opens the benchmark's page; retry the sync from that page in the Platform.
-- One or more `[[agents]]` entries, each with an `[agents.model]` table.
-- `[agents.model].type` is `provider`, `endpoint`, or `hosted`.
-- Provider and endpoint models use `api_key_secret` to reference a Platform secret record by name. Never put the secret value in the config.
-- `hosted` runs one of the workspace's own LoRA models and takes `base_model` plus `lora_model_name`, both from `osmosis --json model list --type lora`: `base_model` is the LoRA model's base model, `lora_model_name` is the LoRA model name. Deploy it with `osmosis model deploy` first; an undeployed LoRA model, or a `base_model` that disagrees with what it was trained on, is rejected. `hosted` takes no `api_key_secret`.
-- `cursor-cli` requires a per-agent `harness_api_key_secret` set to `CURSOR_API_KEY` (the variable that harness reads). Create that record with `osmosis secret set CURSOR_API_KEY`. Any other value is rejected. Mini SWE-agent rejects `harness_api_key_secret` for provider, endpoint, and hosted models. For provider and endpoint models, the Platform reuses `api_key_secret` as `MSWEA_API_KEY`; hosted models receive no injected model key. Omit `harness_api_key_secret` for every other harness.
-- `benchmark info` reports `requires_judge_model` and `requires_judge_api_key`. Both true (HLE, GDPVal): `[execution].judge_api_key_secret` is required and `[execution].judge_model` is optional; omit it to use the benchmark's default judge model. Only `requires_judge_api_key` (BrowseComp): `judge_api_key_secret` is required and must hold an OpenAI key, and `judge_model` is rejected. Both false: each field is rejected.
-- A registry dataset whose verifier reads its own credentials names secret records in `[verifier].required`, at most 16; each is delivered under its own name. Managed benchmarks model their credentials in the catalog and reject the section.
-
-Credential and environment rules:
-
-- A provider or endpoint model's `api_key_secret` name cannot also appear in top-level `[env]` or that agent's `[agents.env]`.
-- Model `api_key_secret` cannot reference the runner-reserved names `DAYTONA_API_KEY` or `DAYTONA_API_URL`. Those are Platform-managed sandbox plumbing; store model credentials under a different Platform secret record name.
-- A `judge_api_key_secret` name, or any secret named in `[verifier].required`, cannot also appear in top-level `[env]` or any `[agents.env]`.
-- `CURSOR_API_KEY` cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`; the resolved Cursor secret owns that variable.
-- For Mini SWE-agent with a provider or endpoint model, `MSWEA_API_KEY` cannot appear in top-level `[env]` or the corresponding agent's `[agents.env]`, because the Platform injects the model key under that name. Hosted Mini SWE-agent models may set it explicitly.
-
-Optional sections:
-
-- `[tasks]` narrows task scope; omit it to run all tasks. Prefer exactly one of `task_set`, `task_names`, or `categories` so the paid scope is unambiguous.
-- `task_set = "parity"` takes precedence over `task_names` and `categories` when combined; the other selectors are ignored. Do not leave ignored selectors in the config.
-- `task_names` uses exact benchmark task IDs, such as `terminal-bench/git-multibranch`; prefer it for bounded or smoke runs. A category can resolve to many tasks, so verify its scope separately before approval. The pre-submit confirmation shows only the category count, not the resolved task count.
-- Before submitting HLE, recommend `[tasks].task_set = "parity"` so the result is comparable with published HLE scores. Full HLE runs and custom task selections remain supported.
-- A run appears on the benchmark's leaderboard only when it covers the full task set or is a parity run on a benchmark whose parity set is leaderboard-eligible (currently HLE); `task_names` and `categories` subset runs never rank.
-- `[execution]` controls attempts, concurrency, timeout, retries, pass threshold, and optional judge settings.
-- `[env]` provides literal environment variables to every agent.
-- `[agents.env]` provides literal environment variables to one agent and overrides the same global key.
-
-Use Osmosis field names such as `attempts_per_task` and `max_concurrent_attempts`. Harbor configuration fields are not part of this config contract.
-
-## Eval Configs
-
-Start from the default template:
-
-```bash
-cp configs/eval/default.toml configs/eval/<run-name>.toml
-```
-
-If `configs/eval/default.toml` was deleted in this workspace, recover the shape from the repo-root fallback `.agents/skills/evaluate-rollouts/references/eval-default.toml`.
-
-Eval configs must include `[secrets]`; default OpenAI eval configs should include `OPENAI_API_KEY`, and `required = []` is only for evaluations that need no secret refs.
-
-Use one evaluation config per rollout/model setup. `entrypoint` must point at the rollout's Python server file; SDK-generated configs usually use `main.py`, but another filename is valid when explicitly configured. `dataset` must be a platform dataset name from `osmosis dataset list`.
-
-`osmosis eval run configs/eval/<name>.toml` executes the config locally through its `LocalBackend` or Harbor backend and writes `.osmosis/evals/<run-name>/` by default. For Harbor, keep the configured environment: when Daytona, another cloud environment, or model-calling Docker on Linux cannot reach the local model bridge, the run starts a `cloudflared` tunnel automatically, so keep `cloudflared` on `PATH`; optional `--tunnel cloudflared` only forces it. Add `--upload` to publish the result after a complete terminal run, or later run `osmosis eval upload <run-name>`. `eval submit` remains the separate create-and-run path on managed infrastructure.
-
-```toml
-[experiment]
-rollout = "calculator"
-entrypoint = "main.py" # SDK default; change this if the rollout uses another server file.
-model_path = "openai/gpt-5-mini"      # LiteLLM-style model name
-dataset = "calculator"
-# branch = "my-feature"
-# commit_sha =
-
-[evaluation]
-# Optional. Omit values to use defaults for the selected execution mode.
-# limit = 200 # First N rows; local omit runs all, managed omit samples.
-# n = 3
-# batch_size = 2
-# pass_threshold = 1.0
-# agent_workflow_timeout_s = 450
-# grader_timeout_s = 150
-
-# [env]
-# LOG_LEVEL = "INFO"
-
-[secrets]
-# Default OpenAI eval models need this platform secret.
-# Use required = [] only when this evaluation needs no secret refs.
-required = ["OPENAI_API_KEY"]
-```
-
-## Commands
-
-```bash
-osmosis doctor
-osmosis dataset upload data/train.jsonl
-osmosis eval run configs/eval/<name>.toml
-osmosis eval run configs/eval/<name>.toml --upload
-osmosis eval upload <run-name>
-git push
-osmosis eval submit configs/eval/<name>.toml
-osmosis benchmark list
-osmosis benchmark info <benchmark-key>
-osmosis benchmark submit configs/benchmark/<name>.toml
-osmosis benchmark runs list
-osmosis benchmark runs info <run-name>
-osmosis benchmark runs logs <run-name>
-osmosis benchmark runs stop <run-name>
-osmosis benchmark runs download <run-name>
-osmosis train submit configs/training/<name>.toml
-osmosis train info <run-name>
-```
-
-`benchmark runs stop` applies only to pending, queued, or running runs.
-
-`benchmark runs download` is unavailable for pending or queued runs. A running run downloads a current snapshot; use `--overwrite` when refreshing it.
+- Include one or more `[[agents]]` entries, each with `[agents.model]`. Model type is `provider`, `endpoint`, or `hosted`; see `submit-benchmarks` and the default TOML for the complete model fields.
+- Provider/endpoint models use `api_key_secret`. Hosted models use `base_model` and `lora_model_name` from `osmosis --json model list --type lora`, require an already-deployed model with the matching base, and take no `api_key_secret`. Deployment needs the user's explicit request.
+- `cursor-cli` requires `harness_api_key_secret = "CURSOR_API_KEY"`. Mini SWE-agent rejects `harness_api_key_secret` for every model type: provider/endpoint models reuse `api_key_secret` as `MSWEA_API_KEY`; hosted models receive no injected model key. Omit `harness_api_key_secret` for all other harnesses.
+- Match judge fields to catalog flags. If both `requires_judge_model` and `requires_judge_api_key` are true (HLE, GDPVal), require `judge_api_key_secret` and allow optional `judge_model`, defaulting to the catalog judge. If only the API key is required (BrowseComp), require an OpenAI key and reject `judge_model`. If neither flag is true, reject both fields.
+- Registry datasets may name up to 16 verifier secret records in `[verifier].required`, delivered under their own names. Managed benchmarks model credentials in the catalog and reject this section.
+- `[env]` applies to every agent; `[agents.env]` overrides literals for one agent. A provider/endpoint model's `api_key_secret` name cannot also appear in its effective env or reference `DAYTONA_API_KEY` or `DAYTONA_API_URL`.
+- Judge or verifier secret names cannot appear in any global or agent env. `CURSOR_API_KEY` cannot appear in the corresponding Cursor agent's effective env. `MSWEA_API_KEY` cannot appear in a provider/endpoint Mini SWE-agent's effective env; hosted Mini SWE-agent models may set it explicitly.
