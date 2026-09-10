@@ -64,31 +64,7 @@ osmosis train submit configs/training/multiply-local-openai.toml
 
 The evaluation and training configs reference the uploaded platform dataset as `multiply`.
 
-`data/multiply.jsonl` contains 1,000 seeded problems with 3–5 factors sampled from `[-1024, 1024]` and rounded to four decimal places. Solving each problem with the two-input multiply tool takes 2–4 calls. The data uses TrainGate's [multiturn math generator](https://github.com/Osmosis-AI/osmosis-traingate/blob/225765779bde5c1115a49b86333d731f2f3512f9/mount/deploy/dev/make_multiturn_math_dataset.py) (`SEED = 12345`), retaining its `round(math.prod(values), 4)` labels and `####` answer format for all three starter rollouts. It keeps the workspace's `user_prompt`, `system_prompt`, and `ground_truth` schema, without TrainGate's task IDs or train/test split. This shared starter dataset is not a held-out evaluation set.
-
-To regenerate with Python 3.12+ and the linked TrainGate revision checked out at `../osmosis-traingate`:
-
-```bash
-python - <<'PY'
-import json
-import runpy
-from pathlib import Path
-
-generator = runpy.run_path("../osmosis-traingate/mount/deploy/dev/make_multiturn_math_dataset.py")
-process = generator["make_map_fn"]()
-rows = []
-for example in generator["random_floats"](size=1000):
-    row = process(example)
-    rows.append({
-        "user_prompt": row["prompt"][1]["content"],
-        "system_prompt": row["prompt"][0]["content"],
-        "ground_truth": row["ground_truth"],
-    })
-Path("data/multiply.jsonl").write_text("".join(json.dumps(row) + "\n" for row in rows))
-PY
-```
-
-Regenerating this file changes only the local dataset; platform datasets require a separate upload.
+`data/multiply.jsonl` contains 1,000 problems with 3–5 factors each. Solving each problem with the two-input multiply tool takes 2–4 calls. All three starter rollouts use the same `user_prompt`, `system_prompt`, and `ground_truth` fields and `####` answer format. This shared starter dataset is not a held-out evaluation set.
 
 ## Build Your Own Rollout
 
