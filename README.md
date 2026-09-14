@@ -64,6 +64,8 @@ osmosis train submit configs/training/multiply-local-openai.toml
 
 The evaluation and training configs reference the uploaded platform dataset as `multiply`.
 
+`data/multiply.jsonl` contains 1,000 problems with 3–5 factors each. Solving each problem with the two-input multiply tool takes 2–4 calls. All three starter rollouts use the same `user_prompt`, `system_prompt`, and `ground_truth` fields and `####` answer format. This shared starter dataset is not a held-out evaluation set.
+
 ## Build Your Own Rollout
 
 Create a blank scaffold:
