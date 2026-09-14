@@ -22,3 +22,5 @@ osmosis --json train submit configs/training/multiply-harbor-strands.toml
 ## Sandbox environment
 
 `multiply_harbor_task/environment/Dockerfile` defines only the task environment. Do not copy rollout source or install `osmosis-ai` there: `HarborBackend` preinstalls the bundle dependencies, then installs the rollout wheel per trial. `main.py` prewarms the task image and agent setup before the server accepts traffic. You do not build or push the image, configure registry credentials, or choose a cluster.
+
+With SDK 0.3.3, the built-in Daytona environment's default `delete=True` also applies provider-side cleanup: stop after 60 minutes of Daytona-observed inactivity, then delete immediately. For workflows with longer idle periods, set `kwargs={"auto_stop_interval_mins": 120}` on `HarborEnvironmentConfig` in `main.py`, or use `0` to disable automatic stopping. This idle timer is separate from workflow execution timeouts.

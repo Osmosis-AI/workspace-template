@@ -5,7 +5,7 @@ description: Use when smoke-testing rollout configs, iterating on rollout or gra
 
 # Evaluate Rollouts
 
-Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eval run` requires SDK 0.3.2's `eval` extra and executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk; publishing the completed result is optional.
+Use local evaluation runs to decide what to keep, fix, or try next. This workspace requires `osmosis-ai[eval]>=0.3.3,<0.4`; `osmosis eval run` executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk. Upgrade the CLI and rollout environments together for the leased long-polling protocol; see the root README setup instructions. Publishing the completed result is optional.
 
 ## First checks
 
@@ -77,5 +77,6 @@ Use local evaluation runs to decide what to keep, fix, or try next. `osmosis eva
 - Do not launch a platform training run from the evaluation loop.
 - Uploading a completed local result is idempotent and server-authoritative. Re-run `osmosis --json eval upload <run-name>` after interruption; it returns the same platform run and uploads only missing server files.
 - A named run is locked to its resolved inputs. Resume only after an interruption without code or data changes; start a new generated-name run for an experiment, or use `--fresh` when deliberately archiving and replacing the named run.
+- SDK 0.3.3 uses local eval protocol fingerprint `0.4`; a run recorded with the previous protocol needs a new name or the previous SDK and unchanged inputs to resume. Do not edit the saved manifest to bypass this check.
 - Prefer small, reviewable diffs over rewrites.
 - If the rollout cannot load, the local run fails before grading, or rewards are unexpectedly zero, switch to `debug-rollouts`.
