@@ -14,6 +14,10 @@ osmosis doctor
 osmosis auth whoami
 ```
 
+This workspace and its rollout packages require `osmosis-ai>=0.3.3,<0.4`. When upgrading an existing clone, run `pip install -e .` again, or `uv sync --upgrade-package osmosis-ai` if you use uv. Local eval syncs the selected rollout's dependencies automatically; to refresh an existing rollout environment explicitly, run `uv sync --project rollouts/<name> --upgrade-package osmosis-ai`. Upgrade the CLI and rollout environments together: 0.3.3 uses leased long polling and cannot communicate with older callback-based callers or servers. The included workflow, grader, and `create_rollout_server` entrypoints need no API changes.
+
+Login uses the system keyring when available and falls back to `~/.config/osmosis/credentials.json` with owner-only permissions when it is unavailable. Set `OSMOSIS_TOKEN_STORE=keyring` to require keyring storage or `OSMOSIS_TOKEN_STORE=file` to choose file storage explicitly.
+
 `osmosis doctor` checks that the Git remote, workspace layout, and required directories are valid. If the scaffold is missing required directories, run:
 
 ```bash
@@ -116,6 +120,10 @@ osmosis eval run configs/eval/<name>.toml --tunnel cloudflared
 To use a tunnel you manage instead, pass its public base URL with the fixed local port it forwards to: `--listener-port 8710 --advertise-url https://eval.example.com`.
 
 Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload <run-name>`; a bare name resolves under the workspace's `.osmosis/evals/`, and an explicit directory path still works. It requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
+
+SDK 0.3.3 uses local eval protocol fingerprint `0.4`. Runs recorded with the previous protocol cannot resume with 0.3.3; start a new run name, or use the previous SDK and unchanged inputs to resume the old run. `--fresh` deliberately archives the old results and starts over under the same name.
+
+Uploads include the combined `logs.txt`, which appears in the platform Logs tab; Harbor per-trial logs stay local. The SDK redacts configured secrets during logging, and known ambient provider/platform credentials of at least eight characters available in the current process environment during logging and again before upload. The upload pass cannot redact a value no longer present in that environment; review logs before sharing.
 
 Use `osmosis eval submit configs/eval/<name>.toml` when you want Osmosis to create and run the evaluation on managed infrastructure. Push the rollout and config first because managed runs use the synced repository.
 
