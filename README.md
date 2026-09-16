@@ -123,7 +123,7 @@ To use a tunnel you manage instead, pass its public base URL with the fixed loca
 
 Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload <run-name>`; a bare name resolves under the workspace's `.osmosis/evals/`, and an explicit directory path still works. It requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
 
-To re-run only the samples that failed or timed out, keep the run name and add `--retry-failed`. Successes are carried forward, and `--upload` replaces that run's published results in place rather than creating a second run:
+To re-run only the samples that produced no grade (failed, or skipped after a timeout), keep the run name and add `--retry-failed`. Samples that already carry a reward are carried forward untouched. Adding `--upload` to that same command replaces the run's published results in place rather than creating a second run:
 
 ```cli
 osmosis eval run configs/eval/<name>.toml --name <run-name> --retry-failed --upload
