@@ -123,6 +123,14 @@ To use a tunnel you manage instead, pass its public base URL with the fixed loca
 
 Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload <run-name>`; a bare name resolves under the workspace's `.osmosis/evals/`, and an explicit directory path still works. It requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
 
+To re-run only the samples that failed or timed out, keep the run name and add `--retry-failed`. Successes are carried forward, and `--upload` replaces that run's published results in place rather than creating a second run:
+
+```cli
+osmosis eval run configs/eval/<name>.toml --name <run-name> --retry-failed --upload
+```
+
+Publishing a run whose local ID was already imported otherwise returns a conflict; `osmosis eval upload <run-name> --replace` is the standalone form. A managed run retries on the platform instead, with `osmosis eval retry <run-name>` or the Retry run button on its detail page.
+
 SDK 0.3.3 uses local eval protocol fingerprint `0.4`. Runs recorded with the previous protocol cannot resume with 0.3.3; start a new run name, or use the previous SDK and unchanged inputs to resume the old run. `--fresh` deliberately archives the old results and starts over under the same name.
 
 Uploads include the combined `logs.txt`, which appears in the platform Logs tab; Harbor per-trial logs stay local. The SDK redacts configured secrets during logging, and known ambient provider/platform credentials of at least eight characters available in the current process environment during logging and again before upload. The upload pass cannot redact a value no longer present in that environment; review logs before sharing.

@@ -80,7 +80,7 @@ osmosis --workspace <workspace-name> --json eval submit /absolute/path/to/reposi
 
 The CLI locates the config's containing Osmosis Git workspace, verifies the selected platform workspace is connected to that repository, and submits with workspace-name scope only. Without root `--workspace`, submission retains the current directory's Git-derived scope.
 
-If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying. Find run names with `osmosis --json eval list --limit 10`. Stop a run submitted by mistake with `osmosis --json eval stop <eval-name> --yes`.
+If any gate is missing or failing, route to `evaluate-rollouts` or `debug-rollouts` before retrying. Find run names with `osmosis --json eval list --limit 10`. Stop a run submitted by mistake with `osmosis --json eval stop <eval-name> --yes`. When a settled run's failed or skipped samples are infrastructure noise rather than a rollout defect, `osmosis --json eval retry <eval-name> --yes` re-runs only those samples under the same run and configuration; a rollout or grader change instead requires a fresh submission.
 
 ## Read out the result
 
