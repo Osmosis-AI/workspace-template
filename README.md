@@ -129,7 +129,7 @@ To re-run only the samples that failed or timed out, keep the run name and add `
 osmosis eval run configs/eval/<name>.toml --name <run-name> --retry-failed --upload
 ```
 
-Publishing a run whose local ID was already imported otherwise returns a conflict; `osmosis eval upload <run-name> --replace` is the standalone form. A managed run retries on the platform instead, with `osmosis eval retry <run-name>` or the Retry run button on its detail page.
+Resuming an interrupted upload needs nothing extra. Publishing a different set of results for a run that already finished importing is what needs `--replace`; `osmosis eval upload <run-name> --replace` is the standalone form. A managed run retries on the platform instead, with `osmosis eval retry <run-name>` or the Retry run button on its detail page.
 
 SDK 0.3.3 uses local eval protocol fingerprint `0.4`. Runs recorded with the previous protocol cannot resume with 0.3.3; start a new run name, or use the previous SDK and unchanged inputs to resume the old run. `--fresh` deliberately archives the old results and starts over under the same name.
 
