@@ -5,7 +5,7 @@ description: Use when smoke-testing rollout configs, iterating on rollout or gra
 
 # Evaluate Rollouts
 
-Use local evaluation runs to decide what to keep, fix, or try next. This workspace requires `osmosis-ai[eval]>=0.3.3,<0.4`; `osmosis eval run` executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk. Upgrade the CLI and rollout environments together for the leased long-polling protocol; see the root README setup instructions. Publishing the completed result is optional.
+Use local evaluation runs to decide what to keep, fix, or try next. This workspace requires `osmosis-ai[eval]>=0.3.4,<0.4`; `osmosis eval run` executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk. Upgrade the CLI and rollout environments together for the leased long-polling protocol; see the root README setup instructions. Publishing the completed result is optional.
 
 ## First checks
 
@@ -49,7 +49,7 @@ Use local evaluation runs to decide what to keep, fix, or try next. This workspa
    ```bash
    osmosis --json eval upload <run-name>
    ```
-5. Confirm the smoke run starts, completes, and grades every sample. Failed and skipped samples are terminal and uploadable; pending or cancelled runs are not. Once iteration is done and no rollout or grader change is pending, hand the formal full-size run to `submit-eval`.
+5. Confirm the smoke run starts, completes, and grades every sample. Failed and skipped samples are terminal and uploadable; pending or cancelled runs are not. When failures look transient rather than caused by the rollout, re-run just those samples with `osmosis --json eval run configs/eval/<name>.toml --name <run-name> --retry-failed`, keeping whatever `--dataset-file` the original invocation used; samples that already carry a reward are untouched. Publishing the retried run is the same decision as step 4, and takes `osmosis --json eval upload <run-name> --replace`. Once iteration is done and no rollout or grader change is pending, hand the formal full-size run to `submit-eval`.
 6. Inspect score, pass rate, sample count, and failure details in the local metrics and progress files or, after upload, with `osmosis --json eval info <eval-name>`.
 7. Choose one small hypothesis or data improvement.
 8. Change only the necessary surface:

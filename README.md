@@ -14,7 +14,7 @@ osmosis doctor
 osmosis auth whoami
 ```
 
-This workspace and its rollout packages require `osmosis-ai>=0.3.3,<0.4`. When upgrading an existing clone, run `pip install -e .` again, or `uv sync --upgrade-package osmosis-ai` if you use uv. Local eval syncs the selected rollout's dependencies automatically; to refresh an existing rollout environment explicitly, run `uv sync --project rollouts/<name> --upgrade-package osmosis-ai`. Upgrade the CLI and rollout environments together: 0.3.3 uses leased long polling and cannot communicate with older callback-based callers or servers. The included workflow, grader, and `create_rollout_server` entrypoints need no API changes.
+This workspace and its rollout packages require `osmosis-ai>=0.3.4,<0.4`. When upgrading an existing clone, run `pip install -e .` again, or `uv sync --upgrade-package osmosis-ai` if you use uv. Local eval syncs the selected rollout's dependencies automatically; to refresh an existing rollout environment explicitly, run `uv sync --project rollouts/<name> --upgrade-package osmosis-ai`. Upgrade the CLI and rollout environments together: 0.3.3 and later use leased long polling and cannot communicate with older callback-based callers or servers. The included workflow, grader, and `create_rollout_server` entrypoints need no API changes.
 
 Login uses the system keyring when available and falls back to `~/.config/osmosis/credentials.json` with owner-only permissions when it is unavailable. Set `OSMOSIS_TOKEN_STORE=keyring` to require keyring storage or `OSMOSIS_TOKEN_STORE=file` to choose file storage explicitly.
 
@@ -122,6 +122,14 @@ osmosis eval run configs/eval/<name>.toml --tunnel cloudflared
 To use a tunnel you manage instead, pass its public base URL with the fixed local port it forwards to: `--listener-port 8710 --advertise-url https://eval.example.com`.
 
 Local results are written to `.osmosis/evals/<run-name>/` by default. Omitting `--name` generates an `adjective-animal-number` name; pass that exact name with `--name` to resume pending work. `--upload` publishes only after the run reaches a complete terminal state; failed and skipped samples are terminal and uploadable, while pending or cancelled runs are not. To publish an already-completed run later, use `osmosis eval upload <run-name>`; a bare name resolves under the workspace's `.osmosis/evals/`, and an explicit directory path still works. It requires the current authenticated workspace and is idempotent, so re-running after an interruption resumes missing files and returns the same platform run.
+
+To re-run only the samples that produced no grade (failed, or skipped after a timeout), keep the run name and add `--retry-failed`. Samples that already carry a reward are carried forward untouched. Adding `--upload` to that same command replaces the run's published results in place rather than creating a second run:
+
+```cli
+osmosis eval run configs/eval/<name>.toml --name <run-name> --retry-failed --upload
+```
+
+Resuming an interrupted upload needs nothing extra. Publishing a different set of results for a run that already finished importing is what needs `--replace`; `osmosis eval upload <run-name> --replace` is the standalone form. A managed run retries on the platform instead, with `osmosis eval retry <run-name>` or the Retry run button on its detail page.
 
 SDK 0.3.3 uses local eval protocol fingerprint `0.4`. Runs recorded with the previous protocol cannot resume with 0.3.3; start a new run name, or use the previous SDK and unchanged inputs to resume the old run. `--fresh` deliberately archives the old results and starts over under the same name.
 
