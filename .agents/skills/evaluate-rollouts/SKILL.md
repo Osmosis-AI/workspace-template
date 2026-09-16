@@ -5,7 +5,7 @@ description: Use when smoke-testing rollout configs, iterating on rollout or gra
 
 # Evaluate Rollouts
 
-Use local evaluation runs to decide what to keep, fix, or try next. This workspace requires `osmosis-ai[eval]>=0.3.3,<0.4`; `osmosis eval run` executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk. Upgrade the CLI and rollout environments together for the leased long-polling protocol; see the root README setup instructions. Publishing the completed result is optional.
+Use local evaluation runs to decide what to keep, fix, or try next. This workspace requires `osmosis-ai[eval]>=0.3.4,<0.4`; `osmosis eval run` executes the config with the rollout's `LocalBackend` or Harbor backend, using the files on disk. Upgrade the CLI and rollout environments together for the leased long-polling protocol; see the root README setup instructions. Publishing the completed result is optional.
 
 ## First checks
 

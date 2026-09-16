@@ -14,7 +14,7 @@ osmosis doctor
 osmosis auth whoami
 ```
 
-This workspace and its rollout packages require `osmosis-ai>=0.3.3,<0.4`. When upgrading an existing clone, run `pip install -e .` again, or `uv sync --upgrade-package osmosis-ai` if you use uv. Local eval syncs the selected rollout's dependencies automatically; to refresh an existing rollout environment explicitly, run `uv sync --project rollouts/<name> --upgrade-package osmosis-ai`. Upgrade the CLI and rollout environments together: 0.3.3 uses leased long polling and cannot communicate with older callback-based callers or servers. The included workflow, grader, and `create_rollout_server` entrypoints need no API changes.
+This workspace and its rollout packages require `osmosis-ai>=0.3.4,<0.4`. When upgrading an existing clone, run `pip install -e .` again, or `uv sync --upgrade-package osmosis-ai` if you use uv. Local eval syncs the selected rollout's dependencies automatically; to refresh an existing rollout environment explicitly, run `uv sync --project rollouts/<name> --upgrade-package osmosis-ai`. Upgrade the CLI and rollout environments together: 0.3.3 and later use leased long polling and cannot communicate with older callback-based callers or servers. The included workflow, grader, and `create_rollout_server` entrypoints need no API changes.
 
 Login uses the system keyring when available and falls back to `~/.config/osmosis/credentials.json` with owner-only permissions when it is unavailable. Set `OSMOSIS_TOKEN_STORE=keyring` to require keyring storage or `OSMOSIS_TOKEN_STORE=file` to choose file storage explicitly.
 
