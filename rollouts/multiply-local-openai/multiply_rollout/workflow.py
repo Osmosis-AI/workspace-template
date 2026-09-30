@@ -26,7 +26,7 @@ class MultiplyAgentWorkflowConfig(AgentWorkflowConfig):
 
 multiply_workflow_config = MultiplyAgentWorkflowConfig(
     model=OsmosisRolloutModel(),
-    model_settings=ModelSettings(temperature=1.0, top_p=1.0, max_tokens=4096),
+    model_settings=ModelSettings(temperature=1.0, max_tokens=4096),
     tools=[multiply_tool],
 )
 
