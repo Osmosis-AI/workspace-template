@@ -25,7 +25,6 @@ multiply_workflow_config = MultiplyAgentWorkflowConfig(
     model=OsmosisRolloutModel(
         params={
             "temperature": 1.0,
-            "top_p": 1.0,
             "max_tokens": 16384,
         }
     ),
