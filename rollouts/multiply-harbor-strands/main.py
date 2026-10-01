@@ -17,8 +17,13 @@ from osmosis_ai.rollout.server import create_rollout_server
 
 logger = logging.getLogger(__name__)
 ROLLOUT_DIR = Path(__file__).resolve().parent
-# Local eval keeps this environment; `eval run` auto-starts cloudflared for cloud sandboxes.
-ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+# Platform rollout servers export managed OpenSandbox credentials. Local
+# `osmosis eval run` has none, so it uses the host Docker runtime.
+ENVIRONMENT_TYPE = (
+    EnvironmentType.OPENSANDBOX
+    if os.environ.get("OPENSANDBOX_API_KEY")
+    else EnvironmentType.DOCKER
+)
 CONCURRENT_TRIALS = 8
 
 
@@ -33,7 +38,13 @@ def main() -> None:
         grader=MultiplyGrader,
         grader_config=multiply_grader_config,
         code_dir=ROLLOUT_DIR,
-        environment_config=HarborEnvironmentConfig(type=ENVIRONMENT_TYPE),
+        environment_config=HarborEnvironmentConfig(
+            type=ENVIRONMENT_TYPE,
+            # Managed OpenSandbox is reached through its server proxy.
+            kwargs={"use_server_proxy": True}
+            if ENVIRONMENT_TYPE == EnvironmentType.OPENSANDBOX
+            else {},
+        ),
         cleanup_successful_trials=True,
     )
 
