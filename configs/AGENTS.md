@@ -19,7 +19,7 @@ Edit a rollout's existing generated config. Copy a default only when creating a 
 - Create other referenced records with `osmosis secret set NAME`; personal scope is the default, and `--scope workspace` creates a workspace-shared record. Resolved secrets are injected under their own names.
 - Evaluation configs require `[secrets]`: default OpenAI evals include `OPENAI_API_KEY`, and `required = []` is only for evals needing no secret refs. Training configs may omit `[secrets]`, but any present section must include `required`.
 - `[env]` holds non-secret literals. Env keys match `^[A-Z_][A-Z0-9_]*$`; secret names match `^[A-Z][A-Z0-9_]*$`. A name cannot overlap between env and secrets, and `_OSMOSIS_` env names are reserved.
-- Daytona rollout configs need `DAYTONA_API_KEY` under `[secrets].required`. Benchmark sandbox credentials are Platform-managed; do not confuse them with rollout credentials.
+- Managed eval and training runs receive Platform-managed OpenSandbox and Daytona sandbox credentials; rollouts using them need no sandbox secret. A rollout that uses its own Daytona account lists `DAYTONA_API_KEY` under `[secrets].required`. Benchmark sandbox credentials are Platform-managed too; do not confuse them with rollout credentials.
 
 ## Training and Evaluation
 
