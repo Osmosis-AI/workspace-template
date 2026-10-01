@@ -1,0 +1,23 @@
+configs/AGENTS.md
+  s_50a7205edb0b9e::t_67db8b05b0e302 86
+AGENTS.md
+  s_50a7205edb0b9e::t_05d9896d3c4afc 91
+README.md
+  s_50a7205edb0b9e::t_e6eafe2d32b763 14-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "9b616031091817eea874c227597d782556f9250a",
+  "prompts": {},
+  "sessions": {
+    "s_50a7205edb0b9e": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "8aef248c-e8c2-4afe-b27d-01324fae2903",
+        "model": "gpt-5.5-extra-high"
+      },
+      "human_author": "JoyboyBrian <gzybrian@gmail.com>"
+    }
+  }
+}

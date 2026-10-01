@@ -1,0 +1,42 @@
+configs/training/multiply-harbor-strands.toml
+  s_36ca01e3f2214f::t_98220fb84910dc 14
+AGENTS.md
+  s_765c6830d8674a::t_53b3ed6029b52d 82-83
+configs/training/multiply-local-openai.toml
+  s_36ca01e3f2214f::t_055386885ea94b 14
+configs/training/default.toml
+  s_36ca01e3f2214f::t_e7c7dff243b1fa 20
+  s_765c6830d8674a::t_ada263bb6a7b97 47
+configs/AGENTS.md
+  s_765c6830d8674a::t_2555ea6da89ee2 69-70
+.agents/skills/create-rollouts/SKILL.md
+  s_765c6830d8674a::t_6bb767837b9670 19-20,70,77
+configs/training/multiply-local-strands.toml
+  s_36ca01e3f2214f::t_48a52990fc034f 14
+.agents/skills/submit-training/SKILL.md
+  s_765c6830d8674a::t_b1057fb302a2d9 119-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "60e02a7aff6250ebcf3e125654687768e441fc23",
+  "prompts": {},
+  "sessions": {
+    "s_36ca01e3f2214f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "4e4773c0-7698-4c26-8107-0e539fd035b1",
+        "model": "gpt-5.5"
+      },
+      "human_author": "JoyboyBrian <gzybrian@gmail.com>"
+    },
+    "s_765c6830d8674a": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c9fd8e8e-f1bc-48f3-821f-0f82ba56ea98",
+        "model": "gpt-5.5"
+      },
+      "human_author": "JoyboyBrian <gzybrian@gmail.com>"
+    }
+  }
+}

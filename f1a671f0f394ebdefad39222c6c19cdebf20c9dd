@@ -1,0 +1,25 @@
+configs/training/default.toml
+  s_90b7aefb161df6::t_576732f9959790 63-66
+rollouts/multiply-local-strands/main.py
+  s_90b7aefb161df6::t_9dc4c462ddaf32 197
+rollouts/multiply-local-openai/main.py
+  s_90b7aefb161df6::t_c3d6fffa70aed7 134
+rollouts/multiply-harbor-strands/main.py
+  s_90b7aefb161df6::t_cce66462ad0e12 207
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.10",
+  "base_commit_sha": "f1a671f0f394ebdefad39222c6c19cdebf20c9dd",
+  "prompts": {},
+  "sessions": {
+    "s_90b7aefb161df6": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "b67d6690-da8b-44f5-9f37-d96febe51cb9",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Jacob Trock <jgh@geocrypt.me>"
+    }
+  }
+}

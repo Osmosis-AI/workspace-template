@@ -1,0 +1,34 @@
+rollouts/multiply-local-strands/pyproject.toml
+  s_011aa8ebfd9818::t_3c00f25c75a2da 7
+.agents/skills/submit-benchmarks/SKILL.md
+  s_011aa8ebfd9818::t_3c00f25c75a2da 56,67
+rollouts/multiply-local-openai/pyproject.toml
+  s_011aa8ebfd9818::t_3c00f25c75a2da 7
+.agents/skills/evaluate-rollouts/SKILL.md
+  s_011aa8ebfd9818::t_f190600ce14b34 8
+  s_011aa8ebfd9818::t_3c00f25c75a2da 41,72
+pyproject.toml
+  s_011aa8ebfd9818::t_f190600ce14b34 7
+AGENTS.md
+  s_011aa8ebfd9818::t_3c00f25c75a2da 130,132-133
+README.md
+  s_011aa8ebfd9818::t_3c00f25c75a2da 96
+rollouts/multiply-harbor-strands/pyproject.toml
+  s_011aa8ebfd9818::t_3c00f25c75a2da 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a414a49df11c38ee0c38ecf8126e6cef19ca6dfe",
+  "prompts": {},
+  "sessions": {
+    "s_011aa8ebfd9818": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a03610-7dd7-7933-943b-9c84d79bf4f8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "JoyboyBrian <gzybrian@gmail.com>"
+    }
+  }
+}
