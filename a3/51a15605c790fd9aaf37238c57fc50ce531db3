@@ -1,0 +1,27 @@
+.agents/skills/create-rollouts/references/entrypoint-patterns.md
+  s_1049708baac73a::t_2f1000a48f0415 67-73,84-89,108
+configs/AGENTS.md
+  s_1049708baac73a::t_64ada71b61c231 22
+configs/eval/multiply-harbor-strands.toml
+  s_1049708baac73a::t_aae275b2b86412 3,25
+rollouts/multiply-harbor-strands/README.md
+  s_1049708baac73a::t_5041e896dea115 3,5,7,22
+rollouts/multiply-harbor-strands/main.py
+  s_1049708baac73a::t_ee4047c42a20fa 20-26,41-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a351a15605c790fd9aaf37238c57fc50ce531db3",
+  "prompts": {},
+  "sessions": {
+    "s_1049708baac73a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "47b63582-0c11-4767-a920-50f3084b9e77",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Allen Lin <allen@osmosis.ai>"
+    }
+  }
+}
