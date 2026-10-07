@@ -64,13 +64,14 @@ from osmosis_ai.rollout.backend.harbor import HarborBackend
 from osmosis_ai.rollout.server import create_rollout_server
 
 ROLLOUT_DIR = Path(__file__).resolve().parent
-# Platform rollout servers export managed OpenSandbox credentials; local runs
-# use the host Docker runtime.
-ENVIRONMENT_TYPE = (
-    EnvironmentType.OPENSANDBOX
-    if os.environ.get("OPENSANDBOX_API_KEY")
-    else EnvironmentType.DOCKER
-)
+# Platform rollout servers export managed sandbox credentials, OpenSandbox
+# first; local runs without any use the host Docker runtime.
+if os.environ.get("OPENSANDBOX_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.OPENSANDBOX
+elif os.environ.get("DAYTONA_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+else:
+    ENVIRONMENT_TYPE = EnvironmentType.DOCKER
 
 
 def main() -> None:
@@ -105,7 +106,7 @@ if __name__ == "__main__":
 
 The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside the task container. Keep `task/environment/Dockerfile` limited to task dependencies. `HarborBackendV2` and the old `task_dir=`, `user_code_dir=`, and `workflow=` arguments do not exist.
 
-The skeleton uses the platform's managed OpenSandbox for managed runs, which needs no sandbox secret, and the host Docker runtime for local `osmosis eval run`. When the sandbox cannot reach this machine, `eval run` starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. To use your own Daytona account, select `EnvironmentType.DAYTONA` and list `DAYTONA_API_KEY` under `[secrets].required`.
+The skeleton uses the platform's managed OpenSandbox for managed runs, which needs no sandbox secret, falls back to managed Daytona when only Daytona credentials are present, and uses the host Docker runtime for local `osmosis eval run`. OpenSandbox starts each trial from a prebuilt image, so set `docker_image` under `[environment]` in `task/task.toml` to an image that already has Python and the task's system packages, and add `harbor[opensandbox]` to the rollout's `pyproject.toml` dependencies. When the sandbox cannot reach this machine, `eval run` starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. To use your own Daytona account, select `EnvironmentType.DAYTONA` and list `DAYTONA_API_KEY` under `[secrets].required`.
 
 ## Integration Rules
 

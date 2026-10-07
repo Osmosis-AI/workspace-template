@@ -17,13 +17,14 @@ from osmosis_ai.rollout.server import create_rollout_server
 
 logger = logging.getLogger(__name__)
 ROLLOUT_DIR = Path(__file__).resolve().parent
-# Platform rollout servers export managed OpenSandbox credentials. Local
-# `osmosis eval run` has none, so it uses the host Docker runtime.
-ENVIRONMENT_TYPE = (
-    EnvironmentType.OPENSANDBOX
-    if os.environ.get("OPENSANDBOX_API_KEY")
-    else EnvironmentType.DOCKER
-)
+# Platform rollout servers export managed sandbox credentials, OpenSandbox
+# first; local `osmosis eval run` without any uses the host Docker runtime.
+if os.environ.get("OPENSANDBOX_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.OPENSANDBOX
+elif os.environ.get("DAYTONA_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+else:
+    ENVIRONMENT_TYPE = EnvironmentType.DOCKER
 CONCURRENT_TRIALS = 8
 
 
