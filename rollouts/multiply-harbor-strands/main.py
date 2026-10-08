@@ -39,13 +39,7 @@ def main() -> None:
         grader=MultiplyGrader,
         grader_config=multiply_grader_config,
         code_dir=ROLLOUT_DIR,
-        environment_config=HarborEnvironmentConfig(
-            type=ENVIRONMENT_TYPE,
-            # Managed OpenSandbox is reached through its server proxy.
-            kwargs={"use_server_proxy": True}
-            if ENVIRONMENT_TYPE == EnvironmentType.OPENSANDBOX
-            else {},
-        ),
+        environment_config=HarborEnvironmentConfig(type=ENVIRONMENT_TYPE),
         cleanup_successful_trials=True,
     )
 
