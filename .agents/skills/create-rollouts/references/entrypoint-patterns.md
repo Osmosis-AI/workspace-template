@@ -82,7 +82,12 @@ def main() -> None:
         agent=MyWorkflow,
         grader=MyGrader,
         code_dir=ROLLOUT_DIR,
-        environment_config=EnvironmentConfig(type=ENVIRONMENT_TYPE),
+        # Docker and Daytona would otherwise run docker_image and skip the
+        # SDK-patched Dockerfile, reinstalling dependencies in every trial.
+        environment_config=EnvironmentConfig(
+            type=ENVIRONMENT_TYPE,
+            force_build=ENVIRONMENT_TYPE != EnvironmentType.OPENSANDBOX,
+        ),
     )
     app = create_rollout_server(
         backend=backend,

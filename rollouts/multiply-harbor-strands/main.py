@@ -39,7 +39,12 @@ def main() -> None:
         grader=MultiplyGrader,
         grader_config=multiply_grader_config,
         code_dir=ROLLOUT_DIR,
-        environment_config=HarborEnvironmentConfig(type=ENVIRONMENT_TYPE),
+        # Docker and Daytona would otherwise run docker_image and skip the
+        # SDK-patched Dockerfile, reinstalling dependencies in every trial.
+        environment_config=HarborEnvironmentConfig(
+            type=ENVIRONMENT_TYPE,
+            force_build=ENVIRONMENT_TYPE != EnvironmentType.OPENSANDBOX,
+        ),
         cleanup_successful_trials=True,
     )
 
