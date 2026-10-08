@@ -1,6 +1,7 @@
 # Multiply eval - Harbor Strands backend.
 # Run locally: osmosis eval run configs/eval/multiply-harbor-strands.toml
-# Local runs use the host Docker runtime; managed runs use the platform's managed OpenSandbox.
+# Local runs use the host Docker runtime unless the shell exports OPENSANDBOX_API_KEY or
+# DAYTONA_API_KEY; managed runs use the platform's managed OpenSandbox.
 # Managed run: osmosis eval submit configs/eval/multiply-harbor-strands.toml
 
 [experiment]
