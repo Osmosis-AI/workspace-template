@@ -64,6 +64,14 @@ from osmosis_ai.rollout.backend.harbor import HarborBackend
 from osmosis_ai.rollout.server import create_rollout_server
 
 ROLLOUT_DIR = Path(__file__).resolve().parent
+# Platform rollout servers export managed sandbox credentials, OpenSandbox
+# first; local runs without any use the host Docker runtime.
+if os.environ.get("OPENSANDBOX_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.OPENSANDBOX
+elif os.environ.get("DAYTONA_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+else:
+    ENVIRONMENT_TYPE = EnvironmentType.DOCKER
 
 
 def main() -> None:
@@ -74,7 +82,12 @@ def main() -> None:
         agent=MyWorkflow,
         grader=MyGrader,
         code_dir=ROLLOUT_DIR,
-        environment_config=EnvironmentConfig(type=EnvironmentType.DAYTONA),
+        # Docker and Daytona would otherwise run docker_image and skip the
+        # SDK-patched Dockerfile, reinstalling dependencies in every trial.
+        environment_config=EnvironmentConfig(
+            type=ENVIRONMENT_TYPE,
+            force_build=ENVIRONMENT_TYPE != EnvironmentType.OPENSANDBOX,
+        ),
     )
     app = create_rollout_server(
         backend=backend,
@@ -93,7 +106,7 @@ if __name__ == "__main__":
 
 The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside the task container. Keep `task/environment/Dockerfile` limited to task dependencies. `HarborBackendV2` and the old `task_dir=`, `user_code_dir=`, and `workflow=` arguments do not exist.
 
-The skeleton uses Daytona for managed runs and requires `DAYTONA_API_KEY` under `[secrets].required`. Keep that environment for local eval too: `osmosis eval run <config>` detects that the sandbox cannot reach this machine and starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. Use Docker instead only when you deliberately want the host Docker runtime.
+The skeleton uses the platform's managed OpenSandbox for managed runs, which needs no sandbox secret, falls back to managed Daytona when only Daytona credentials are present, and uses the host Docker runtime for local `osmosis eval run`. OpenSandbox starts each trial from a prebuilt image, so set `docker_image` under `[environment]` in `task/task.toml` to an image that already has Python and the task's system packages. Require `osmosis-ai[harbor]>=0.3.7`, whose `harbor` extra includes OpenSandbox support and which routes OpenSandbox through the managed server proxy without extra environment kwargs. When the sandbox cannot reach this machine, `eval run` starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. To use your own Daytona account, select `EnvironmentType.DAYTONA` and list `DAYTONA_API_KEY` under `[secrets].required`.
 
 ## Integration Rules
 

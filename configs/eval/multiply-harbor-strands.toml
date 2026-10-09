@@ -1,6 +1,7 @@
 # Multiply eval - Harbor Strands backend.
 # Run locally: osmosis eval run configs/eval/multiply-harbor-strands.toml
-# The Daytona sandbox in main.py cannot reach this machine, so the run starts a cloudflared tunnel automatically; keep cloudflared on PATH.
+# Local runs use the host Docker runtime unless the shell exports OPENSANDBOX_API_KEY or
+# DAYTONA_API_KEY; managed runs use the platform's managed OpenSandbox.
 # Managed run: osmosis eval submit configs/eval/multiply-harbor-strands.toml
 
 [experiment]
@@ -22,4 +23,4 @@ dataset = "multiply"
 # grader_timeout_s = 150
 
 [secrets]
-required = ["OPENAI_API_KEY", "DAYTONA_API_KEY"]
+required = ["OPENAI_API_KEY"]

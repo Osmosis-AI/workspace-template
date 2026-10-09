@@ -17,8 +17,14 @@ from osmosis_ai.rollout.server import create_rollout_server
 
 logger = logging.getLogger(__name__)
 ROLLOUT_DIR = Path(__file__).resolve().parent
-# Local eval keeps this environment; `eval run` auto-starts cloudflared for cloud sandboxes.
-ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+# Platform rollout servers export managed sandbox credentials, OpenSandbox
+# first; local `osmosis eval run` without any uses the host Docker runtime.
+if os.environ.get("OPENSANDBOX_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.OPENSANDBOX
+elif os.environ.get("DAYTONA_API_KEY"):
+    ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
+else:
+    ENVIRONMENT_TYPE = EnvironmentType.DOCKER
 CONCURRENT_TRIALS = 8
 
 
@@ -33,7 +39,12 @@ def main() -> None:
         grader=MultiplyGrader,
         grader_config=multiply_grader_config,
         code_dir=ROLLOUT_DIR,
-        environment_config=HarborEnvironmentConfig(type=ENVIRONMENT_TYPE),
+        # Docker and Daytona would otherwise run docker_image and skip the
+        # SDK-patched Dockerfile, reinstalling dependencies in every trial.
+        environment_config=HarborEnvironmentConfig(
+            type=ENVIRONMENT_TYPE,
+            force_build=ENVIRONMENT_TYPE != EnvironmentType.OPENSANDBOX,
+        ),
         cleanup_successful_trials=True,
     )
 

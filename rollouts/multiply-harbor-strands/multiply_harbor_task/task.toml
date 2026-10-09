@@ -13,6 +13,8 @@ timeout_sec = 60.0
 timeout_sec = 120.0
 
 [environment]
+# Trials start from this prebuilt image; environment/Dockerfile is built only when a build is forced.
+docker_image = "python:3.12-bookworm"
 build_timeout_sec = 600.0
 cpus = 1
 memory_mb = 512
