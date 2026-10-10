@@ -13,7 +13,7 @@ dataset = "multiply"
 [training]
 # Optional. Omit values to use platform defaults.
 # Uncomment a field only when you want to override the default value.
-# lr = 1e-6
+# lr = 1e-5
 # total_epochs = 1
 n_samples_per_prompt = 8
 rollout_batch_size = 16
