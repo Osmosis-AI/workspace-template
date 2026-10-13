@@ -27,5 +27,4 @@ rollout_batch_size = 16
 # rollout_top_p = 1.0
 
 [checkpoints]
-# eval_interval = 10
 # checkpoint_save_freq = 20
