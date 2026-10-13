@@ -22,7 +22,7 @@ Reject placeholder values such as `<your-rollout>`. For a rollout that already h
 
 ## Supported Training Settings
 
-Overrides must stay within: `lr > 0`, `0 < rollout_top_p <= 1`, both timeouts 30–600 seconds, `max_prompt_length <= 8192`, `max_response_length <= 8192`.
+Overrides must stay within: `lr > 0`, `0 < rollout_top_p <= 1`, both timeouts 30–600 seconds, `max_prompt_length <= 8192`, `max_response_length <= 8192`. Remove `[checkpoints].eval_interval` if an existing config sets it; any value, including `0`, fails the run.
 
 ## Remote Rollout Sizing
 
