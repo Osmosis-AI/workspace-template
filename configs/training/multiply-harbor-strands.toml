@@ -16,7 +16,7 @@ dataset = "multiply"
 # lr = 1e-5
 # total_epochs = 1
 n_samples_per_prompt = 8
-rollout_batch_size = 16
+rollout_batch_size = 8
 # max_prompt_length = 8192
 # max_response_length = 8192
 # agent_workflow_timeout_s = 450
@@ -27,4 +27,4 @@ rollout_batch_size = 16
 # rollout_top_p = 1.0
 
 [checkpoints]
-# checkpoint_save_freq = 20
+checkpoint_save_freq = 10
