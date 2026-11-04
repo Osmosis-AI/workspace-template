@@ -29,8 +29,10 @@ Overrides must stay within: `lr > 0`, `0 < rollout_top_p <= 1`, both timeouts 30
 Remote Harbor/MCP-style rollout servers can time out if concurrency is too high. Effective concurrent policy calls are roughly:
 
 ```text
-rollout_batch_size * n_samples_per_prompt
+min(rollout_batch_size * n_samples_per_prompt, 32)
 ```
+
+A run executes at most 32 rollouts at once, and the rest wait in the trainer.
 
 Start conservatively:
 
