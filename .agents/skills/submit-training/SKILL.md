@@ -57,7 +57,7 @@ Commit and push the intended revision. Set `branch` to pin to a branch or `commi
 
 ### D. Training config completeness
 
-If the rollout was already created with `osmosis --json rollout init <name>` and `configs/training/<name>.toml` exists, edit that original config instead of creating a new training TOML. Only start from `configs/training/default.toml` when no rollout-specific training config exists; if it is missing, use `references/training-default.toml`. Ensure `[experiment]` has real `rollout`, `entrypoint`, `model_path`, and platform dataset name values; no `<your-...>` placeholders and no `dataset_id`. Include training config edits in the intended commit before submit. Read `references/training-config-gates.md` when editing training config fields, env/secrets, or remote rollout concurrency.
+If the rollout was already created with `osmosis --json rollout init <name>` and `configs/training/<name>.toml` exists, edit that original config instead of creating a new training TOML. Only start from `configs/training/default.toml` when no rollout-specific training config exists; if it is missing, use `references/training-default.toml`. Ensure `[experiment]` has real `rollout`, `entrypoint`, `model_path`, and platform dataset name values; no `<your-...>` placeholders and no `dataset_id`. Include training config edits in the intended commit before submit. Read `references/training-config-gates.md` when editing training config fields or env/secrets.
 
 ## Submit
 
