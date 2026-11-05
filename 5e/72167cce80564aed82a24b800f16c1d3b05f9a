@@ -1,0 +1,23 @@
+.agents/skills/submit-training/SKILL.md
+  s_477c015da74954::t_5d067e7b9f57df 60
+.agents/skills/submit-training/references/training-config-gates.md
+  s_477c015da74954::t_4d1ded4bdca0a0 3
+configs/AGENTS.md
+  s_477c015da74954::t_7b5bd23d2f3d38 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e72167cce80564aed82a24b800f16c1d3b05f9a",
+  "prompts": {},
+  "sessions": {
+    "s_477c015da74954": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bd780945-be5c-463d-8d7e-c18d5293658d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Allen Lin <allen@osmosis.ai>"
+    }
+  }
+}
