@@ -9,7 +9,6 @@ from pathlib import Path
 import uvicorn
 from harbor.models.environment_type import EnvironmentType
 from harbor.models.trial.config import EnvironmentConfig as HarborEnvironmentConfig
-from harbor.trial.queue import TrialQueue
 from multiply_rollout.grader import MultiplyGrader, multiply_grader_config
 from multiply_rollout.workflow import MultiplyWorkflow, multiply_workflow_config
 from osmosis_ai.rollout.backend.harbor import HarborBackend
@@ -25,13 +24,10 @@ elif os.environ.get("DAYTONA_API_KEY"):
     ENVIRONMENT_TYPE = EnvironmentType.DAYTONA
 else:
     ENVIRONMENT_TYPE = EnvironmentType.DOCKER
-CONCURRENT_TRIALS = 8
 
 
 def main() -> None:
-    orchestrator = TrialQueue(n_concurrent=CONCURRENT_TRIALS)
     backend = HarborBackend(
-        orchestrator=orchestrator,
         tasks_dir=ROLLOUT_DIR / "multiply_harbor_task",
         task_mode="template",
         agent=MultiplyWorkflow,

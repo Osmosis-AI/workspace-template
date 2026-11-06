@@ -29,7 +29,7 @@ Edit a rollout's existing generated config. Copy a default only when creating a 
 - Training `model_path` must be a supported base model; leave optional `[training]`, `[sampling]`, and `[checkpoints]` settings at their defaults unless deliberately overriding them.
 - Evaluation `model_path` is the LiteLLM-style name of the model under test; leave optional `[evaluation]` settings at their defaults unless deliberately overriding them.
 - A smoke eval can limit rows. Remove the limit for a formal full-size evaluation; do not shrink a run to improve its reported score. Training readiness and managed source checks belong to `submit-training`.
-- Read [training config gates](../.agents/skills/submit-training/references/training-config-gates.md) when tuning training fields or remote rollout concurrency. Local execution, tunnel selection, upload, and resume instructions belong to `evaluate-rollouts` and `submit-eval`.
+- Read [training config gates](../.agents/skills/submit-training/references/training-config-gates.md) when tuning training fields. Local execution, tunnel selection, upload, and resume instructions belong to `evaluate-rollouts` and `submit-eval`.
 
 ## Benchmarks
 

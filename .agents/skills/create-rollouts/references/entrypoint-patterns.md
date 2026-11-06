@@ -56,7 +56,6 @@ from pathlib import Path
 import uvicorn
 from harbor.models.environment_type import EnvironmentType
 from harbor.models.trial.config import EnvironmentConfig
-from harbor.trial.queue import TrialQueue
 
 from my_rollout.grader import MyGrader
 from my_rollout.workflow import MyWorkflow
@@ -76,7 +75,6 @@ else:
 
 def main() -> None:
     backend = HarborBackend(
-        orchestrator=TrialQueue(n_concurrent=4),
         tasks_dir=ROLLOUT_DIR / "task",
         task_mode="template",
         agent=MyWorkflow,
@@ -106,7 +104,7 @@ if __name__ == "__main__":
 
 The v0.3 Harbor backend builds a wheel from `code_dir` and installs it inside the task container. Keep `task/environment/Dockerfile` limited to task dependencies. `HarborBackendV2` and the old `task_dir=`, `user_code_dir=`, and `workflow=` arguments do not exist.
 
-The skeleton uses the platform's managed OpenSandbox for managed runs, which needs no sandbox secret, falls back to managed Daytona when only Daytona credentials are present, and uses the host Docker runtime for local `osmosis eval run`. OpenSandbox starts each trial from a prebuilt image, so set `docker_image` under `[environment]` in `task/task.toml` to an image that already has Python and the task's system packages. Require `osmosis-ai[harbor]>=0.3.7`, whose `harbor` extra includes OpenSandbox support and which routes OpenSandbox through the managed server proxy without extra environment kwargs. When the sandbox cannot reach this machine, `eval run` starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. To use your own Daytona account, select `EnvironmentType.DAYTONA` and list `DAYTONA_API_KEY` under `[secrets].required`.
+The skeleton uses the platform's managed OpenSandbox for managed runs, which needs no sandbox secret, falls back to managed Daytona when only Daytona credentials are present, and uses the host Docker runtime for local `osmosis eval run`. OpenSandbox starts each trial from a prebuilt image, so set `docker_image` under `[environment]` in `task/task.toml` to an image that already has Python and the task's system packages. Require `osmosis-ai[harbor]>=0.3.11,<0.4` for this example. The SDK routes managed OpenSandbox through the server proxy. Omit `orchestrator` to inherit the platform’s per-run trial limit, or run 8 trials at once when no limit is supplied. Set `TrialQueue(n_concurrent=N)` when a trial needs a lower cap; the server logs a warning if this reduces a platform-supplied limit. When the sandbox cannot reach this machine, `eval run` starts a `cloudflared` tunnel to the local model bridge automatically, so keep `cloudflared` on `PATH`. To use your own Daytona account, select `EnvironmentType.DAYTONA` and list `DAYTONA_API_KEY` under `[secrets].required`.
 
 ## Integration Rules
 
