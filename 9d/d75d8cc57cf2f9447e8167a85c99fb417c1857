@@ -1,0 +1,27 @@
+.agents/skills/evaluate-rollouts/references/eval-default.toml
+  s_0bd98c660e4699::t_8d9c244474711f 18
+configs/eval/default.toml
+  s_0bd98c660e4699::t_d0d3dad9266ea4 18
+configs/eval/multiply-harbor-strands.toml
+  s_0bd98c660e4699::t_670a6172ff79bd 20
+configs/eval/multiply-local-openai.toml
+  s_0bd98c660e4699::t_23f64e28bfc7fd 18
+configs/eval/multiply-local-strands.toml
+  s_0bd98c660e4699::t_b810553c20a4ff 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9dd75d8cc57cf2f9447e8167a85c99fb417c1857",
+  "prompts": {},
+  "sessions": {
+    "s_0bd98c660e4699": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1cbf0596-e315-44aa-a182-e8e4bdfc843a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Allen Lin <allen@osmosis.ai>"
+    }
+  }
+}
