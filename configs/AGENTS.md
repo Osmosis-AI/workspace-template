@@ -4,13 +4,13 @@ Use the root [workspace contract](../AGENTS.md) for authorization, workspace sco
 
 ## Templates and Paths
 
-| Config | Repository path | Bundled default | Workflow |
-| --- | --- | --- | --- |
-| Training | `configs/training/<name>.toml` | [training/default.toml](training/default.toml) | [submit-training](../.agents/skills/submit-training/SKILL.md) |
-| Evaluation | `configs/eval/<name>.toml` | [eval/default.toml](eval/default.toml) | [evaluate-rollouts](../.agents/skills/evaluate-rollouts/SKILL.md), [submit-eval](../.agents/skills/submit-eval/SKILL.md) |
-| Benchmark | `configs/benchmark/<name>.toml` | [benchmark/default.toml](benchmark/default.toml) | [submit-benchmarks](../.agents/skills/submit-benchmarks/SKILL.md) |
+| Config | Repository path | Bundled default |
+| --- | --- | --- |
+| Training | `configs/training/<name>.toml` | [training/default.toml](training/default.toml) |
+| Evaluation | `configs/eval/<name>.toml` | [eval/default.toml](eval/default.toml) |
+| Benchmark | `configs/benchmark/<name>.toml` | [benchmark/default.toml](benchmark/default.toml) |
 
-Edit a rollout's existing generated config. Copy a default only when creating a config without `rollout init` or repairing a missing file. If local defaults are missing, use the bundled [training fallback](../.agents/skills/submit-training/references/training-default.toml) or [eval fallback](../.agents/skills/evaluate-rollouts/references/eval-default.toml); do not invent schemas from memory. Eval/train paths are enforced by the CLI; benchmark paths above are a repository convention, and `benchmark submit` accepts any readable TOML path.
+Edit a rollout's existing generated config. Copy a default only when creating a config without `rollout init` or repairing a missing file; do not invent schemas from memory. Eval/train paths are enforced by the CLI; benchmark paths above are a repository convention, and `benchmark submit` accepts any readable TOML path.
 
 ## Environment and Secrets
 
@@ -28,8 +28,8 @@ Edit a rollout's existing generated config. Copy a default only when creating a 
 - `branch` and `commit_sha` are optional and mutually exclusive. Omit both for the connected repository's default branch; a pinned commit must be pushed before managed execution.
 - Training `model_path` must be a supported base model; leave optional `[training]`, `[sampling]`, and `[checkpoints]` settings at their defaults unless deliberately overriding them.
 - Evaluation `model_path` is the LiteLLM-style name of the model under test; leave optional `[evaluation]` settings at their defaults unless deliberately overriding them.
-- A smoke eval can limit rows. Remove the limit for a formal full-size evaluation; do not shrink a run to improve its reported score. Training readiness and managed source checks belong to `submit-training`.
-- Read [training config gates](../.agents/skills/submit-training/references/training-config-gates.md) when tuning training fields. Local execution, tunnel selection, upload, and resume instructions belong to `evaluate-rollouts` and `submit-eval`.
+- A smoke eval can limit rows. Remove the limit for a formal full-size evaluation; do not shrink a run to improve its reported score.
+- Keep training overrides within documented limits (`lr > 0`, `0 < rollout_top_p <= 1`, timeouts 30–600 seconds, `max_prompt_length <= 8192`, `max_response_length <= 8192`) and omit `[checkpoints].eval_interval` (any value, including `0`, fails the run).
 
 ## Benchmarks
 
@@ -40,11 +40,11 @@ Edit a rollout's existing generated config. Copy a default only when creating a 
 - Use the returned full task manifest. Difficulty is `easy`, `medium`, `hard`, or `null`; never infer a missing difficulty. Recommend `default_harness` for comparability with published scores and explain departures.
 - Omit `[tasks]` for all tasks, or choose one of `task_set`, `task_names`, and `categories`. `task_set = "parity"` overrides the other selectors, so remove ignored selectors. Prefer exact `task_names` for bounded runs; resolve categories to task counts before seeking approval.
 - Recommend parity for HLE comparability; intentional full or custom runs remain supported. Only full runs or leaderboard-eligible parity runs (currently HLE) rank; other subsets do not.
-- Use Osmosis fields such as `attempts_per_task` and `max_concurrent_attempts`, not Harbor config fields. The `submit-benchmarks` workflow owns trial-count review, approval, submission, and run management.
+- Use Osmosis fields such as `attempts_per_task` and `max_concurrent_attempts`, not Harbor config fields.
 
 ### Agents and Credentials
 
-- Include one or more `[[agents]]` entries, each with `[agents.model]`. Model type is `provider`, `endpoint`, or `hosted`; see `submit-benchmarks` and the default TOML for the complete model fields.
+- Include one or more `[[agents]]` entries, each with `[agents.model]`. Model type is `provider`, `endpoint`, or `hosted`; see [benchmark/default.toml](benchmark/default.toml) for the complete model fields.
 - Provider/endpoint models use `api_key_secret`. Hosted models use `base_model` and `lora_model_name` from `osmosis --json model list --type lora`, require an already-deployed model with the matching base, and take no `api_key_secret`. Deployment needs the user's explicit request.
 - `cursor-cli` requires `harness_api_key_secret = "CURSOR_API_KEY"`. Mini SWE-agent rejects `harness_api_key_secret` for every model type: provider/endpoint models reuse `api_key_secret` as `MSWEA_API_KEY`; hosted models receive no injected model key. Omit `harness_api_key_secret` for all other harnesses.
 - Match judge fields to catalog flags. If both `requires_judge_model` and `requires_judge_api_key` are true (HLE, GDPVal), require `judge_api_key_secret` and allow optional `judge_model`, defaulting to the catalog judge. If only the API key is required (BrowseComp), require an OpenAI key and reject `judge_model`. If neither flag is true, reject both fields.

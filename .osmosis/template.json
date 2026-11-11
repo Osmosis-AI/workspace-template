@@ -1,7 +1,5 @@
 {
   "overwriteManaged": [
-    ".agents/skills/**",
-    ".claude/skills/**",
     "configs/**",
     "data/**",
     "rollouts/**",
@@ -11,5 +9,25 @@
   ],
   "additive": [
     ".osmosis/template-ignore"
+  ],
+  "removeManaged": [
+    ".agents/skills/create-rollouts/**",
+    ".agents/skills/debug-rollouts/**",
+    ".agents/skills/deploy-models/**",
+    ".agents/skills/evaluate-rollouts/**",
+    ".agents/skills/plan-eval/**",
+    ".agents/skills/plan-training/**",
+    ".agents/skills/submit-benchmarks/**",
+    ".agents/skills/submit-eval/**",
+    ".agents/skills/submit-training/**",
+    ".claude/skills/create-rollouts",
+    ".claude/skills/debug-rollouts",
+    ".claude/skills/deploy-models",
+    ".claude/skills/evaluate-rollouts",
+    ".claude/skills/plan-eval",
+    ".claude/skills/plan-training",
+    ".claude/skills/submit-benchmarks",
+    ".claude/skills/submit-eval",
+    ".claude/skills/submit-training"
   ]
 }
