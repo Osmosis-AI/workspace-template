@@ -253,19 +253,7 @@ Deployed models serve an OpenAI-compatible API at `https://inference.osmosis.ai/
 
 ## AI-Assisted Workflow
 
-This workspace includes project-local Agent Skills in `.agents/skills/`:
-
-- `plan-training`
-- `plan-eval`
-- `create-rollouts`
-- `evaluate-rollouts`
-- `debug-rollouts`
-- `submit-training`
-- `submit-eval`
-- `submit-benchmarks`
-- `deploy-models`
-
-`AGENTS.md` contains the always-loaded workspace contract. `CLAUDE.md` imports that contract for Claude Code, and `.claude/skills/<skill-name>` symlinks expose the same skills while pointing back to the canonical `.agents` directories.
+`AGENTS.md` contains the always-loaded workspace contract, and `CLAUDE.md` imports it for Claude Code. Install the [Osmosis agent plugin](https://github.com/Osmosis-AI/osmosis-plugin) to add the Osmosis workflow skills and documentation connection to your coding agent.
 
 A useful initial prompt for a coding agent:
 

@@ -1,36 +1,24 @@
 # Osmosis Workspace Repository
 
-This clone contains the workspace instructions, skills, rollout examples, and config templates needed to work with its linked Osmosis platform workspace. Use [README.md](README.md) for setup and CLI examples; no personal agent configuration is required.
+This clone contains the workspace instructions, rollout examples, and config templates needed to work with its linked Osmosis platform workspace. Use [README.md](README.md) for setup and CLI examples; `CLAUDE.md` imports this file for Claude Code.
 
 ## Workspace Contract
 
 - Keep rollouts in `rollouts/<name>/`, evaluation configs in `configs/eval/`, training configs in `configs/training/`, and local datasets in `data/`. Repository-managed benchmark configs belong in `configs/benchmark/`, although `benchmark submit` accepts any readable TOML path. Do not introduce other top-level directories unless the user asks.
-- Prefer the installed CLI and SDK-generated files over remembered examples. Use `osmosis --json rollout init <name>` for a new rollout; edit its generated configs rather than replacing them with defaults. Use bundled defaults or skill fallback references only when the needed config is missing.
+- Prefer the installed CLI and SDK-generated files over remembered examples. Use `osmosis --json rollout init <name>` for a new rollout; edit its generated configs rather than replacing them with defaults. Use the bundled defaults under `configs/` only when the needed config is missing.
 - Use `osmosis --json doctor` to diagnose workspace setup; `doctor --fix` repairs missing scaffold directories. Setup and scaffold repair are not prerequisites for unrelated documentation edits.
 - Read [configs/AGENTS.md](configs/AGENTS.md) when creating or changing configs. Never write secret values into TOML.
 - `.osmosis/` contains local state, not source. Use `.osmosis/research/program.md` when present; a fresh clone need not contain a research plan or past run artifacts.
 
-## Choose the Relevant Skill
+## Skills
 
-The canonical skills ship in `.agents/skills/`. Read the skill for the requested work, not every workflow. `CLAUDE.md` imports this file, and `.claude/skills/` symlinks expose the same skills to Claude Code.
-
-| Task | Skill |
-| --- | --- |
-| Define a training goal and dataset plan | [plan-training](.agents/skills/plan-training/SKILL.md) |
-| Define an evaluation plan | [plan-eval](.agents/skills/plan-eval/SKILL.md) |
-| Create or adapt rollout code, graders, and entrypoints | [create-rollouts](.agents/skills/create-rollouts/SKILL.md) |
-| Run local smoke tests and iterate | [evaluate-rollouts](.agents/skills/evaluate-rollouts/SKILL.md) |
-| Diagnose startup, config, execution, or grading failures | [debug-rollouts](.agents/skills/debug-rollouts/SKILL.md) |
-| Perform a settled full-size evaluation | [submit-eval](.agents/skills/submit-eval/SKILL.md) |
-| Prepare or submit training after evaluation | [submit-training](.agents/skills/submit-training/SKILL.md) |
-| Configure or manage benchmark runs | [submit-benchmarks](.agents/skills/submit-benchmarks/SKILL.md) |
-| Deploy, undeploy, or query an inference model | [deploy-models](.agents/skills/deploy-models/SKILL.md) |
+Osmosis workflow skills live in [Osmosis-AI/osmosis-plugin](https://github.com/Osmosis-AI/osmosis-plugin). Use an installed Osmosis skill when it matches the task; if the skills are not installed yet, confirm with the user before installing them from `https://github.com/Osmosis-AI/osmosis-plugin` following its installation instructions.
 
 ## Rollout and Evaluation Boundaries
 
 - Use one dataset schema throughout: metadata mode (a non-empty `metadata` object on every row) or prompt mode (`user_prompt` and `ground_truth`, with optional `system_prompt`). Configs name platform datasets; local evaluation can explicitly select a file with `--dataset-file`.
 - A rollout exposes one concrete `AgentWorkflow` and one concrete `Grader` from the configured entrypoint inside `rollouts/<name>/`; `main.py` is only the scaffold default. Each execution produces one sample, and its async grader assigns a reward in `[0.0, 1.0]`. Policy calls must use the active Osmosis rollout context.
-- Follow `create-rollouts` for SDK output shapes, sample sources, tools, and Harbor packaging. Read its [entrypoint patterns](.agents/skills/create-rollouts/references/entrypoint-patterns.md) when writing or debugging the server; it must use `create_rollout_server` and listen on `_OSMOSIS_ROLLOUT_PORT` (default `8000`).
+- The rollout entrypoint must build its server with `create_rollout_server` and listen on `0.0.0.0` and `_OSMOSIS_ROLLOUT_PORT` (default `8000`); see `rollouts/multiply-*/` or the `create-rollouts` skill for SDK sample sources, integrations, and Harbor packaging.
 - `eval run` uses files on disk and the configured backend. Keep that backend; Daytona, other Harbor cloud environments, and model-calling Harbor Docker on Linux need `cloudflared` on `PATH` for the automatic tunnel. Local `--dataset-file` execution without `--upload` requires no platform credentials; platform datasets and uploads require authenticated workspace context.
 - Re-run only the ungraded samples of an existing run with `eval run --name <run-name> --retry-failed`; successes carry forward, and `--upload` replaces that run's published results instead of creating a second run. A managed run retries with `eval retry <run-name>`, which keeps its ID and configuration. A run that supplied secret values at submit time needs them again on retry; the platform names them and the CLI resolves them from `--secrets-file`, the environment, or a prompt.
 - Uploading a completed local evaluation publishes evidence; it does not execute a managed evaluation or prove Git sync. Before training, require a passing full-size managed `eval submit` on the intended revision, dataset, and config. Changes that affect that result require a fresh evaluation.
