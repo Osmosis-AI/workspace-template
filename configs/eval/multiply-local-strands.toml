@@ -15,7 +15,7 @@ dataset = "multiply"
 # Optional. Omit values to use defaults for the selected execution mode.
 # limit = 200 # First N rows; local omit runs all, managed omit samples.
 # n = 1
-# batch_size = 1
+# max_concurrent_attempts = 8
 # pass_threshold = 1.0
 # agent_workflow_timeout_s = 450
 # grader_timeout_s = 150
